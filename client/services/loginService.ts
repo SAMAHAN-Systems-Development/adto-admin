@@ -1,12 +1,19 @@
-import { _post } from "../client";
+import { BASE_URL } from "../config";
 import { AdminLoginDto } from "../types/dto/admin-login.type";
 
-const loginAdmin = async (loginData: AdminLoginDto) => {
-  const response = await _post<unknown, AdminLoginDto>(
-    "/api/auth/login/admin",
-    loginData
-  );
-  return response.data;
-};
+export const loginClientUser = async (loginData: AdminLoginDto) => {
+  const response = await fetch(`${BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(loginData),
+  });
 
-export { loginAdmin };
+  if (!response.ok) {
+    throw new Error("Login failed");
+  }
+
+  const data = await response.json();
+  return data;
+};
