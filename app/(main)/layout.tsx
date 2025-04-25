@@ -1,7 +1,6 @@
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import type { Metadata } from "next";
-import "./globals.css";
-import { ReactQueryClientProvider } from "@/client/react-query/react-query";
-
 
 export const metadata: Metadata = {
     title: "ADTO Admin Side",
@@ -14,12 +13,15 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <ReactQueryClientProvider>
-            <body
-                className={`antialiased`}
-            >
-                {children}
-            </body>
-        </ReactQueryClientProvider>
+
+        <div
+            className={`antialiased`}
+        >
+            <SidebarProvider>
+
+                <AppSidebar />
+                <main>{children}</main>
+            </SidebarProvider>
+        </div>
     );
 }
