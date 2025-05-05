@@ -26,31 +26,34 @@ export type Organizations = {
 export const columns: ColumnDef<Organizations>[] = [
 	{
 		id: "select",
-		header: ({table}) => (
-			<div className="flex items-center justify-center">
-				<Checkbox
-					checked={
-						table.getIsAllRowsSelected() ||
-						(table.getIsSomeRowsSelected() && "indeterminate")
-					}
-					onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
-					aria-label="Select all"
-					className=" rounded-sm shadow-none border-secondary"
-				/>
-			</div>
-		),
+		header: ({table}) => {
+			const isAllSelected = table.getIsAllPageRowsSelected();
+			const isSomeSelected = table.getIsSomePageRowsSelected();
+
+			return (
+				<div className="flex items-center justify-center">
+					<Checkbox
+						checked={isAllSelected}
+						indeterminate={isSomeSelected && !isAllSelected}
+						onCheckedChange={() =>
+							table.toggleAllPageRowsSelected(!isAllSelected)
+						}
+						aria-label="Select all"
+						className="border-secondary"
+					/>
+				</div>
+			);
+		},
 		cell: ({row}) => (
 			<div className="flex items-center justify-center">
 				<Checkbox
 					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
+					onCheckedChange={() => row.toggleSelected(!row.getIsSelected())}
 					aria-label="Select row"
-					className=" rounded-sm shadow-none border-secondary	"
+					className="border-secondary"
 				/>
 			</div>
 		),
-		enableSorting: false,
-		enableHiding: false,
 	},
 	{
 		accessorKey: "name",

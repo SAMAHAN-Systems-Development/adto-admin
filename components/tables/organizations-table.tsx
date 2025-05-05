@@ -28,6 +28,8 @@ export function OrganizatonTable<TData, TValue>({
 	columns,
 	data,
 }: DataTableProps<TData, TValue>) {
+	console.log("TABLE MOUNTED"); // 👈 Should appear ONCE when component loads
+
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
@@ -45,6 +47,7 @@ export function OrganizatonTable<TData, TValue>({
 			rowSelection,
 		},
 	});
+
 	return (
 		<div className="rounded-2xl border border-secondary w-full overflow-hidden">
 			<Table>
