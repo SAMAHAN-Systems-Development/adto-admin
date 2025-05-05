@@ -2,6 +2,7 @@
 import * as React from "react";
 import {
 	ColumnDef,
+	RowSelectionState,
 	SortingState,
 	flexRender,
 	getCoreRowModel,
@@ -16,6 +17,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import {} from "@/components/ui/checkbox";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -27,6 +29,7 @@ export function OrganizatonTable<TData, TValue>({
 	data,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
 	const table = useReactTable({
 		data,
@@ -34,19 +37,32 @@ export function OrganizatonTable<TData, TValue>({
 		getCoreRowModel: getCoreRowModel(),
 		onSortingChange: setSorting,
 		getSortedRowModel: getSortedRowModel(),
+		onRowSelectionChange: setRowSelection,
+		enableRowSelection: true,
+
 		state: {
 			sorting,
+			rowSelection,
 		},
 	});
 	return (
-		<div className="rounded-md border w-full">
+		<div className="rounded-2xl border border-secondary w-full overflow-hidden">
 			<Table>
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
-						<TableRow key={headerGroup.id}>
+						<TableRow
+							key={headerGroup.id}
+							className="bg-slate-200  border-secondary"
+						>
 							{headerGroup.headers.map((header) => {
+								const isCheckboxColumn = header.id === "select";
 								return (
-									<TableHead key={header.id}>
+									<TableHead
+										key={header.id}
+										className={`text-secondary border-secondary font-normal ${
+											isCheckboxColumn ? "w-12" : ""
+										}`}
+									>
 										{header.isPlaceholder
 											? null
 											: flexRender(
@@ -63,14 +79,26 @@ export function OrganizatonTable<TData, TValue>({
 					{table.getRowModel().rows?.length ? (
 						table.getRowModel().rows.map((row) => (
 							<TableRow
+								className={`border-secondary text-center ${
+									row.getIsSelected() ? "bg-gray-100" : ""
+								}`}
 								key={row.id}
 								data-state={row.getIsSelected() && "selected"}
 							>
-								{row.getVisibleCells().map((cell) => (
-									<TableCell key={cell.id}>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</TableCell>
-								))}
+								{row.getVisibleCells().map((cell) => {
+									const isCheckboxColumn = cell.column.id === "select";
+									return (
+										<TableCell
+											key={cell.id}
+											className={isCheckboxColumn ? "w-12" : ""}
+										>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext()
+											)}
+										</TableCell>
+									);
+								})}
 							</TableRow>
 						))
 					) : (

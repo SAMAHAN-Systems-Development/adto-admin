@@ -1,55 +1,98 @@
 "use client";
 
 import {ColumnDef} from "@tanstack/react-table";
-import {Ellipsis, ArrowUpDown} from "lucide-react";
+import {Ellipsis, ArrowUpDown, Circle} from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuLabel,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
+import {Checkbox} from "@/components/ui/checkbox";
 
 export type Organizations = {
 	name: string;
 	acronym: string;
 	email: string;
 	orgEvents: number;
-	status: "Enabled" | "Disabled";
+	/**
+	 * TODO: REPLACE COLOR WITH ACTUAL ORG PICTURES
+	 * !PLACEHOLDER FOR NOW
+	 * **/
+	color?: string;
 };
 export const columns: ColumnDef<Organizations>[] = [
+	{
+		id: "select",
+		header: ({table}) => (
+			<div className="flex items-center justify-center">
+				<Checkbox
+					checked={
+						table.getIsAllRowsSelected() ||
+						(table.getIsSomeRowsSelected() && "indeterminate")
+					}
+					onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
+					aria-label="Select all"
+					className=" rounded-sm shadow-none border-secondary"
+				/>
+			</div>
+		),
+		cell: ({row}) => (
+			<div className="flex items-center justify-center">
+				<Checkbox
+					checked={row.getIsSelected()}
+					onCheckedChange={(value) => row.toggleSelected(!!value)}
+					aria-label="Select row"
+					className=" rounded-sm shadow-none border-secondary	"
+				/>
+			</div>
+		),
+		enableSorting: false,
+		enableHiding: false,
+	},
 	{
 		accessorKey: "name",
 		header: ({column}) => {
 			return (
 				<Button
 					variant={"ghost"}
+					className="p-0 ml-3"
 					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 				>
-					<ArrowUpDown className="ml-2 h-4 w-4" />
-					Name
+					Organization Name
+					<ArrowUpDown />
 				</Button>
+			);
+		},
+		cell: ({row}) => {
+			const org = row.original;
+			return (
+				<div className="flex items-center space-x-2 ml-2">
+					<Circle
+						className="h-6 w-6"
+						fill={org.color}
+						color={org.color}
+					/>
+					<span>{org.name}</span>
+				</div>
 			);
 		},
 	},
 	{
 		accessorKey: "acronym",
-		header: "Acronym",
+		header: ({}) => <div className="text-center">Acronym</div>,
 	},
 	{
 		accessorKey: "email",
-		header: "Email Address",
+		header: ({}) => <div className="text-center">Email Address</div>,
 	},
 	{
 		accessorKey: "orgEvents",
-		header: "No. of events",
+		header: ({}) => <div className="text-center">No. of Events</div>,
 	},
-	{
-		accessorKey: "status",
-		header: "Status",
-	},
+
 	{
 		id: "actions",
 		cell({}) {
@@ -58,17 +101,19 @@ export const columns: ColumnDef<Organizations>[] = [
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="ghost"
-							className="h-8 w-8 p-0 ml-10"
+							className="h-8 w-8 p-0 "
 						>
 							<Ellipsis className="h-4 w-4" />
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						<DropdownMenuLabel className="">Actions</DropdownMenuLabel>
+					<DropdownMenuContent
+						align="end"
+						className="border-secondary text-secondary"
+					>
+						<DropdownMenuLabel>Actions</DropdownMenuLabel>
 						<DropdownMenuItem>View Details</DropdownMenuItem>
-						<DropdownMenuSeparator />
 						<DropdownMenuItem>Edit</DropdownMenuItem>
-						<DropdownMenuItem>VArchive</DropdownMenuItem>
+						<DropdownMenuItem>Archive</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);
