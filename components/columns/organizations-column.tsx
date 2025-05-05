@@ -45,12 +45,12 @@ export const columns: ColumnDef<Organizations>[] = [
 			);
 		},
 		cell: ({row}) => (
-			<div className="flex items-center justify-center">
+			<div className="flex items-center justify-center ">
 				<Checkbox
 					checked={row.getIsSelected()}
 					onCheckedChange={() => row.toggleSelected(!row.getIsSelected())}
 					aria-label="Select row"
-					className="border-secondary"
+					className="border-secondary text-secondary"
 				/>
 			</div>
 		),
