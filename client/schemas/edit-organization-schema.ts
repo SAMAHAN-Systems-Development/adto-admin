@@ -7,7 +7,7 @@ export const orgSchema = z.object({
     acronym: z.string().min(2, {
         message: "Acronym must be at least 2 characters.",
     }),
-    icon: z.string().optional(),
+    icon: z.string().url().or(z.string().startsWith("data:image")),
     links: z
         .object({
             facebook: z.string().url().optional().or(z.literal("")),
