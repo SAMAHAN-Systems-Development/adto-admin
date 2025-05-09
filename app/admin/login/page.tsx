@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { loginClientUser } from '@/client/services/loginService'
 
 // Login form schema
 const formSchema = z.object({
@@ -21,7 +23,15 @@ const formSchema = z.object({
 
 export default function AdminLogin() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const [showLoginModal, setShowLoginModal] = useState(false)
     const [authError, setAuthError] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (searchParams.get('reason') === 'auth') {
+            setShowLoginModal(true)
+        }
+    }, [searchParams])
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -32,25 +42,41 @@ export default function AdminLogin() {
     })
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        setAuthError(null)
         try {
-            // TODO: Implement actual authentication when backend is available
-            console.log('Login attempt:', values);
+            const response = await loginClientUser(values)
 
-            setAuthError(null);
-
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Placeholder for successful login
-            router.push('/admin/dashboard');
-
+            if (response.auth_token) {
+                localStorage.setItem('auth_token', response.auth_token)
+                router.push('/admin/test') //Change to the desired route after login
+            } else {
+                setAuthError('Authentication failed')
+            }
         } catch (error) {
-            setAuthError('An error occurred. Please try again.');
-            console.error('Login error:', error);
+            if (error instanceof Error) {
+                if (error.message === 'Login failed') {
+                    setAuthError('Invalid email or password')
+                } else if (error.message.includes('500')) {
+                    setAuthError('Server error. Please try again later.')
+                } else {
+                    setAuthError('Authentication failed. Please try again.')
+                }
+            } else {
+                setAuthError('An unexpected error occurred')
+            }
+            console.error('Login error:', error)
         }
     }
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Please log in to continue</DialogTitle>
+                    </DialogHeader>
+                </DialogContent>
+            </Dialog>
             <Card className="w-full max-w-md rounded-[34px] shadow-lg">
                 <CardHeader className="flex flex-col items-center space-y-2 pb-2">
                     <div className="flex flex-col items-center">
