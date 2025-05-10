@@ -233,14 +233,19 @@ export default function EditOrganization({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>No, stay here</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmCancel}>
+                <AlertDialogAction
+                  className="bg-secondary-100"
+                  onClick={handleConfirmCancel}
+                >
                   Yes, leave
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
 
-          <Button type="submit">Save Changes</Button>
+          <Button className="bg-secondary-100" type="submit">
+            Save Changes
+          </Button>
         </div>
       </form>
     </Form>
