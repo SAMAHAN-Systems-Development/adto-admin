@@ -27,7 +27,7 @@ import {
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
 import { useState } from "react";
-import { ImageUpload } from "../ui/image-upload";
+import { ImageUpload } from "../image-upload";
 import { orgSchema } from "@/client/schemas/edit-organization-schema";
 
 type FormValues = z.infer<typeof orgSchema>;
