@@ -45,9 +45,7 @@ export default function AdminLogin() {
         setAuthError(null)
         try {
             const response = await loginClientUser(values)
-
             if (response.auth_token) {
-                localStorage.setItem('auth_token', response.auth_token)
                 router.push('/admin/test') //Change to the desired route after login
             } else {
                 setAuthError('Authentication failed')
