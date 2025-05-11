@@ -1,8 +1,10 @@
+import EditEvent from "@/components/EditEventPage/editevent";
+import { Divide } from "lucide-react";
 
 export default function Home() {
   return (
     <div>
-      Admin Side
+      <EditEvent></EditEvent>
     </div>
   );
 }
