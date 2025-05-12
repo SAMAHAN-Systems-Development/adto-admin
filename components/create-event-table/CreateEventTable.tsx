@@ -142,7 +142,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 				</Button>
 			);
 		},
-		cell: ({ row }) => <div className="lowercase">{row.getValue("date")}</div>,
+		cell: ({ row }) => <div className="capitalize">{row.getValue("date")}</div>,
 	},
 	{
 		accessorKey: "registration",
