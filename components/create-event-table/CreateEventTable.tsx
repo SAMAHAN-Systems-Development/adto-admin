@@ -19,7 +19,8 @@ import {
 	MoreHorizontal,
 	CircleCheck,
 	CircleX,
-	Plus,
+	CirclePlus,
+	ChevronsLeftRight,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -221,7 +222,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 					<div className="bg-secondary-400 rounded-full w-5 h-5" />
 					<div className="flex flex-col gap-">
 						<h3 className="capitalize">{row.getValue("name")}</h3>
-						<h4>{row.original.events} events</h4>
+						<h4 className="text-sm font-light">{row.original.events} events</h4>
 					</div>
 				</div>
 			);
@@ -251,7 +252,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 				>
 					Registration Status
-					<ArrowUpDown />
+					<ChevronsLeftRight />
 				</Button>
 			);
 		},
@@ -264,7 +265,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 					) : (
 						<CircleCheck size={24} fill="var(--secondary-300)" stroke="white" />
 					)}
-					<div className="lowercase">{registration}</div>
+					<div className="capitalize">{registration}</div>
 				</div>
 			);
 		},
@@ -301,16 +302,13 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 							<MoreHorizontal />
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						<DropdownMenuLabel>Actions</DropdownMenuLabel>
-						<DropdownMenuItem
-							onClick={() => navigator.clipboard.writeText(payment.id)}
-						>
-							Copy payment ID
-						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem>View customer</DropdownMenuItem>
-						<DropdownMenuItem>View payment details</DropdownMenuItem>
+					<DropdownMenuContent
+						align="end"
+						className="text-secondary-400 border border-secondary-400"
+					>
+						<DropdownMenuItem>View Edits</DropdownMenuItem>
+						<DropdownMenuItem>Details</DropdownMenuItem>
+						<DropdownMenuItem>Archive</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);
@@ -349,9 +347,9 @@ export function CreateEventTable() {
 	return (
 		<div className="w-full">
 			<div className="flex items-center py-4 justify-between">
-				<h1>My Events</h1>
-				<Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg flex items-center gap-2">
-					<Plus className="h-5 w-5" />
+				<h1 className="text-3xl text-secondary-400 font-semibold">My Events</h1>
+				<Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md flex items-center gap-2">
+					<CirclePlus fill="white" stroke="var(--secondary-400)" />
 					Add Event
 				</Button>
 			</div>
