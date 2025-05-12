@@ -160,7 +160,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 		cell: ({ row }) => {
 			const registration: string = row.getValue("registration");
 			return (
-				<div className="flex flex-row gap-1 items-center justify-center">
+				<div className="flex flex-row gap-1 items-center max-md:justify-center">
 					{registration === "Close" ? (
 						<CircleX size={24} fill="var(--destructive)" stroke="white" />
 					) : (
