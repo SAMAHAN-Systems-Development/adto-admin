@@ -13,7 +13,12 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import {
+	ArrowUpDown,
+	ChevronDown,
+	MoreHorizontal,
+	CircleCheck,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,7 +31,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
 	Table,
 	TableBody,
@@ -208,7 +212,18 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 				</Button>
 			);
 		},
-		cell: ({ row }) => <div className="capitalize">{row.getValue("name")}</div>,
+		cell: ({ row }) => {
+			console.log(row.original);
+			return (
+				<div className="flex flex-row gap-2 items-center">
+					<div className="bg-secondary-400 rounded-full w-5 h-5" />
+					<div className="flex flex-col gap-">
+						<h3 className="capitalize">{row.getValue("name")}</h3>
+						<h4>{row.original.events} events</h4>
+					</div>
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "date",
@@ -240,7 +255,16 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 		},
 		cell: ({ row }) => {
 			// console.log(row);
-			return <div className="capitalize">{row.getValue("registration")}</div>;
+			return (
+				<div className="flex flex-row gap-1">
+					<CircleCheck
+						size={24}
+						fill="black" // Black background
+						stroke="white" // White checkmark
+					/>
+					<div className="lowercase">{row.getValue("registration")}</div>
+				</div>
+			);
 		},
 		// cell: ({ row }) => (
 		// 	<div className="lowercase">{row.getValue("registration")}</div>
