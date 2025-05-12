@@ -18,6 +18,8 @@ import {
 	ChevronDown,
 	MoreHorizontal,
 	CircleCheck,
+	CircleX,
+	Plus,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -254,28 +256,34 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			// console.log(row);
+			const registration: string = row.getValue("registration");
 			return (
-				<div className="flex flex-row gap-1">
-					<CircleCheck
-						size={24}
-						fill="black" // Black background
-						stroke="white" // White checkmark
-					/>
-					<div className="lowercase">{row.getValue("registration")}</div>
+				<div className="flex flex-row gap-1 items-center">
+					{registration === "Close" ? (
+						<CircleX size={24} fill="var(--destructive)" stroke="white" />
+					) : (
+						<CircleCheck size={24} fill="var(--secondary-300)" stroke="white" />
+					)}
+					<div className="lowercase">{registration}</div>
 				</div>
 			);
 		},
-		// cell: ({ row }) => (
-		// 	<div className="lowercase">{row.getValue("registration")}</div>
-		// ),
 	},
 	{
 		accessorKey: "status",
 		header: () => <div className="text-right">Event Status</div>,
 		cell: ({ row }) => {
+			const status: string = row.getValue("status");
+			const statusColor =
+				status === "Approved"
+					? "var(--secondary-400)"
+					: status === "Rejected"
+					? "var(--destructive)"
+					: "black";
 			return (
-				<div className="text-right font-medium">{row.getValue("status")}</div>
+				<div className="text-right font-medium" style={{ color: statusColor }}>
+					{status}
+				</div>
 			);
 		},
 	},
@@ -340,8 +348,12 @@ export function CreateEventTable() {
 
 	return (
 		<div className="w-full">
-			<div className="flex items-center py-4">
+			<div className="flex items-center py-4 justify-between">
 				<h1>My Events</h1>
+				<Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg flex items-center gap-2">
+					<Plus className="h-5 w-5" />
+					Add Event
+				</Button>
 			</div>
 			<div className="rounded-xl border border-secondary-400 overflow-hidden">
 				<Table>
