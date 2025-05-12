@@ -189,7 +189,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 				}
 				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
 				aria-label="Select all"
-				className="border border-secondary-400"
+				className="border border-secondary-200"
 			/>
 		),
 		cell: ({ row }) => (
@@ -197,7 +197,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 				checked={row.getIsSelected()}
 				onCheckedChange={(value) => row.toggleSelected(!!value)}
 				aria-label="Select row"
-				className="border border-secondary-400"
+				className="border border-secondary-200"
 			/>
 		),
 		enableSorting: false,
@@ -223,7 +223,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 					<Circle fill="var(--secondary-400)" stroke="var(--secondary-400)" />
 					<div className="flex flex-col gap-">
 						<h3 className="capitalize">{row.getValue("name")}</h3>
-						<h4 className="text-sm font-light">{row.original.events} events</h4>
+						<h4 className="text-xs font-light">{row.original.events} events</h4>
 					</div>
 				</div>
 			);
@@ -260,7 +260,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 		cell: ({ row }) => {
 			const registration: string = row.getValue("registration");
 			return (
-				<div className="flex flex-row gap-1 items-center">
+				<div className="flex flex-row gap-1 items-center justify-center">
 					{registration === "Close" ? (
 						<CircleX size={24} fill="var(--destructive)" stroke="white" />
 					) : (
@@ -278,12 +278,15 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 			const status: string = row.getValue("status");
 			const statusColor =
 				status === "Approved"
-					? "var(--secondary-400)"
+					? "var(--secondary-200)"
 					: status === "Rejected"
 					? "var(--destructive)"
 					: "black";
 			return (
-				<div className="text-right font-medium" style={{ color: statusColor }}>
+				<div
+					className="text-right font-medium flex justify-center"
+					style={{ color: statusColor }}
+				>
 					{status}
 				</div>
 			);
@@ -305,7 +308,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
 						align="end"
-						className="text-secondary-400 border border-secondary-400"
+						className="text-secondary-200 border border-secondary-200"
 					>
 						<DropdownMenuItem>View Edits</DropdownMenuItem>
 						<DropdownMenuItem>Details</DropdownMenuItem>
@@ -348,20 +351,23 @@ export function CreateEventTable() {
 	return (
 		<div className="w-full">
 			<div className="flex items-center py-4 justify-between">
-				<h1 className="text-3xl text-secondary-400 font-semibold">My Events</h1>
-				<Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md flex items-center gap-2">
-					<CirclePlus fill="white" stroke="var(--secondary-400)" />
+				<h1 className="text-3xl text-secondary-200 font-semibold">My Events</h1>
+				<Button className="bg-secondary-300 hover:bg-secondary-300 text-white font-medium rounded-md flex items-center gap-2">
+					<CirclePlus fill="white" stroke="var(--secondary-300)" />
 					Add Event
 				</Button>
 			</div>
-			<div className="rounded-xl border border-secondary-400 overflow-hidden">
+			<div className="rounded-xl border border-secondary-200 overflow-hidden">
 				<Table>
-					<TableHeader className="bg-muted text-secondary-400">
+					<TableHeader className="bg-muted text-secondary-200 ">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
 									return (
-										<TableHead key={header.id} className="text-secondary-400">
+										<TableHead
+											key={header.id}
+											className="text-secondary-200 border-b border-secondary-200"
+										>
 											{header.isPlaceholder
 												? null
 												: flexRender(
@@ -380,6 +386,7 @@ export function CreateEventTable() {
 								<TableRow
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}
+									className="border-b border-secondary-200"
 								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell key={cell.id}>
