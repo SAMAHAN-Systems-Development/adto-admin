@@ -19,6 +19,7 @@ import {
 	MoreHorizontal,
 	CircleCheck,
 	CircleX,
+	Circle,
 	CirclePlus,
 	ChevronsLeftRight,
 } from "lucide-react";
@@ -219,7 +220,7 @@ export const columns: ColumnDef<AteneoEvent>[] = [
 			console.log(row.original);
 			return (
 				<div className="flex flex-row gap-2 items-center">
-					<div className="bg-secondary-400 rounded-full w-5 h-5" />
+					<Circle fill="var(--secondary-400)" stroke="var(--secondary-400)" />
 					<div className="flex flex-col gap-">
 						<h3 className="capitalize">{row.getValue("name")}</h3>
 						<h4 className="text-sm font-light">{row.original.events} events</h4>
