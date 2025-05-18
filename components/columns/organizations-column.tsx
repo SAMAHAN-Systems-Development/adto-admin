@@ -21,7 +21,7 @@ export type Organizations = {
 	 * TODO: REPLACE COLOR WITH ACTUAL ORG PICTURES
 	 * !PLACEHOLDER FOR NOW
 	 * **/
-	color?: string;
+	icon?: string;
 };
 export const columns: ColumnDef<Organizations>[] = [
 	{
@@ -61,7 +61,7 @@ export const columns: ColumnDef<Organizations>[] = [
 			return (
 				<Button
 					variant={"ghost"}
-					className="p-0 ml-3"
+					className="p-0 ml-4 hover:bg-transparent"
 					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 				>
 					Organization Name
@@ -75,8 +75,7 @@ export const columns: ColumnDef<Organizations>[] = [
 				<div className="flex items-center space-x-2 ml-2">
 					<Circle
 						className="h-6 w-6"
-						fill={org.color}
-						color={org.color}
+						fill={org.icon}
 					/>
 					<span>{org.name}</span>
 				</div>

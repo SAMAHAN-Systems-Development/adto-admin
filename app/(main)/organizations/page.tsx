@@ -2,7 +2,7 @@ import {
 	Organizations,
 	columns,
 } from "@/components/columns/organizations-column";
-import {OrganizatonTable} from "@/components/tables/organizations-table";
+import {DataTable} from "@/components/ui/data-table"; // Import DataTable instead
 import {Button} from "@/components/ui/button";
 import {CirclePlusIcon} from "lucide-react";
 
@@ -14,21 +14,21 @@ async function getData(): Promise<Organizations[]> {
 			acronym: "SYSDEV",
 			email: "samahan.sd@addu.edu.ph",
 			orgEvents: 2,
-			color: "#0000FF",
+			icon: "#0000FF",
 		},
 		{
 			name: "Organization X",
 			acronym: "ORGX",
 			email: "orgx@gmail.com",
 			orgEvents: 0,
-			color: "#FF0000",
+			icon: "#FF0000",
 		},
 		{
 			name: "Organization Y",
 			acronym: "hehe",
 			email: "org-oops!@gmail.com",
 			orgEvents: 0,
-			color: "#00FF00",
+			icon: "#00FF00",
 		},
 	];
 }
@@ -41,7 +41,7 @@ export default async function OrganizationsPage() {
 			<h1 className="font-medium text-5xl ml-6">Organizations</h1>
 			<div className="flex flex-row justify-end items-end mb-5">
 				<Button
-					className="bg-secondary "
+					className="bg-secondary"
 					variant={"default"}
 				>
 					<CirclePlusIcon />
@@ -49,10 +49,14 @@ export default async function OrganizationsPage() {
 					{/* Add Onclick event for organization creation */}
 				</Button>
 			</div>
-			<OrganizatonTable
-				columns={columns}
-				data={data}
-			/>
+
+			<div className="rounded-2xl border border-secondary w-full overflow-hidden [&_tr]:border-secondary [&_tr]:text-center">
+				<DataTable
+					enableSorting={true}
+					columns={columns}
+					data={data}
+				/>
+			</div>
 		</div>
 	);
 }
