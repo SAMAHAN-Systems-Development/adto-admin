@@ -1,7 +1,7 @@
 "use client";
-
 import * as React from "react";
 import { useState } from "react";
+import { EditEventSchema, EditEventFormData } from "@/client/schemas/schema";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectContent,
   SelectItem,
-} from "@radix-ui/react-select";
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogTrigger,
@@ -21,11 +21,37 @@ import {
   DialogClose,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const generateOptions = (count: number) =>
   Array.from({ length: count }, (_, i) => (i + 1).toString().padStart(2, "0"));
 
 export default function EditEvent() {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+    reset,
+  } = useForm<EditEventFormData>({
+    resolver: zodResolver(EditEventSchema),
+    defaultValues: {
+      eventName: "",
+      description: "",
+      startDate: "",
+      selectedStartHour: "",
+      selectedMinute: "",
+      endDate: "",
+      selectedEndHour: "",
+      selectedEndMinute: "",
+      isChecked: false,
+      isregistered: false,
+      isOpen: false,
+    },
+  });
+
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -38,65 +64,70 @@ export default function EditEvent() {
   const [isregistered, setIsRegistered] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleSubmit = () => {
-    if (
-      !eventName ||
-      !description ||
-      !startDate ||
-      !selectedStartHour ||
-      !selectedMinute ||
-      !endDate ||
-      !selectedEndHour ||
-      !selectedEndMinute
-    ) {
-      alert("Please fill in all fields.");
-      return;
-    }
+  const handleClear = () => {
+    setEventName("");
+    setDescription("");
+    setStartDate("");
+    setEndDate("");
+    setSelectedStartHour("");
+    setSelectedMinute("");
+    setSelectedEndHour("");
+    setSelectedEndMinute("");
+    setIsChecked(false);
+    setIsRegistered(false);
+    setIsOpen(false);
+    reset(); // Reset react-hook-form
+  };
+
+  const onSubmit = (data: EditEventFormData) => {
     const startDateTime = new Date(
-      `${startDate}T${selectedStartHour}:${selectedMinute}`
+      `${data.startDate}T${data.selectedStartHour}:${data.selectedMinute}`
     );
     const now = new Date();
     if (startDateTime < now) {
       alert("You cannot book an event in the past.");
       return;
     }
+
     const endDateTime = new Date(
-      `${endDate}T${selectedEndHour}:${selectedEndMinute}`
+      `${data.endDate}T${data.selectedEndHour}:${data.selectedEndMinute}`
     );
 
-    console.log("Event Name:", eventName);
-    console.log("Description:", description);
-    console.log("Start:", startDateTime.toString());
-    console.log("End:", endDateTime.toString());
-    console.log("Registration Open:", isChecked);
-    console.log("Registration Required:", isregistered);
-    console.log("Open to All:", isOpen);
+    console.log("Form submitted successfully", data);
   };
 
   const renderSelect = (
+    name: keyof EditEventFormData,
     value: string,
-    setValue: (v: string) => void,
     options: string[]
   ) => (
-    <Select value={value} onValueChange={setValue}>
-      <SelectTrigger className="w-full h-[54px] text-xl mt-8 border-2 border-slate-400 rounded-md px-4 py-2 relative">
-        <span className="text-left w-full pr-6">{value || ""}</span>
-        <ChevronDown className="h-5 w-5 absolute top-1/2 -translate-y-1/2 right-3 sm:right-3 sm:left-auto left-3 sm:translate-x-0 -translate-x-1/2" />
-      </SelectTrigger>
-      <SelectContent className="w-full min-w-[9rem] max-w-full bg-slate-50 z-10 rounded-md shadow-md">
-        <div className="max-h-52 overflow-y-auto">
-          {options.map((val) => (
-            <SelectItem
-              key={val}
-              value={val}
-              className="w-full text-center text-xl px-4 py-2"
-            >
-              {val}
-            </SelectItem>
-          ))}
-        </div>
-      </SelectContent>
-    </Select>
+    <>
+      <Select
+        value={value}
+        onValueChange={(val) => setValue(name, val, { shouldValidate: true })}
+      >
+        <SelectTrigger className="w-full h-[54px] text-xl mt-8 border-2 border-slate-400 rounded-md px-4 py-2 relative">
+          <span className="text-center w-full">{value || ""}</span>
+          <ChevronDown className="h-5 w-5 absolute top-1/2 -translate-y-1/2 right-3 sm:right-3 sm:left-auto left-3 sm:translate-x-0 -translate-x-1/2" />
+        </SelectTrigger>
+        <SelectContent className="w-full min-w-[9rem] max-w-full bg-slate-50 z-10 rounded-md shadow-md">
+          <div className="max-h-52 overflow-y-auto">
+            {options.map((val) => (
+              <SelectItem
+                key={val}
+                value={val}
+                className="w-full text-xl px-4 py-2 flex justify-center"
+              >
+                {val}
+              </SelectItem>
+            ))}
+          </div>
+        </SelectContent>
+      </Select>
+      {errors[name] && (
+        <p className="text-red-500 text-sm mt-1">{errors[name]?.message}</p>
+      )}
+    </>
   );
 
   const toggles = [
@@ -132,10 +163,14 @@ export default function EditEvent() {
           <Input
             type="text"
             placeholder="SAMAHAN SYSDEV GENERAL ASSEMBLY"
-            value={eventName}
-            onChange={(e) => setEventName(e.target.value)}
-            className="w-full h-[46px] border-slate-400 border-[2px] rounded-[6px]"
+            {...register("eventName")}
+            className="w-full h-[46px] border-slate-400 border-[2px] rounded-[6px] text-lg"
           />
+          {errors.eventName && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.eventName.message}
+            </p>
+          )}
         </div>
 
         <div className="mb-6">
@@ -143,10 +178,14 @@ export default function EditEvent() {
           <Input
             type="text"
             placeholder="Enter a description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full h-[46px] border-slate-400 border-[2px] rounded-[6px]"
+            {...register("description")}
+            className="w-full h-[46px] border-slate-400 border-[2px] rounded-[6px] text-lg"
           />
+          {errors.description && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.description.message}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
@@ -156,47 +195,60 @@ export default function EditEvent() {
             </h1>
             <Input
               type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              {...register("startDate")}
               className="w-full h-[54px] text-center text-md border border-slate-400 rounded-md px-2"
             />
+            {errors.startDate && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.startDate.message}
+              </p>
+            )}
           </div>
+
           <div className="col-span-1">
             {renderSelect(
-              selectedStartHour,
-              setSelectedStartHour,
+              "selectedStartHour",
+              watch("selectedStartHour"),
               generateOptions(12)
             )}
           </div>
+
           <div className="col-span-1">
             {renderSelect(
-              selectedMinute,
-              setSelectedMinute,
+              "selectedMinute",
+              watch("selectedMinute"),
               generateOptions(59)
             )}
           </div>
+
           <div>
             <h1 className="text-lg text-black font-bold mb-1">
               End Date and Time
             </h1>
             <Input
               type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              {...register("endDate")}
               className="w-full h-[54px] text-center text-md border border-slate-400 rounded-md px-2"
             />
+            {errors.endDate && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.endDate.message}
+              </p>
+            )}
           </div>
+
           <div className="col-span-1">
             {renderSelect(
-              selectedEndHour,
-              setSelectedEndHour,
+              "selectedEndHour",
+              watch("selectedEndHour"),
               generateOptions(12)
             )}
           </div>
+
           <div className="col-span-1">
             {renderSelect(
-              selectedEndMinute,
-              setSelectedEndMinute,
+              "selectedEndMinute",
+              watch("selectedEndMinute"),
               generateOptions(59)
             )}
           </div>
@@ -213,7 +265,17 @@ export default function EditEvent() {
               </h1>
               <Switch
                 checked={checked}
-                onCheckedChange={onChange}
+                onCheckedChange={(val) => {
+                  onChange(val);
+                  setValue(
+                    label === "Is Registration Open?"
+                      ? "isChecked"
+                      : label === "Is Registration Required?"
+                      ? "isregistered"
+                      : "isOpen",
+                    val
+                  );
+                }}
                 className={`h-10 w-24 border-2 mt-2 ${margin} data-[state=unchecked]:bg-[#94A3B8] data-[state=checked]:bg-blue-500 py-5 px-2 [&>span]:h-8 [&>span]:w-8 data-[state=checked]:[&>span]:translate-x-[44px]`}
               />
             </div>
@@ -225,34 +287,44 @@ export default function EditEvent() {
             <DialogTrigger asChild className="w-full sm:w-auto">
               <Button
                 variant="default"
-                className="bg-[#EF4444] w-full sm:w-[6rem]"
+                className="bg-red-500 w-full sm:w-[6rem]"
               >
                 Cancel
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-[90%] sm:max-w-[380px] md:max-w-[440px] lg:max-w-[470px] xl:max-w-[500px] px-4 sm:px-6 md:px-8 py-6">
               <DialogHeader>
-                <DialogDescription className="text-center text-black">
-                  Are you sure you want to cancel the <br /> creation of this
-                  organization?
+                <DialogDescription className="text-center text-black text-base sm:text-lg md:text-xl">
+                  Are you sure you want to cancel the{" "}
+                  <br className="hidden sm:block" />
+                  creation of this event?
                 </DialogDescription>
               </DialogHeader>
-              <DialogFooter className="gap-4 mr-[55px]">
+
+              <DialogFooter className="flex flex-col sm:flex-row gap-4 sm:justify-center mt-6 sm:mt-8">
                 <DialogClose asChild>
-                  <Button type="button" className="bg-[#EF4444] w-[7rem]">
+                  <Button
+                    type="button"
+                    className="bg-[#EF4444] w-full sm:w-[7rem] text-base sm:text-lg"
+                  >
                     No
                   </Button>
                 </DialogClose>
                 <DialogClose asChild>
-                  <Button type="submit" className="bg-[#1D4ED8] w-[7rem]">
+                  <Button
+                    type="submit"
+                    onClick={handleClear}
+                    className="bg-[#1D4ED8] w-full sm:w-[7rem] text-base sm:text-lg"
+                  >
                     Yes
                   </Button>
                 </DialogClose>
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
           <Button
-            onClick={handleSubmit}
+            onClick={handleSubmit(onSubmit)}
             className="bg-[#1D4ED8] text-white w-full sm:w-[6rem] rounded-lg"
           >
             Submit
