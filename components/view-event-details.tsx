@@ -48,23 +48,37 @@ export default function ViewEventDetails({ event }: ViewEventDetailsProps) {
 
               <div className="grid grid-cols-3 items-center gap-4">
                 <p className="font-medium">Start Date:</p>
-                <p className="col-span-2">{event.dateStart.toString()}</p>
+                <p className="col-span-2">{event.dateStart.toLocaleString()}</p>
               </div>
 
               <div className="grid grid-cols-3 items-center gap-4">
                 <p className="font-medium">End Date:</p>
-                <p className="col-span-2">{event.dateEnd.toString()}</p>
+                <p className="col-span-2">{event.dateEnd.toLocaleString()}</p>
               </div>
 
               <div className="grid grid-cols-3 items-center gap-4">
                 <p className="font-medium">Registration:</p>
-                <div className="col-span-2 space-y-1">
-                  <p>Open: {event.isRegistrationOpen ? "Yes" : "No"}</p>
-                  <p>Required: {event.isRegistrationRequired ? "Yes" : "No"}</p>
-                  <p>
-                    Open to Outsiders: {event.isOpenToOutsiders ? "Yes" : "No"}
-                  </p>
-                </div>
+                <p className="col-span-2">
+                  {event.isRegistrationOpen ? (
+                    <span className="text-green-600">Open</span>
+                  ) : (
+                    <span className="text-red-600">Closed</span>
+                  )}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <p className="font-medium">Required:</p>
+                <p className="col-span-2">
+                  {event.isRegistrationRequired ? "Yes" : "No"}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <p className="font-medium">Open to Outsiders:</p>
+                <p className="col-span-2">
+                  {event.isOpenToOutsiders ? "Yes" : "No"}
+                </p>
               </div>
 
               <div className="grid grid-cols-3 items-center gap-4">
