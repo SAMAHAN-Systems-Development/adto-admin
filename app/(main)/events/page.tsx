@@ -1,6 +1,20 @@
 "use client";
 
 import { archiveEventService } from "@/client/services/archiveEventService";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useState } from "react";
 
 /**
@@ -15,17 +29,31 @@ export default function EventsPage() {
   }
 
   return (
-    <div>
-      <input
-        className="border"
-        type="text"
-        placeholder="Enter Event ID"
-        required
-        onChange={(e) => setId(e.target.value)}
-      />
-      <button className="border" onClick={handleArchive}>
-        Archive
-      </button>
-    </div>
+    <>
+      <Label>Event ID</Label>
+      <Input onChange={(e) => setId(e.target.value)} placeholder="Event ID" />
+      <div className="flex flex-col mt-4">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button className="bg-black">Archive</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action is irreversible. Any unsaved changes will be
+                permanently lost.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleArchive}>
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </>
   );
 }
