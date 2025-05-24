@@ -18,7 +18,7 @@ interface ViewDetailsButtonProps {
   organization?: OrganizationChild;
 }
 
-export default function ViewDetailsButton({
+export default function ViewOrganizationDetails({
   organization,
 }: ViewDetailsButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
