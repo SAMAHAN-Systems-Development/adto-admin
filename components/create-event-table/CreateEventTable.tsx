@@ -77,8 +77,8 @@ export function CreateEventTable() {
 
 	return (
 		<div className="w-full">
-			<div className="flex items-center py-4 justify-between">
-				<h1 className="text-3xl text-secondary-200 font-semibold">My Events</h1>
+			<div className="flex flex-col items-center gap-4 py-4 sm:flex-row sm:justify-between sm:items-center">
+				<h1 className="text-3xl sm:text-5xl text-secondary-200 text-center sm:text-left">My Events</h1>
 				<Button className="bg-secondary-300 hover:bg-secondary-300 text-white font-medium rounded-md flex items-center gap-2">
 					<CirclePlus fill="white" stroke="var(--secondary-300)" />
 					Add Event
