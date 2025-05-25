@@ -1,6 +1,6 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { AdminLoginDto } from "../types/dto/admin-login.type";
-import { loginAdminUser } from "../services/loginService";
+import { loginClientUser } from "../services/loginService";
 export const useLoginAdmin = (
   mutationOptions: UseMutationOptions<
     unknown,
@@ -9,6 +9,6 @@ export const useLoginAdmin = (
   >
 ) =>
   useMutation({
-    mutationFn: ({ loginData }) => loginAdminUser(loginData),
+    mutationFn: ({ loginData }) => loginClientUser(loginData),
     ...mutationOptions,
   });
