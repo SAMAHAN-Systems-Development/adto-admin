@@ -24,9 +24,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar collapsible="offcanvas" className="rounded-br-sm" {...props}>
             <SidebarHeader>
-                <div className="flex items-center justify-center">
-                    <h1 className="text-lg font-bold text-white bg-slate-800 px-10 py-4 rounded-md">ADTO</h1>
-                </div>
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup className="mt-20">
