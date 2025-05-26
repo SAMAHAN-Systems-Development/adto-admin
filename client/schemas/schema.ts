@@ -20,5 +20,4 @@ export const EditEventSchema = z.object({
   isOpen: z.boolean(),
 });
 
-// Optional: TypeScript type for form values
 export type EditEventFormData = z.infer<typeof EditEventSchema>;
