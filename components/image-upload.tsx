@@ -57,7 +57,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           <button
             type="button"
             onClick={onRemove}
-            className="absolute top-0 right-0 p-1 bg-red-500 rounded-full text-white shadow-sm"
+            className="absolute top-0 right-0 p-1 m-1 bg-red-500 rounded-full text-white shadow-sm"
             disabled={disabled}
           >
             <X className="h-4 w-4" />
