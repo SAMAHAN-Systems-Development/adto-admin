@@ -75,74 +75,75 @@ export default function EditOrganization({
   };
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 w-full max-w-7xl mx-auto"
-      >
-        <div className="grid grid-cols-2 gap-8">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Organization Name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter organization name"
-                    className="w-full"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  This is your organization display name
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-8 w-full max-w-7xl mx-auto"
+        >
+          <h1 className="text-2xl font-bold">Edit Organization</h1>
+          <div className="">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel>Organization Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter organization name"
+                      className="w-full"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    This is your organization display name
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="acronym"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Acronym</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter organization acronym"
-                    className="w-full"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="acronym"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Acronym</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter organization acronym"
+                      className="w-full"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="icon"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Organization Icon</FormLabel>
-                <FormControl>
-                  <ImageUpload
-                    value={field.value || ""}
-                    onChange={field.onChange}
-                    onRemove={() => field.onChange("")}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+            <FormField
+              control={form.control}
+              name="icon"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Organization Icon</FormLabel>
+                  <FormControl>
+                    <ImageUpload
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      onRemove={() => field.onChange("")}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Social Links (Optional)</h3>
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Social Links (Optional)</h3>
 
-          <div className="grid grid-cols-2 gap-8">
             <FormField
               control={form.control}
               name="links.facebook"
@@ -215,39 +216,44 @@ export default function EditOrganization({
               )}
             />
           </div>
-        </div>
 
-        <div className="flex justify-end space-x-4">
-          <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Any unsaved changes will be lost. Do you want to continue?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>No, stay here</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-secondary-100"
-                  onClick={handleConfirmCancel}
+          <div className="flex justify-end space-x-4">
+            <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  className="w-28"
+                  variant="outline"
+                  onClick={handleCancel}
                 >
-                  Yes, leave
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  Cancel
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-center">
+                    Are you sure you want to cancel the edit of this
+                    organization?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-center"></AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex justify-center ">
+                  <AlertDialogCancel className="w-28">No</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-secondary-100 w-28"
+                    onClick={handleConfirmCancel}
+                  >
+                    Yes
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
-          <Button className="bg-secondary-100" type="submit">
-            Save Changes
-          </Button>
-        </div>
-      </form>
-    </Form>
+            <Button className="bg-secondary-100 w-28" type="submit">
+              Submit
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </>
   );
 }
