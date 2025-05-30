@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,11 +14,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`antialiased`}>
-      <SidebarProvider>
-        <AppSidebar />
-        <main className="w-full px-12">{children}</main>
-      </SidebarProvider>
-    </div>
+    <ProtectedRoute fallbackRoute="/login">
+      <div className={`antialiased`}>
+        <SidebarProvider>
+          <AppSidebar />
+          <main>{children}</main>
+        </SidebarProvider>
+      </div>
+    </ProtectedRoute>
   );
 }
