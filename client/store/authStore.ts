@@ -39,6 +39,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: true,
         isLoggingIn: false,
         isLoading: false,
+        error: null,
       });
     } catch (error) {
       const errorMessage =
@@ -47,9 +48,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         error: errorMessage,
         isLoggingIn: false,
         isLoading: false,
+        user: null,
+        isAuthenticated: false,
       });
-      if (error instanceof Error) throw error;
-      else throw new Error(errorMessage);
+      throw error;
     }
   },
 
@@ -57,22 +59,32 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoggingOut: true, error: null });
     try {
       await logoutService();
+      
       set({
         user: null,
         isAuthenticated: false,
         isLoggingOut: false,
         isLoading: false,
+        error: null,
+        isCheckingSession: false,
       });
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Logout failed";
+      
       set({
-        error: errorMessage,
+        user: null,
+        isAuthenticated: false,
         isLoggingOut: false,
         isLoading: false,
+        error: null, 
+        isCheckingSession: false,
       });
-      if (error instanceof Error) throw error;
-      else throw new Error(errorMessage);
+      
+      console.warn('Logout error (local state cleared):', errorMessage);
     }
   },
 
@@ -85,6 +97,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: true,
         isCheckingSession: false,
         isLoading: false,
+        error: null,
       });
     } catch (error) {
       let errorMessage: string | null = null;
@@ -100,9 +113,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
     }
   },
+  
   clearError: () => set({ error: null }),
 }));
 
 if (typeof window !== "undefined") {
-  useAuthStore.getState().checkSession();
+  setTimeout(() => {
+    useAuthStore.getState().checkSession();
+  }, 100);
 }
