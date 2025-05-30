@@ -17,9 +17,30 @@ import { mainRoutes } from "@/lib/types/navigation";
 import { usePathname } from "next/navigation";
 import SidebarButton from "./sidebar-button";
 import { Button } from "../ui/button";
+import { useAuthStore } from "@/client/store/authStore";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const pathname = usePathname();
+    const { user, logout } = useAuthStore();
+
+    const filteredRoutes = React.useMemo(() => {
+        if (!user) return [];
+
+        return mainRoutes.filter(route => {
+            if (!route.allowedRoles || route.allowedRoles.length === 0) {
+                return true;
+            }
+            return route.allowedRoles.includes(user.role);
+        });
+    }, [user]);
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
 
     return (
         <Sidebar collapsible="offcanvas" className="rounded-br-sm" {...props}>
@@ -28,24 +49,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarContent>
                 <SidebarGroup className="mt-20">
                     <SidebarMenu>
-                        {mainRoutes.map((route) => (
-                            <Link href={route.path} key={route.path} >
+                        {filteredRoutes.map((route) => (
+                            <Link href={route.path} key={route.path}>
                                 <SidebarButton
                                     icon={<route.icon />}
                                     label={route.name}
-                                    isActive={pathname === route.path} />
+                                    isActive={pathname === route.path}
+                                />
                             </Link>
                         ))}
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter className="items-center mb-8">
-                <Button className="" variant={"destructive"} size={"lg"}>
+            <SidebarFooter className="items-center mb-8 text-white">
+                <Button
+                    onClick={handleLogout}
+                    className=""
+                    variant={"destructive"}
+                    size={"lg"}
+                >
                     <LogOut />
                     <span className="text-sm">Logout</span>
                 </Button>
             </SidebarFooter>
             <SidebarRail />
-        </Sidebar >
+        </Sidebar>
     );
 }
