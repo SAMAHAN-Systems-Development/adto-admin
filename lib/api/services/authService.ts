@@ -55,7 +55,6 @@ export const clearAllAuthData = (): void => {
   removeStoredToken();
 };
 
-// Create headers with Authorization if valid token exists
 const createAuthHeaders = (additionalHeaders: Record<string, string> = {}): Record<string, string> => {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
