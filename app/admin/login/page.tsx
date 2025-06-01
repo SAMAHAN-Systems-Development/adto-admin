@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { loginClientUser } from '@/client/services/loginService'
+import { Eye, EyeOff } from 'lucide-react'
+
 
 // Login form schema
 const formSchema = z.object({
@@ -26,6 +28,7 @@ export default function AdminLogin() {
     const searchParams = useSearchParams()
     const [showLoginModal, setShowLoginModal] = useState(false)
     const [authError, setAuthError] = useState<string | null>(null)
+    const [showPassword, setShowPassword] = useState(false)
 
     useEffect(() => {
         if (searchParams.get('reason') === 'auth') {
@@ -41,6 +44,9 @@ export default function AdminLogin() {
         },
     })
 
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword)
+    }
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setAuthError(null)
         try {
@@ -79,7 +85,6 @@ export default function AdminLogin() {
                 <CardHeader className="flex flex-col items-center space-y-2 pb-2">
                     <div className="flex flex-col items-center">
                         <div className="w-16 h-16 mb-4">
-                            {/* Replace with your actual logo */}
                             <div className="w-full h-full bg-primary rounded-full flex items-center justify-center">
                                 <span className="text-black text-xl font-bold">LOGO</span>
                             </div>
@@ -123,7 +128,25 @@ export default function AdminLogin() {
                                     <FormItem>
                                         <FormLabel>Password</FormLabel>
                                         <FormControl>
-                                            <Input type="password" placeholder="••••••••" {...field} />
+                                            <div className="relative">
+                                                <Input
+                                                    type={showPassword ? "text" : "password"}
+                                                    placeholder="••••••••"
+                                                    {...field}
+                                                    className="pr-10"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={togglePasswordVisibility}
+                                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff className="h-4 w-4" />
+                                                    ) : (
+                                                        <Eye className="h-4 w-4" />
+                                                    )}
+                                                </button>
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
