@@ -92,7 +92,9 @@ export default function DisplayPage() {
             >
               <CardHeader className="flex flex-row items-center text-blue-700 text-lg font-medium justify-between">
                 {item.label}
-                <HiOutlineExternalLink />
+               <a href="">
+                  <HiOutlineExternalLink />
+                </a>
               </CardHeader>
               <CardContent className="text-blue-700 text-4xl font-medium mt-[-10px]">
                 {item.count}
@@ -151,7 +153,9 @@ export default function DisplayPage() {
                     </span>
                   </TableCell>
                   <TableCell className="text-right px-4 py-5 whitespace-nowrap">
-                    <MoreHorizontal className="text-gray-500 w-6 h-6" />
+                    <a href="">
+                      <MoreHorizontal className="text-gray-500 w-6 h-6" />
+                    </a>
                   </TableCell>
                 </TableRow>
               ))}
