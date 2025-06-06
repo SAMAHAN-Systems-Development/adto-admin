@@ -6,7 +6,6 @@ import * as z from "zod";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -82,7 +81,7 @@ export default function EditOrganization({
           className="space-y-8 w-full max-w-7xl mx-auto"
         >
           <h1 className="text-2xl font-bold">Edit Organization</h1>
-          <div className="">
+          <div className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -96,9 +95,6 @@ export default function EditOrganization({
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    This is your organization display name
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -139,9 +135,7 @@ export default function EditOrganization({
                 </FormItem>
               )}
             />
-          </div>
 
-          <div className="space-y-4">
             <h3 className="text-lg font-medium">Social Links (Optional)</h3>
 
             <FormField
@@ -236,7 +230,7 @@ export default function EditOrganization({
                   </AlertDialogTitle>
                   <AlertDialogDescription className="text-center"></AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter className="flex justify-center ">
+                <AlertDialogFooter className="!justify-center ">
                   <AlertDialogCancel className="w-28">No</AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-secondary-100 w-28"
