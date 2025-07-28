@@ -1,9 +1,10 @@
-import React from 'react'
+'use client'
 
-const DashboardPage = () => {
+export default function Dashboard() {
+
     return (
-        <div>DashboardPage</div>
+        <div className="">
+            <h1>Dashboard</h1>
+        </div>
     )
 }
-
-export default DashboardPage
