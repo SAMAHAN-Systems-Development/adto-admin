@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { DateTimePicker } from "@/components/dates/date-time-picker";
+import { DateTimePicker } from "@/components/shared/date-time-picker";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
@@ -29,12 +29,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
-import type { CreateEventDto } from "@/client/types/dto/create-event.type";
-import { createEventService } from "@/client/services/createEventService";
-import { createEventSchema } from "@/client/zod/create-event.schema";
+import type { CreateEventRequest } from "@/lib/types/requests/CreateEventRequest";
+import { createEventService } from "@/lib/api/services/createEventService";
+import { createEventSchema } from "@/lib/zod/create-event.schema";
 
 export default function CreateEventPage() {
-  const form = useForm<CreateEventDto>({
+  const form = useForm<CreateEventRequest>({
     defaultValues: {
       name: "",
       description: "",
@@ -48,7 +48,7 @@ export default function CreateEventPage() {
   });
   const router = useRouter();
 
-  async function handleSubmit(data: CreateEventDto) {
+  async function handleSubmit(data: CreateEventRequest) {
     await createEventService(data);
     router.push("events");
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { MyEventsTable } from "@/components/tables/my-events-table";
+import { MyEventsTable } from "@/components/features/events/my-events-table";
 import React from "react";
 
 const EventsPage = () => {

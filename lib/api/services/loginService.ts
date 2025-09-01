@@ -1,7 +1,7 @@
-import { BASE_URL } from "../config";
-import { AdminLoginDto } from "../types/dto/admin-login.type";
+import { BASE_URL } from "../../config/api";
+import { AdminLoginRequest } from "../../types/requests/AdminLoginRequest";
 
-export const loginClientUser = async (loginData: AdminLoginDto) => {
+export const loginAdminUser = async (loginData: AdminLoginRequest) => {
   const response = await fetch(`${BASE_URL}/auth/login`, {
     method: "POST",
     headers: {
