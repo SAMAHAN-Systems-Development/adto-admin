@@ -1,6 +1,6 @@
 "use client";
 
-import { Event } from "@/client/types/entities";
+import { Event } from "@/lib/types/entities";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { Button } from "./ui/button";
+import { Button } from "../../ui/button";
 import Link from "next/link";
 
 interface ViewEventDetailsProps {

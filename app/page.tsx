@@ -1,8 +1,3 @@
-
 export default function Home() {
-  return (
-    <div>
-      Admin Side
-    </div>
-  );
+  return <div>Admin Side</div>;
 }
