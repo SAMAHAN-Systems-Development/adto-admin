@@ -168,7 +168,8 @@ export default function EditOrganizationPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Save Changes</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to save the changes to this organization?
+              Are you sure you want to edit this organization? Information will
+              be saved.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -188,8 +189,8 @@ export default function EditOrganizationPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel Edit</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to cancel editing this organization? Your
-              changes will not be saved.
+              Are you sure you want to cancel editing this organization&apos;s
+              information? New information will not be saved.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
