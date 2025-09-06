@@ -137,18 +137,15 @@ export const getOrganizationColumns = (router: {
             </DropdownMenuItem>
             <ArchiveDialog
               triggerLabel={
-                <DropdownMenuItem className="justify-start font-normal">
+                <button className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent">
                   Archive
-                </DropdownMenuItem>
+                </button>
               }
               title="Archive Organization"
-              description={`Are you sure you want to archive "${organization.name}"? This will remove it from the active organizations list.`}
+              description={`Are you sure you want to archive "${organization.name}"?`}
               confirmLabel="Archive"
-              variant="destructive"
-              //placeholder for now
-              onConfirm={() => {
-                handleArchive(organization);
-              }}
+              variant="default"
+              onConfirm={() => handleArchive(organization)}
             />
           </DropdownMenuContent>
         </DropdownMenu>

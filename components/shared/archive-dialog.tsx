@@ -3,23 +3,22 @@
 import * as React from "react";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-type ConfirmDialogProps = {
-  triggerLabel: React.ReactNode; // text or element for the trigger
-  title: string; // dialog title
-  description: string; // dialog description
-  confirmLabel?: string; // button text, e.g. "Archive"
-  cancelLabel?: string; // button text, e.g. "Cancel"
-  variant?: "default" | "destructive"; // style for confirm button
-  onConfirm: () => void; // what happens on confirm
+type ArchiveDialogProps = {
+  triggerLabel: React.ReactNode;
+  title: string;
+  description: string;
+  confirmLabel?: string;
+  variant?: "default" | "destructive";
+  onConfirm: () => void;
 };
 
 export function ArchiveDialog({
@@ -27,39 +26,27 @@ export function ArchiveDialog({
   title,
   description,
   confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
-  variant = "default",
+  variant = "destructive",
   onConfirm,
-}: ConfirmDialogProps) {
+}: ArchiveDialogProps) {
   const [open, setOpen] = React.useState(false);
 
   const handleConfirm = () => {
     onConfirm();
-    setOpen(false);
+    setOpen(false); // ✅ close the dialog after action
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          className="w-full justify-start px-0 h-8"
-          onClick={(e) => {
-            e.preventDefault(); // prevent closing parent menu immediately
-            setOpen(true);
-          }}
-        >
-          {triggerLabel}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogTrigger asChild>{triggerLabel}</DialogTrigger>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex gap-2 justify-end">
+        <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            {cancelLabel}
+            Cancel
           </Button>
           <Button variant={variant} onClick={handleConfirm}>
             {confirmLabel}
