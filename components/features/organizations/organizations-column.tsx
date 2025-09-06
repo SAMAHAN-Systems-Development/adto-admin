@@ -11,19 +11,43 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { ArchiveDialog } from "@/components/shared/archive-dialog";
 
 export type Organizations = {
+  id?: string; // Add ID field for navigation
   name: string;
   acronym: string;
   email: string;
   orgEvents: number;
+  isActive?: boolean; // Add isActive field for archive functionality
   /**
    * TODO: REPLACE COLOR WITH ACTUAL ORG PICTURES
    * !PLACEHOLDER FOR NOW
    * **/
   icon?: string;
 };
-export const columns: ColumnDef<Organizations>[] = [
+
+// Helper functions for actions
+const handleEdit = (
+  organization: Organizations,
+  router: { push: (path: string) => void }
+) => {
+  // temporary way to pass organization data to the edit page
+  const id = organization.id || "1";
+  sessionStorage.setItem("editOrganization", JSON.stringify(organization));
+  router.push(`/organizations/${id}/edit`);
+};
+
+const handleArchive = (organization: Organizations) => {
+  toast(`"${organization.name}" has been archived successfully.`, {
+    description: "Organization archived successfully.",
+  });
+};
+
+export const getOrganizationColumns = (router: {
+  push: (path: string) => void;
+}): ColumnDef<Organizations>[] => [
   {
     id: "select",
     header: ({ table }) => {
@@ -93,7 +117,8 @@ export const columns: ColumnDef<Organizations>[] = [
 
   {
     id: "actions",
-    cell({}) {
+    cell({ row }) {
+      const organization = row.original;
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -107,8 +132,24 @@ export const columns: ColumnDef<Organizations>[] = [
           >
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem>View Details</DropdownMenuItem>
-            <DropdownMenuItem>Edit</DropdownMenuItem>
-            <DropdownMenuItem>Archive</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleEdit(organization, router)}>
+              Edit
+            </DropdownMenuItem>
+            <ArchiveDialog
+              triggerLabel={
+                <DropdownMenuItem className="justify-start font-normal">
+                  Archive
+                </DropdownMenuItem>
+              }
+              title="Archive Organization"
+              description={`Are you sure you want to archive "${organization.name}"? This will remove it from the active organizations list.`}
+              confirmLabel="Archive"
+              variant="destructive"
+              //placeholder for now
+              onConfirm={() => {
+                handleArchive(organization);
+              }}
+            />
           </DropdownMenuContent>
         </DropdownMenu>
       );
