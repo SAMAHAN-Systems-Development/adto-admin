@@ -166,7 +166,7 @@ export default function EditOrganizationPage() {
       <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Save Changes</AlertDialogTitle>
+            <AlertDialogTitle>Edit Organization</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to edit this organization? Information will
               be saved.
@@ -187,7 +187,7 @@ export default function EditOrganizationPage() {
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Edit</AlertDialogTitle>
+            <AlertDialogTitle>Cancel Edit Organization</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to cancel editing this organization&apos;s
               information? New information will not be saved.
