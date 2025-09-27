@@ -57,7 +57,7 @@ export default function AdminLogin() {
     }
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4 py-6">
             <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
                 <DialogContent>
                     <DialogHeader>
@@ -65,24 +65,24 @@ export default function AdminLogin() {
                     </DialogHeader>
                 </DialogContent>
             </Dialog>
-            <Card className="w-full max-w-md rounded-[34px] shadow-lg">
-                <CardHeader className="flex flex-col items-center space-y-2 pb-2">
+            <Card className="w-full max-w-md mx-auto rounded-2xl md:rounded-[34px] shadow-lg">
+                <CardHeader className="flex flex-col items-center space-y-3 md:space-y-2 p-6 md:pb-2">
                     <div className="flex flex-col items-center">
-                        <div className="w-16 h-16 mb-4">
+                        <div className="w-12 h-12 md:w-16 md:h-16 mb-3 md:mb-4">
                             <div className="w-full h-full bg-primary rounded-full flex items-center justify-center">
-                                <span className="text-black text-xl font-bold">LOGO</span>
+                                <span className="text-black text-lg md:text-xl font-bold">LOGO</span>
                             </div>
                         </div>
-                        <CardTitle className="text-3xl font-bold">Admin Login</CardTitle>
+                        <CardTitle className="text-2xl md:text-3xl font-bold text-center">Admin Login</CardTitle>
                     </div>
-                    <div>
-                        <CardDescription>
+                    <div className="text-center">
+                        <CardDescription className="text-sm md:text-base">
                             Enter your credentials to access the admin dashboard
                         </CardDescription>
                     </div>
                 </CardHeader>
 
-                <CardContent>
+                <CardContent className="p-6 pt-2">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             {authError && (
@@ -119,18 +119,16 @@ export default function AdminLogin() {
                                 )}
                             />
 
-                            <div className="flex justify-center w-full text-white">
-                                <div className="flex justify-center w-full">
-                                    <Button
-                                        variant="secondary"
-                                        size="lg"
-                                        type="submit"
-                                        disabled={isLoggingIn}
-                                        className="bg-gradient-to-r from-blue-500 to-blue-800 hover:from-blue-600 hover:to-blue-900 text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {isLoggingIn ? 'Logging in...' : 'Login'}
-                                    </Button>
-                                </div>
+                            <div className="pt-2">
+                                <Button
+                                    variant="secondary"
+                                    size="lg"
+                                    type="submit"
+                                    disabled={isLoggingIn}
+                                    className="w-full bg-gradient-to-r from-blue-500 to-blue-800 hover:from-blue-600 hover:to-blue-900 text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg font-medium"
+                                >
+                                    {isLoggingIn ? 'Logging in...' : 'Login'}
+                                </Button>
                             </div>
                         </form>
                     </Form>
