@@ -47,7 +47,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar
-      className="[&>div]:!bg-gradient-to-b [&>div]:!from-blue-600 [&>div]:!to-blue-900"
+      className="sidebar-gradient"
       {...props}
     >
       <SidebarHeader>

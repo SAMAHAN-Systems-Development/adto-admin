@@ -61,6 +61,21 @@ body {
     --sidebar-background: 0 0% 98%;
   }
 
+  /* Custom sidebar gradient for desktop */
+  .sidebar-gradient [data-sidebar="sidebar"]:not([data-mobile="true"]) {
+    background: linear-gradient(180deg, #2563EB 0%, #153885 100%) !important;
+  }
+
+  /* Mobile sidebar (Sheet component) - targets the SheetContent directly */
+  .sidebar-gradient [data-sidebar="sidebar"][data-mobile="true"] {
+    background: linear-gradient(180deg, #2563EB 0%, #153885 100%) !important;
+  }
+
+  /* Additional override for Sheet component background */
+  [data-sidebar="sidebar"][data-mobile="true"].bg-sidebar {
+    background: linear-gradient(180deg, #2563EB 0%, #153885 100%) !important;
+  }
+
   .dark {
     --background: oklch(0.129 0.042 264.695);
     --foreground: oklch(0.984 0.003 247.858);
@@ -93,7 +108,7 @@ body {
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-    --sidebar-background: 240 5.9% 10%;
+    --sidebar-background: 0 0% 98%;
   }
 }
 
