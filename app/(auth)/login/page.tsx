@@ -57,7 +57,7 @@ export default function AdminLogin() {
     }
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4 py-6">
+        <div className="flex items-center justify-center min-h-screen px-4 py-6 bg-gradient-to-br from-blue-600 to-blue-900">
             <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
                 <DialogContent>
                     <DialogHeader>
@@ -73,7 +73,7 @@ export default function AdminLogin() {
                                 <span className="text-black text-lg md:text-xl font-bold">LOGO</span>
                             </div>
                         </div>
-                        <CardTitle className="text-2xl md:text-3xl font-bold text-center">Admin Login</CardTitle>
+                        <CardTitle className="text-2xl md:text-3xl font-extrabold text-center bg-gradient-to-r from-blue-600 to-blue-900 bg-clip-text text-transparent">Admin Login</CardTitle>
                     </div>
                     <div className="text-center">
                         <CardDescription className="text-sm md:text-base">
