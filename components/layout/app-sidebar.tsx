@@ -3,9 +3,10 @@
 import * as React from "react";
 import {
   ArrowBigUpIcon,
-  Building2Icon,
-  LayoutDashboardIcon,
+  LogOut,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import {
   Sidebar,
@@ -17,22 +18,33 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-
-const sidebarItems = [
-  // Figured I would also add the dashboard link nalang rin, feel free to not include
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboardIcon,
-  },
-  {
-    title: "Organizations",
-    url: "/organizations",
-    icon: Building2Icon,
-  },
-];
+import { Button } from "@/components/ui/button";
+import { mainRoutes } from "@/lib/types/navigation";
+import { useAuthStore } from "@/lib/store/authStore";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+  const { user, logout } = useAuthStore();
+
+  const filteredRoutes = React.useMemo(() => {
+    if (!user) return [];
+
+    return mainRoutes.filter(route => {
+      if (!route.allowedRoles || route.allowedRoles.length === 0) {
+        return true;
+      }
+      return route.allowedRoles.includes(user.role);
+    });
+  }, [user]);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -51,21 +63,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          <div>Sidebar Content Here</div>
-          {sidebarItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <a href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </a>
+          {filteredRoutes.map((route) => (
+            <SidebarMenuItem key={route.path}>
+              <SidebarMenuButton asChild isActive={pathname === route.path}>
+                <Link href={route.path}>
+                  <route.icon />
+                  <span>{route.name}</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        <div>Sidebar Footer here</div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Button
+                onClick={handleLogout}
+                variant="ghost"
+                className="w-full justify-start p-0 h-auto"
+              >
+                <LogOut />
+                <span>Logout</span>
+              </Button>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
