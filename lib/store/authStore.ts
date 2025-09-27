@@ -4,8 +4,8 @@ import {
   getProfile,
   login as loginService,
   logout as logoutService,
-} from "../services/authService";
-import { AdminLoginRequest } from "../../lib/types/requests/AdminLoginRequest";
+} from "../api/services/authService";
+import { AdminLoginRequest } from "../types/requests/AdminLoginRequest";
 
 interface AuthState {
   user: User | null;

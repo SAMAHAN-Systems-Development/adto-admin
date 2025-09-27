@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/client/store/authStore'
-import { UserType } from '@/client/types/user-type'
+import { useAuthStore } from '@/lib/store/authStore'
+import { UserType } from '@/lib/types/user-type'
 
 interface ProtectedRouteProps {
     children: React.ReactNode

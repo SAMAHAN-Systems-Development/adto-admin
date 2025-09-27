@@ -1,6 +1,6 @@
-import { BASE_URL } from "../../lib/config/api";
-import { AdminLoginRequest } from "../../lib/types/requests/AdminLoginRequest";
-import { User, UserType } from "../../lib/types/user-type";
+import { BASE_URL } from "../../config/api";
+import { AdminLoginRequest } from "../../types/requests/AdminLoginRequest";
+import { User, UserType } from "../../types/user-type";
 import { jwtDecode } from "jwt-decode";
 
 interface DecodedToken {
