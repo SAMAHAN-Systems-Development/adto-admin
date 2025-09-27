@@ -46,18 +46,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar
+      collapsible="icon"
+      className="[&>div]:!bg-gradient-to-b [&>div]:!from-blue-600 [&>div]:!to-blue-900"
+      {...props}
+    >
       <SidebarHeader>
         <SidebarMenuButton
           size="lg"
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          className="data-[state=open]:bg-white/10 text-white hover:bg-white/10"
         >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white/20 text-white">
             <ArrowBigUpIcon className="size-4" />
           </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
+          <div className="grid flex-1 text-left text-sm leading-tight text-white">
             <span className="truncate font-semibold">Sysdev ADTO</span>
-            <span className="truncate text-xs">Design & Build</span>
+            <span className="truncate text-xs opacity-80">Design & Build</span>
           </div>
         </SidebarMenuButton>
       </SidebarHeader>
@@ -65,10 +69,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           {filteredRoutes.map((route) => (
             <SidebarMenuItem key={route.path}>
-              <SidebarMenuButton asChild isActive={pathname === route.path}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === route.path}
+                className="text-white hover:bg-white/10 data-[active=true]:bg-white/20 data-[active=true]:text-white"
+              >
                 <Link href={route.path}>
-                  <route.icon />
-                  <span>{route.name}</span>
+                  <route.icon className="text-white" />
+                  <span className="text-white">{route.name}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -82,10 +90,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Button
                 onClick={handleLogout}
                 variant="ghost"
-                className="w-full justify-start p-0 h-auto"
+                className="w-full justify-start p-0 h-auto text-white hover:bg-white/10 hover:text-white"
               >
-                <LogOut />
-                <span>Logout</span>
+                <LogOut className="text-white" />
+                <span className="text-white">Logout</span>
               </Button>
             </SidebarMenuButton>
           </SidebarMenuItem>
