@@ -2,71 +2,137 @@
 
 import * as React from "react";
 import {
-  ArrowBigUpIcon,
-  Building2Icon,
-  LayoutDashboardIcon,
+  LogOut,
 } from "lucide-react";
+import { IoMdSettings } from "react-icons/io";
+import { HiUser } from "react-icons/hi";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-
-const sidebarItems = [
-  // Figured I would also add the dashboard link nalang rin, feel free to not include
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboardIcon,
-  },
-  {
-    title: "Organizations",
-    url: "/organizations",
-    icon: Building2Icon,
-  },
-];
+import { Button } from "@/components/ui/button";
+import { mainRoutes } from "@/lib/types/navigation";
+import { useAuthStore } from "@/lib/store/authStore";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+  const { user, logout } = useAuthStore();
+
+  const filteredRoutes = React.useMemo(() => {
+    if (!user) return [];
+
+    return mainRoutes.filter(route => {
+      if (!route.allowedRoles || route.allowedRoles.length === 0) {
+        return true;
+      }
+      return route.allowedRoles.includes(user.role);
+    });
+  }, [user]);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar
+      className="sidebar-gradient"
+      {...props}
+    >
       <SidebarHeader>
-        <SidebarMenuButton
-          size="lg"
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-        >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <ArrowBigUpIcon className="size-4" />
+        <div className="mt-6 mb-12 mx-5 flex items-center gap-4">
+          {/* Profile Circle Placeholder */}
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">
+              {user?.email?.charAt(0).toUpperCase() || 'U'}
+            </span>
           </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">Sysdev ADTO</span>
-            <span className="truncate text-xs">Design & Build</span>
+
+          {/* User Information */}
+          <div className="flex  flex-col text-white">
+            <span className="font-bold text-xl">
+              {user?.role === 'ADMIN' ? 'Admin' :
+                user?.role === 'ORGANIZATION' ? 'Organization' :
+                  user?.role || 'User'}
+            </span>
+            <span className="text-xs opacity-80 truncate">
+              {user?.email || 'User'}
+            </span>
           </div>
-        </SidebarMenuButton>
+        </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu>
-          <div>Sidebar Content Here</div>
-          {sidebarItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <a href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </a>
+        <div className="mx-5">
+          <SidebarMenu className="gap-3 my-10">
+            {filteredRoutes.map((route) => (
+              <SidebarMenuItem key={route.path}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === route.path}
+                  className="text-white hover:bg-white/10 data-[active=true]:bg-white/20 data-[active=true]:text-white p-5"
+                >
+                  <Link href={route.path} className="flex items-center gap-3">
+                    <route.icon className="text-white w-6 h-6" />
+                    <span className="text-white text-base">{route.name}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+
+          <div className="mt-5 mb-8">
+            <div className="h-px bg-white"></div>
+          </div>
+
+          {/* Account and Settings buttons */}
+          <SidebarMenu className="gap-3 mb-5">
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="text-white hover:bg-white/10 p-5"
+              >
+                <Link href="/account" className="flex items-center gap-3">
+                  <HiUser className="text-white w-6 h-6" />
+                  <span className="text-white text-base">Account</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="text-white hover:bg-white/10 p-5"
+              >
+                <Link href="/settings" className="flex items-center gap-3">
+                  <IoMdSettings className="text-white w-6 h-6" />
+                  <span className="text-white text-base">Settings</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+
+          <div className="mt-10">
+            <Button
+              onClick={handleLogout}
+              className="w-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-3 p-5"
+            >
+              <LogOut className="w-6 h-6" />
+              <span className="text-base">Logout</span>
+            </Button>
+          </div>
+        </div>
       </SidebarContent>
-      <SidebarFooter>
-        <div>Sidebar Footer here</div>
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
