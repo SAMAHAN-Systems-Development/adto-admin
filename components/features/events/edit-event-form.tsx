@@ -25,9 +25,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { updateEventService } from "@/lib/api/services/updateEventService";
-import { updateEventSchema } from "@/lib/zod/update-event.schema";
-import type { UpdateEventRequest } from "@/lib/types/requests/UpdateEventRequest";
+import { updateEvent } from "@/lib/api/services/eventServices";
+import { updateEventSchema } from "@/lib/zod/event.schema";
+import type { UpdateEventRequest } from "@/lib/types/requests/EventRequests";
 import type { Event } from "@/lib/types/entities";
 
 interface EditEventFormProps {
@@ -52,7 +52,7 @@ export function EditEventForm({ event }: EditEventFormProps) {
 
   async function handleSubmit(data: UpdateEventRequest) {
     try {
-      await updateEventService(event.id, data);
+      await updateEvent(event.id, data);
       router.push("/events");
       router.refresh();
     } catch (error) {
