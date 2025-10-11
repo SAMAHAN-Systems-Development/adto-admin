@@ -23,10 +23,10 @@ export const createEventSchema: z.ZodSchema<CreateEventRequest> = z
 
 export const updateEventSchema: z.ZodSchema<UpdateEventRequest> = z
   .object({
-    name: z.string().min(1, "Provide an event name.").optional(),
+    name: z.string().min(1, "Event name cannot be empty if provided.").optional(),
     description: z.string().optional(),
-    dateStart: z.string().datetime("Provide a valid start date.").optional(),
-    dateEnd: z.string().datetime("Provide a valid end date.").optional(),
+    dateStart: z.string().datetime("Provide a start date.").optional(),
+    dateEnd: z.string().datetime("Provide an end date.").optional(),
     isRegistrationOpen: z.boolean().optional(),
     isRegistrationRequired: z.boolean().optional(),
     isOpenToOutsiders: z.boolean().optional(),
