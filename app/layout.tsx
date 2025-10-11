@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ReactQueryClientProvider } from "@/lib/config/react-query";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { Figtree } from "next/font/google";
 
 export const metadata: Metadata = {
