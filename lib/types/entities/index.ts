@@ -94,6 +94,8 @@ export interface Event {
   isRegistrationOpen: boolean;
   isRegistrationRequired: boolean;
   isOpenToOutsiders: boolean;
+  isPublished: boolean;
+  isArchived: boolean;
   orgId: string;
   org: OrganizationChild;
   registrations: Registration[];
