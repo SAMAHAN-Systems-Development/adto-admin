@@ -4,7 +4,7 @@ import type { CreateEventRequest, UpdateEventRequest } from "../types/requests/E
 export const createEventSchema: z.ZodSchema<CreateEventRequest> = z
   .object({
     name: z.string().min(1, "Provide an event name."),
-    description: z.string(),
+    description: z.string().min(10, "Description must be at least 10 characters.").max(5000, "Description cannot exceed 5000 characters."),
     dateStart: z.string().datetime("Provide a start date."),
     dateEnd: z.string().datetime("Provide an end date."),
     isRegistrationOpen: z.boolean().optional(),
@@ -24,7 +24,7 @@ export const createEventSchema: z.ZodSchema<CreateEventRequest> = z
 export const updateEventSchema: z.ZodSchema<UpdateEventRequest> = z
   .object({
     name: z.string().min(1, "Event name cannot be empty if provided.").optional(),
-    description: z.string().optional(),
+    description: z.string().min(10, "Description must be at least 10 characters.").max(5000, "Description cannot exceed 5000 characters.").optional(),
     dateStart: z.string().datetime("Provide a start date.").optional(),
     dateEnd: z.string().datetime("Provide an end date.").optional(),
     isRegistrationOpen: z.boolean().optional(),

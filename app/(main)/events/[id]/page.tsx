@@ -9,6 +9,9 @@ import { useEventQuery } from "@/lib/api/queries/eventsQueries"
 import { useUpdateEventMutation, useArchiveEventMutation, usePublishEventMutation } from "@/lib/api/mutations/eventsMutations"
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/lib/hooks/use-toast"
+import { updateEventSchema } from "@/lib/zod/event.schema"
+import { z } from "zod"
 
 interface EventDetailsPageProps {
   params: {
@@ -18,10 +21,12 @@ interface EventDetailsPageProps {
 
 export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("additional-details")
   const [showFullDescription, setShowFullDescription] = useState(false)
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [editedDescription, setEditedDescription] = useState("")
+  const [descriptionError, setDescriptionError] = useState<string | null>(null)
   const [showArchiveModal, setShowArchiveModal] = useState(false)
   const [showPublishModal, setShowPublishModal] = useState(false)
 
@@ -83,30 +88,83 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const handleDescriptionDoubleClick = () => {
     setIsEditingDescription(true)
     setEditedDescription(event?.description || "")
+    setDescriptionError(null) // Clear any previous errors
+  }
+
+  const validateDescription = (description: string): boolean => {
+    setDescriptionError(null)
+
+    if (!description.trim()) {
+      setDescriptionError("Description cannot be empty")
+      return false
+    }
+
+    try {
+      updateEventSchema.parse({ description })
+      return true
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const descriptionErrors = error.errors.filter(err => err.path.includes('description'))
+        if (descriptionErrors.length > 0) {
+          setDescriptionError(descriptionErrors[0].message)
+          return false
+        }
+      }
+      return true
+    }
   }
 
   const handleSaveDescription = async () => {
-    if (editedDescription.trim() && editedDescription !== event?.description) {
-      try {
-        await updateEventMutation.mutateAsync({
-          id: params.id,
-          data: { description: editedDescription },
-        })
-        // Exit edit mode after successful update
-        setIsEditingDescription(false)
-      } catch (error) {
-        // Keep edit mode open if there's an error
-        console.error("Failed to save description:", error)
-      }
-    } else {
-      // No changes, just exit edit mode
+    if (!validateDescription(editedDescription)) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: descriptionError || "Please fix any errors before saving.",
+      })
+      return
+    }
+
+    if (editedDescription.trim() === event?.description) {
       setIsEditingDescription(false)
+      setDescriptionError(null)
+      return
+    }
+
+    try {
+      await updateEventMutation.mutateAsync({
+        id: params.id,
+        data: { description: editedDescription },
+      })
+      
+      setIsEditingDescription(false)
+      setDescriptionError(null)
+      
+      toast({
+        variant: "success",
+        title: "Success",
+        description: "Event description updated successfully.",
+      })
+    } catch (error) {
+      console.error("Failed to save description:", error)
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "An unexpected error occurred"
+      
+      setDescriptionError(errorMessage)
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Failed to save description: ${errorMessage}`,
+      })
     }
   }
 
   const handleCancelEdit = () => {
     setIsEditingDescription(false)
     setEditedDescription(event?.description || "")
+    setDescriptionError(null) // Clear errors when canceling
   }
 
   if (isLoading) {
@@ -191,12 +249,43 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Event Details</h2>
           {isEditingDescription ? (
             <div className="space-y-4">
-              <Textarea
-                value={editedDescription}
-                onChange={(e) => setEditedDescription(e.target.value)}
-                className="min-h-[200px] text-gray-700 leading-relaxed"
-                placeholder="Enter event description..."
-              />
+              <div className="space-y-2">
+                <Textarea
+                  value={editedDescription}
+                  onChange={(e) => {
+                    setEditedDescription(e.target.value)
+                    if (descriptionError) {
+                      setDescriptionError(null)
+                    }
+                  }}
+                  className={`min-h-[200px] text-gray-700 leading-relaxed ${
+                    descriptionError ? "border-red-500 focus-visible:ring-red-500" : ""
+                  }`}
+                  placeholder="Enter event description..."
+                  aria-invalid={!!descriptionError}
+                  aria-describedby={descriptionError ? "description-error" : undefined}
+                />
+                <div className="flex items-center justify-between">
+                  {descriptionError ? (
+                    <p id="description-error" className="text-sm text-red-600 font-medium">
+                      {descriptionError}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      Description must be at least 10 characters.
+                    </p>
+                  )}
+                  <p className={`text-sm ${
+                    editedDescription.length > 5000 
+                      ? "text-red-600 font-medium" 
+                      : editedDescription.length < 10
+                      ? "text-orange-600"
+                      : "text-gray-500"
+                  }`}>
+                    {editedDescription.length} / 5000 characters
+                  </p>
+                </div>
+              </div>
               <div className="flex gap-2 justify-end">
                 <Button
                   type="button"
