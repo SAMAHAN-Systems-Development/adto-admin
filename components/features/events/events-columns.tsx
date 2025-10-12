@@ -129,7 +129,6 @@ export const createEventsColumns = ({
     accessorKey: "registrations",
     header: () => (
       <div className="flex items-center text-secondary-100">
-        <Users className="mr-2 h-4 w-4" />
         Registrations
       </div>
     ),
