@@ -33,12 +33,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Event } from "@/lib/types/entities";
 
-interface EventsDataTableProps {
-  columns: ColumnDef<Event>[];
-  data: Event[];
-  onCreateEvent?: () => void;
+interface DataTableProps<TData> {
+  title: string;
+  columns: ColumnDef<TData>[];
+  data: TData[];
+  searchColumn?: string;
+  searchPlaceholder?: string;
+  addButtonLabel?: string;
+  onCreateItem?: () => void;
+  entityName?: string;
   pagination?: {
     page: number;
     limit: number;
@@ -47,10 +51,31 @@ interface EventsDataTableProps {
     onPageChange: (page: number) => void;
     onLimitChange: (limit: number) => void;
   };
+  search?: {
+    value: string;
+    onSearchChange: (value: string) => void;
+  };
+  sorting?: {
+    field: string;
+    order: "asc" | "desc";
+    onSortChange: (field: string, order: "asc" | "desc") => void;
+  };
 }
 
-export function EventsDataTable({ columns, data, onCreateEvent, pagination }: EventsDataTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+export function DataTable<TData>({
+  title,
+  columns,
+  data,
+  searchColumn = "name",
+  searchPlaceholder = "Search...",
+  addButtonLabel = "Add Item",
+  onCreateItem,
+  entityName = "items",
+  pagination,
+  search,
+  sorting,
+}: DataTableProps<TData>) {
+  const [localSorting, setLocalSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -58,21 +83,27 @@ export function EventsDataTable({ columns, data, onCreateEvent, pagination }: Ev
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
+  // Use backend search if provided, otherwise use local filtering
+  const isBackendSearch = !!search;
+  const isBackendSort = !!sorting;
+
   const table = useReactTable({
     data,
     columns,
-    onSortingChange: setSorting,
+    onSortingChange: setLocalSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: isBackendSort ? undefined : getSortedRowModel(),
+    getFilteredRowModel: isBackendSearch ? undefined : getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    manualPagination: !!pagination, // Use manual pagination if pagination prop is provided
+    manualPagination: !!pagination,
+    manualSorting: isBackendSort,
+    manualFiltering: isBackendSearch,
     pageCount: pagination?.totalPages,
     state: {
-      sorting,
+      sorting: localSorting,
       columnFilters,
       columnVisibility,
       rowSelection,
@@ -88,22 +119,39 @@ export function EventsDataTable({ columns, data, onCreateEvent, pagination }: Ev
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">My Events</h1>
-        <Button onClick={onCreateEvent} className="bg-blue-600 hover:bg-blue-700 text-white">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Event
-        </Button>
+        <h1 className="text-3xl font-bold">{title}</h1>
+        {onCreateItem && (
+          <Button
+            onClick={onCreateItem}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {addButtonLabel}
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-3 mb-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search events by name..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
+            placeholder={searchPlaceholder}
+            value={
+              isBackendSearch
+                ? search.value
+                : ((table
+                    .getColumn(searchColumn)
+                    ?.getFilterValue() as string) ?? "")
             }
+            onChange={(event) => {
+              if (isBackendSearch) {
+                search.onSearchChange(event.target.value);
+              } else {
+                table
+                  .getColumn(searchColumn)
+                  ?.setFilterValue(event.target.value);
+              }
+            }}
             className="pl-10"
           />
         </div>
@@ -190,9 +238,12 @@ export function EventsDataTable({ columns, data, onCreateEvent, pagination }: Ev
         <div className="text-sm text-gray-600">
           {pagination ? (
             <>
-              Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
-              {Math.min(pagination.page * pagination.limit, pagination.totalCount)} of{" "}
-              {pagination.totalCount} events
+              Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+              {Math.min(
+                pagination.page * pagination.limit,
+                pagination.totalCount
+              )}{" "}
+              of {pagination.totalCount} {entityName}
             </>
           ) : (
             <>
@@ -217,12 +268,22 @@ export function EventsDataTable({ columns, data, onCreateEvent, pagination }: Ev
                 <DropdownMenuContent align="end">
                   <DropdownMenuRadioGroup
                     value={pagination.limit.toString()}
-                    onValueChange={(value) => pagination.onLimitChange(Number(value))}
+                    onValueChange={(value) =>
+                      pagination.onLimitChange(Number(value))
+                    }
                   >
-                    <DropdownMenuRadioItem value="10">10 per page</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="20">20 per page</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="50">50 per page</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="100">100 per page</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="10">
+                      10 per page
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="20">
+                      20 per page
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="50">
+                      50 per page
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="100">
+                      100 per page
+                    </DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>

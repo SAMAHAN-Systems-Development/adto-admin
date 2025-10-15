@@ -18,7 +18,6 @@ export interface OrganizationChild {
   acronym?: string;
   icon?: string;
   email: string;
-  password: string;
   description?: string;
   facebook?: string;
   instagram?: string;
@@ -26,6 +25,7 @@ export interface OrganizationChild {
   linkedin?: string;
   isActive: boolean;
   isAdmin: boolean;
+  userId?: string;
   events: Event[];
   organizationParents: OrganizationGroup[];
 }

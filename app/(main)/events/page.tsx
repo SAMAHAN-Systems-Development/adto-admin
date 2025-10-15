@@ -1,25 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
-import { EventsDataTable } from "@/components/features/events/events-data-table";
+import React, { useState, useEffect } from "react";
+import { DataTable } from "@/components/shared/data-table";
 import { createEventsColumns } from "@/components/features/events/events-columns";
 import { CreateEventModal } from "@/components/features/events/create-event-modal";
 import { ViewEventModal } from "@/components/features/events/view-event-modal";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useOrganizationEventsQuery } from "@/lib/api/queries/eventsQueries";
 import { useArchiveEventMutation } from "@/lib/api/mutations/eventsMutations";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useRouter } from "next/navigation";
 import type { Event } from "@/lib/types/entities";
+import { toast } from "sonner";
+import { useDebounce } from "@/lib/hooks/use-debounce";
 
 export default function EventsPage() {
   const router = useRouter();
@@ -30,11 +23,26 @@ export default function EventsPage() {
   const [eventToArchive, setEventToArchive] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
+  const [searchFilter, setSearchFilter] = useState("");
+  const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
 
   const { user } = useAuthStore();
   const orgId = user?.orgId;
 
-  const { data, isLoading, error } = useOrganizationEventsQuery(orgId || "", { page, limit });
+  // Debounce search to avoid too many API calls
+  const debouncedSearch = useDebounce(searchFilter, 500);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
+  const { data, isLoading, error } = useOrganizationEventsQuery(orgId || "", {
+    page,
+    limit,
+    searchFilter: debouncedSearch,
+    orderBy,
+  });
   const events = data?.data || [];
   const meta = data?.meta;
 
@@ -54,11 +62,22 @@ export default function EventsPage() {
     setShowArchiveDialog(true);
   };
 
-  const handleArchiveConfirm = () => {
+  const handleArchiveConfirm = async () => {
     if (eventToArchive) {
-      archiveEventMutation.mutate(eventToArchive);
-      setShowArchiveDialog(false);
-      setEventToArchive(null);
+      try {
+        await archiveEventMutation.mutateAsync(eventToArchive);
+        toast.success("Event archived successfully", {
+          description:
+            "The event has been removed from the active events list.",
+        });
+        setShowArchiveDialog(false);
+        setEventToArchive(null);
+      } catch {
+        toast.error("Failed to archive event", {
+          description:
+            "An error occurred while archiving the event. Please try again.",
+        });
+      }
     }
   };
 
@@ -100,10 +119,27 @@ export default function EventsPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <EventsDataTable
+      <DataTable
+        title="My Events"
         columns={columns}
         data={events}
-        onCreateEvent={() => setIsCreateModalOpen(true)}
+        searchColumn="name"
+        searchPlaceholder="Search events by name, description, or organization..."
+        addButtonLabel="Add Event"
+        onCreateItem={() => setIsCreateModalOpen(true)}
+        entityName="events"
+        search={{
+          value: searchFilter,
+          onSearchChange: setSearchFilter,
+        }}
+        sorting={{
+          field: "dateStart",
+          order: orderBy,
+          onSortChange: (field, order) => {
+            setOrderBy(order);
+            setPage(1); // Reset to first page when sorting changes
+          },
+        }}
         pagination={{
           page,
           limit,
@@ -129,25 +165,17 @@ export default function EventsPage() {
         onEdit={() => selectedEvent && handleEditEvent(selectedEvent.id)}
       />
 
-      <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Archive Event?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to archive this event? This action will
-              remove it from the active events list.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleArchiveCancel}>
-              No, keep event
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleArchiveConfirm}>
-              Yes, archive event
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationModal
+        isOpen={showArchiveDialog}
+        onClose={handleArchiveCancel}
+        onConfirm={handleArchiveConfirm}
+        title="Archive Event?"
+        description="Are you sure you want to archive this event? This action will remove it from the active events list."
+        confirmText="Yes, archive event"
+        cancelText="No, keep event"
+        isLoading={archiveEventMutation.isPending}
+        variant="destructive"
+      />
     </div>
   );
 }

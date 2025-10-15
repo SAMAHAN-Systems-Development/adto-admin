@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -13,7 +13,7 @@ import { useAuthStore } from '@/lib/store/authStore'
 import { loginSchema } from '@/lib/zod/login.schema'
 import type { AdminLoginRequest } from '@/lib/types/requests/AdminLoginRequest'
 
-export default function AdminLogin() {
+function AdminLoginContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const [showLoginModal, setShowLoginModal] = useState(false)
@@ -135,5 +135,21 @@ export default function AdminLogin() {
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+export default function AdminLogin() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen px-4 py-6 bg-gradient-to-br from-blue-600 to-blue-900">
+                <Card className="w-full max-w-md mx-auto rounded-2xl md:rounded-[34px] shadow-lg">
+                    <CardContent className="p-6 flex items-center justify-center h-64">
+                        <div className="text-center">Loading...</div>
+                    </CardContent>
+                </Card>
+            </div>
+        }>
+            <AdminLoginContent />
+        </Suspense>
     )
 }

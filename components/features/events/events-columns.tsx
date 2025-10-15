@@ -3,8 +3,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import {
   MoreHorizontal,
-  ArrowUpDown,
-  Users,
   Eye,
   Edit,
   Archive,
@@ -57,18 +55,7 @@ export const createEventsColumns = ({
   },
   {
     accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:bg-transparent p-0 text-secondary-100"
-        >
-          Event Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: () => <span className="text-secondary-100">Event Name</span>,
     cell: ({ row }) => {
       const event = row.original;
       return (
@@ -83,18 +70,7 @@ export const createEventsColumns = ({
   },
   {
     accessorKey: "dateStart",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:bg-transparent p-0 text-secondary-100"
-        >
-          Date
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: () => <span className="text-secondary-100">Date</span>,
     cell: ({ row }) => {
       const event = row.original;
       return (
@@ -128,9 +104,7 @@ export const createEventsColumns = ({
   {
     accessorKey: "registrations",
     header: () => (
-      <div className="flex items-center text-secondary-100">
-        Registrations
-      </div>
+      <div className="flex items-center text-secondary-100">Registrations</div>
     ),
     cell: ({ row }) => {
       const event = row.original;
@@ -144,7 +118,9 @@ export const createEventsColumns = ({
   },
   {
     accessorKey: "isRegistrationOpen",
-    header: () => <span className="text-secondary-100">Registration Status</span>,
+    header: () => (
+      <span className="text-secondary-100">Registration Status</span>
+    ),
     cell: ({ row }) => {
       const event = row.original;
       return (
@@ -168,13 +144,13 @@ export const createEventsColumns = ({
     header: () => <span className="text-secondary-100">Event Status</span>,
     cell: ({ row }) => {
       const event = row.original;
-      
+
       if (event.isPublished === true) {
         return <span className="text-secondary-400">Approved</span>;
       } else if (event.isPublished === false) {
         return <span className="text-foreground">Pending</span>;
       }
-      
+
       return <span className="text-foreground">Pending</span>;
     },
   },

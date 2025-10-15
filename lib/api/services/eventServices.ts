@@ -31,11 +31,22 @@ export const findAllPublishedEvents = async (params?: {
 export const findAllByOrganizationChild = async (orgId: string, params?: {
   page?: number;
   limit?: number;
+  searchFilter?: string;
+  orderBy?: "asc" | "desc";
 }) => {
   const queryParams = new URLSearchParams({
     page: (params?.page || 1).toString(),
     limit: (params?.limit || 20).toString(),
-  })
+  });
+  
+  if (params?.searchFilter) {
+    queryParams.append("searchFilter", params.searchFilter);
+  }
+  
+  if (params?.orderBy) {
+    queryParams.append("orderBy", params.orderBy);
+  }
+  
   const response = await fetch(`${BASE_URL}/events/organization/${orgId}?${queryParams}`, {
     method: "GET",
     credentials: "include",

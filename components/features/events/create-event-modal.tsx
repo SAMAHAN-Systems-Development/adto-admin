@@ -10,7 +10,7 @@ import {
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { EventForm } from "./event-form";
 import { useCreateEventMutation } from "@/lib/api/mutations/eventsMutations";
-import type { CreateEventRequest, UpdateEventRequest } from "@/lib/types/requests/EventRequests";
+import type { CreateEventRequest } from "@/lib/types/requests/EventRequests";
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -21,12 +21,14 @@ export function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [pendingData, setPendingData] = useState<CreateEventRequest | null>(null);
+  const [pendingData, setPendingData] = useState<CreateEventRequest | null>(
+    null
+  );
 
   const createEventMutation = useCreateEventMutation();
 
-  const handleSubmit = async (data: CreateEventRequest | UpdateEventRequest) => {
-    setPendingData(data as CreateEventRequest);
+  const handleSubmit = async (data: CreateEventRequest) => {
+    setPendingData(data);
     setShowCreateDialog(true);
     return Promise.resolve();
   };
@@ -60,10 +62,11 @@ export function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="bg-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-blue-600">Create Event</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-blue-600">
+              Create Event
+            </DialogTitle>
           </DialogHeader>
           <EventForm
-            mode="create"
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isLoading={createEventMutation.isPending}
