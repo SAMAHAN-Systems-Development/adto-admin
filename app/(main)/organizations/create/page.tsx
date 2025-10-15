@@ -2,30 +2,23 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import OrganizationsForm from "@/components/features/organizations/organizations-form";
-import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import type { OrganizationSchema as OrganizationType } from "@/lib/zod/organization.schema";
-// import { createOrganizationService } from "@/lib/api/services/createOrganizationService";
+import { useCreateOrganizationMutation } from "@/lib/api/mutations/organizationsMutations";
+import type { CreateOrganizationRequest } from "@/lib/types/requests/OrganizationRequests";
 
 export default function CreateOrganizationPage() {
   const router = useRouter();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<OrganizationType | null>(null);
 
-  // When the form submits → open confirm dialog and store data
-  const handleSubmit = async (data: OrganizationType) => {
+  const createOrganizationMutation = useCreateOrganizationMutation();
+
+  const handleSubmit = (data: OrganizationType) => {
     setFormData(data);
     setShowSubmitDialog(true);
   };
@@ -33,27 +26,23 @@ export default function CreateOrganizationPage() {
   const confirmSubmit = async () => {
     if (!formData) return;
 
-    try {
-      setIsSubmitting(true);
+    // Map form data to API request format with default values
+    const requestData: CreateOrganizationRequest = {
+      name: formData.name,
+      acronym: formData.acronym,
+      email: formData.email,
+      description: formData.description || "",
+      facebook: formData.facebook || "",
+      instagram: formData.instagram || "",
+      twitter: formData.x || "",
+      linkedin: formData.linkedin || "",
+      isAdmin: false,
+    };
 
-      // Call the actual API service
-      // await createOrganizationService(formData);
-
-      toast("Organization created successfully.", {
-        description: "The organization has been added to the system.",
-      });
-
-      router.push("/organizations");
-    } catch (error) {
-      console.error("Error creating organization:", error);
-      toast("Failed to create organization. Please try again.", {
-        description: "An error occurred while creating the organization.",
-      });
-    } finally {
-      setIsSubmitting(false);
-      setShowSubmitDialog(false);
-      setFormData(null);
-    }
+    await createOrganizationMutation.mutateAsync(requestData);
+    setShowSubmitDialog(false);
+    setFormData(null);
+    router.push("/organizations");
   };
 
   const handleCancel = () => {
@@ -68,53 +57,49 @@ export default function CreateOrganizationPage() {
   return (
     <>
       <div className="font-figtree container w-full mt-14 ml-3">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={handleCancel}
+          className="mb-6 text-gray-600 hover:text-gray-900 -ml-2"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Organizations
+        </Button>
+
         <h1 className=" font-bold text-3xl mb-6 ">Create Organization</h1>
 
         <OrganizationsForm
           onSubmit={handleSubmit}
           onCancel={handleCancel}
-          isSubmitting={isSubmitting}
+          isSubmitting={createOrganizationMutation.isPending}
         />
       </div>
 
       {/* Submit confirmation dialog */}
-      <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Create Organization</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to create this organization?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowSubmitDialog(false)}>
-              No
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Yes"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationModal
+        isOpen={showSubmitDialog}
+        onClose={() => setShowSubmitDialog(false)}
+        onConfirm={confirmSubmit}
+        title="Create Organization"
+        description="Are you sure you want to create this organization?"
+        confirmText="Create"
+        cancelText="Cancel"
+        isLoading={createOrganizationMutation.isPending}
+        variant="default"
+      />
 
       {/* Cancel confirmation dialog */}
-      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Create Organization</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to cancel creating this organization?
-              Information will not be saved.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowCancelDialog(false)}>
-              No
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmCancel}>Yes</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationModal
+        isOpen={showCancelDialog}
+        onClose={() => setShowCancelDialog(false)}
+        onConfirm={confirmCancel}
+        title="Discard Changes?"
+        description="Are you sure you want to cancel creating this organization? Information will not be saved."
+        confirmText="Yes, Discard"
+        cancelText="No, Keep Editing"
+        variant="destructive"
+      />
     </>
   );
 }
