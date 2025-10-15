@@ -40,12 +40,11 @@ export default function OrganizationsForm({
       name: "",
       acronym: "",
       email: "",
-      icon: null,
       description: "",
-      facebook: "",
-      instagram: "",
-      x: "",
-      linkedin: "",
+      facebook: "https://facebook.com/",
+      instagram: "https://instagram.com/",
+      twitter: "https://twitter.com/",
+      linkedin: "https://linkedin.com/",
       ...defaultValues,
     },
   });
@@ -132,7 +131,7 @@ export default function OrganizationsForm({
         />
 
         <div className="grid grid-cols-1 gap-4">
-          {["facebook", "instagram", "x", "linkedin"].map((social) => (
+          {["facebook", "instagram", "twitter", "linkedin"].map((social) => (
             <FormField
               key={social}
               control={form.control}
@@ -198,14 +197,18 @@ export default function OrganizationsForm({
           <Button variant="outline" type="button" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" variant="outline" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
             {isSubmitting
               ? isEditMode
-                ? "Updating..."
+                ? "Saving..."
                 : "Creating..."
               : isEditMode
                 ? "Save Changes"
-                : "Create"}
+                : "Create Organization"}
           </Button>
         </div>
       </form>
