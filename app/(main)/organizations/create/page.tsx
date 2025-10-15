@@ -26,7 +26,6 @@ export default function CreateOrganizationPage() {
   const confirmSubmit = async () => {
     if (!formData) return;
 
-    // Map form data to API request format with default values
     const requestData: CreateOrganizationRequest = {
       name: formData.name,
       acronym: formData.acronym,
@@ -34,7 +33,7 @@ export default function CreateOrganizationPage() {
       description: formData.description || "",
       facebook: formData.facebook || "",
       instagram: formData.instagram || "",
-      twitter: formData.x || "",
+      twitter: formData.twitter || "",
       linkedin: formData.linkedin || "",
       isAdmin: false,
     };
