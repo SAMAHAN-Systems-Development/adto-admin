@@ -22,9 +22,9 @@ export const useEventQuery = (eventId: string) => {
   });
 };
 
-export const useOrganizationEventsQuery = (orgId: string, params?: { page?: number; limit?: number }) => {
+export const useOrganizationEventsQuery = (orgId: string, params?: { page?: number; limit?: number; searchFilter?: string; orderBy?: "asc" | "desc" }) => {
   return useQuery({
-    queryKey: ["events", "organization", orgId, params?.page, params?.limit],
+    queryKey: ["events", "organization", orgId, params?.page, params?.limit, params?.searchFilter, params?.orderBy],
     queryFn: () => findAllByOrganizationChild(orgId, params),
     enabled: !!orgId,
     staleTime: 5 * 60 * 1000,
