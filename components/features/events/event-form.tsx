@@ -13,57 +13,37 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/shared/date-time-picker";
 import { Textarea } from "@/components/ui/textarea";
-import { createEventSchema, updateEventSchema } from "@/lib/zod/event.schema";
-import type {
-  CreateEventRequest,
-  UpdateEventRequest,
-} from "@/lib/types/requests/EventRequests";
-import type { Event } from "@/lib/types/entities";
+import { createEventSchema } from "@/lib/zod/event.schema";
+import type { CreateEventRequest } from "@/lib/types/requests/EventRequests";
 
 interface EventFormProps {
-  mode: "create" | "update";
-  event?: Event;
-  onSubmit: (data: CreateEventRequest | UpdateEventRequest) => Promise<void>;
+  onSubmit: (data: CreateEventRequest) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
   onFormChange?: () => void;
 }
 
 export function EventForm({
-  mode,
-  event,
   onSubmit,
   onCancel,
   isLoading = false,
   onFormChange,
 }: EventFormProps) {
-  const isCreateMode = mode === "create";
-  const schema = isCreateMode ? createEventSchema : updateEventSchema;
-
-  const form = useForm<CreateEventRequest | UpdateEventRequest>({
-    defaultValues: isCreateMode
-      ? {
-          name: "",
-          description: "",
-          dateStart: "",
-          dateEnd: "",
-        }
-      : {
-          name: event?.name || "",
-          description: event?.description || "",
-          dateStart: event?.dateStart
-            ? new Date(event.dateStart).toISOString()
-            : "",
-          dateEnd: event?.dateEnd ? new Date(event.dateEnd).toISOString() : "",
-        },
-    resolver: zodResolver(schema),
+  const form = useForm<CreateEventRequest>({
+    defaultValues: {
+      name: "",
+      description: "",
+      dateStart: "",
+      dateEnd: "",
+    },
+    resolver: zodResolver(createEventSchema),
   });
 
-  async function handleSubmit(data: CreateEventRequest | UpdateEventRequest) {
+  async function handleSubmit(data: CreateEventRequest) {
     try {
       await onSubmit(data);
     } catch (error) {
-      console.error(`Failed to ${mode} event:`, error);
+      console.error("Failed to create event:", error);
     }
   }
 
@@ -85,10 +65,14 @@ export function EventForm({
               <FormItem>
                 <FormLabel>Event Name</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Enter event name" onChange={(e) => {
-                    field.onChange(e);
-                    handleFieldChange();
-                  }} />
+                  <Input
+                    {...field}
+                    placeholder="Enter event name"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleFieldChange();
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -102,10 +86,15 @@ export function EventForm({
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea {...field} placeholder="Enter event description" className="min-h-[120px]" onChange={(e) => {
-                    field.onChange(e);
-                    handleFieldChange();
-                  }} />
+                  <Textarea
+                    {...field}
+                    placeholder="Enter event description"
+                    className="min-h-[120px]"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleFieldChange();
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -120,10 +109,13 @@ export function EventForm({
                 <FormItem>
                   <FormLabel>Start Date & Time</FormLabel>
                   <FormControl>
-                    <DateTimePicker {...field} onChange={(value) => {
-                      field.onChange(value);
-                      handleFieldChange();
-                    }} />
+                    <DateTimePicker
+                      {...field}
+                      onChange={(value) => {
+                        field.onChange(value);
+                        handleFieldChange();
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -137,10 +129,13 @@ export function EventForm({
                 <FormItem>
                   <FormLabel>End Date & Time</FormLabel>
                   <FormControl>
-                    <DateTimePicker {...field} onChange={(value) => {
-                      field.onChange(value);
-                      handleFieldChange();
-                    }} />
+                    <DateTimePicker
+                      {...field}
+                      onChange={(value) => {
+                        field.onChange(value);
+                        handleFieldChange();
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -159,16 +154,12 @@ export function EventForm({
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isLoading}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {isLoading
-              ? "Creating..."
-              : isCreateMode
-                ? "Create Event"
-                : "Update Event"}
+            {isLoading ? "Creating..." : "Create Event"}
           </Button>
         </div>
       </form>
