@@ -44,7 +44,11 @@ export function AnnouncementList({ eventId }: Props) {
   return (
     <div className="space-y-6">
       {announcements.map((announcement) => (
-        <AnnouncementItem key={announcement.id} announcement={announcement} />
+        <AnnouncementItem
+          key={announcement.id}
+          announcement={announcement}
+          eventId={eventId}
+        />
       ))}
     </div>
   );
