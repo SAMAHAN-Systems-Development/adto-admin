@@ -12,6 +12,8 @@ import {
   usePublishEventMutation,
 } from "@/lib/api/mutations/eventsMutations";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
+import { AnnouncementList } from "@/components/features/announcements/announcement-list";
+import { CreateAnnouncementModal } from "@/components/features/announcements/create-announcement-modal";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/lib/hooks/use-toast";
 import { updateEventSchema } from "@/lib/zod/event.schema";
@@ -33,6 +35,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showCreateAnnouncement, setShowCreateAnnouncement] = useState(false);
 
   // Fetch event data
   const { data: event, isLoading, error } = useEventQuery(params.id);
@@ -465,18 +468,19 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         )}
 
         {activeTab === "announcements" && (
-          <div className="space-y-8 flex flex-col">
-            <div className="ml-auto">
+          <div className="space-y-8">
+            <div className="flex justify-end">
               <Button
                 variant="outline"
                 className="flex items-center gap-2 border-blue-600 text-blue-600 hover:text-blue-600 hover:bg-gray-50 bg-transparent rounded-sm font-semibold shadow-sm"
-                onClick={() => setShowArchiveModal(true)}
-                disabled={archiveEventMutation.isPending}
+                onClick={() => setShowCreateAnnouncement(true)}
               >
-                <CirclePlus className="!h-5 !w-5 text-blue-600" />
+                <CirclePlus className="h-5 w-5 text-blue-600" />
                 Add Announcement
               </Button>
             </div>
+
+            <AnnouncementList eventId={params.id} />
           </div>
         )}
 
@@ -525,6 +529,13 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           cancelText="Cancel"
           isLoading={archiveEventMutation.isPending}
           variant="default"
+        />
+
+        {/* Create Announcement Modal */}
+        <CreateAnnouncementModal
+          isOpen={showCreateAnnouncement}
+          onClose={() => setShowCreateAnnouncement(false)}
+          eventId={params.id}
         />
       </div>
     </div>
