@@ -55,6 +55,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, eventId }: Props) {
             onSubmit={handleSubmit}
             onCancel={onClose}
             isLoading={createAnnouncementMutation.isPending}
+            isEditMode={false}
           />
         </DialogContent>
       </Dialog>
@@ -65,8 +66,8 @@ export function CreateAnnouncementModal({ isOpen, onClose, eventId }: Props) {
         onClose={() => setShowCreateDialog(false)}
         onConfirm={handleCreateConfirm}
         title="Create Announcement"
-        description="Are you sure you want to post this announcement?"
-        confirmText="Create"
+        description="Are you sure you want to create this announcement?"
+        confirmText="Create Announcement"
         cancelText="Cancel"
         isLoading={createAnnouncementMutation.isPending}
         variant="default"
