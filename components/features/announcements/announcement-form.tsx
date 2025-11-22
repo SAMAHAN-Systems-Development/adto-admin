@@ -28,6 +28,8 @@ interface AnnouncementFormProps {
   onCancel: () => void;
   isLoading?: boolean;
   onFormChange?: () => void;
+  initialData?: AnnouncementFormRequest;
+  isEditMode?: boolean;
 }
 
 export function AnnouncementForm({
@@ -35,13 +37,14 @@ export function AnnouncementForm({
   onCancel,
   isLoading = false,
   onFormChange,
+  initialData,
+  isEditMode = false,
 }: AnnouncementFormProps) {
   const form = useForm<AnnouncementFormRequest>({
     resolver: zodResolver(announcementFormSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       title: "",
       content: "",
-      // announcementType: "INFO",
     },
   });
 
@@ -80,6 +83,13 @@ export function AnnouncementForm({
                       handleFieldChange();
                     }}
                     disabled={isLoading}
+                    // Position cursor at end of text when focused (for edit mode)
+                    onFocus={(e) => {
+                      const val = e.target.value;
+                      setTimeout(() => {
+                        e.target.setSelectionRange(val.length, val.length);
+                      }, 0);
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -95,11 +105,11 @@ export function AnnouncementForm({
               <FormItem>
                 <FormLabel>Announcement Type</FormLabel>
                 <Select
+                  value={field.value || ""}
                   onValueChange={(value) => {
                     field.onChange(value);
                     handleFieldChange();
                   }}
-                  // defaultValue={field.value}
                   disabled={isLoading}
                 >
                   <FormControl>
@@ -159,7 +169,13 @@ export function AnnouncementForm({
             disabled={isLoading}
             className="bg-blue-600 hover:bg-blue-700 text-white px-5"
           >
-            {isLoading ? "Creating..." : "Create Announcement"}
+            {isLoading
+              ? isEditMode
+                ? "Updating..."
+                : "Creating..."
+              : isEditMode
+                ? "Update Announcement"
+                : "Create Announcement"}
           </Button>
         </div>
       </form>
