@@ -1,16 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import { Archive, SquarePen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { AnnouncementResponse } from "@/lib/types/requests/AnnouncementRequests";
 import { format } from "date-fns";
+import { UpdateAnnouncementModal } from "./update-announcement-modal";
 
 interface Props {
   announcement: AnnouncementResponse;
+  eventId: string;
 }
 
-export function AnnouncementItem({ announcement }: Props) {
+export function AnnouncementItem({ announcement, eventId }: Props) {
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+
   const formattedDate = format(
     new Date(announcement.updatedAt),
     "'Updated at' MM/dd/yyyy HH:mm"
@@ -71,11 +76,20 @@ export function AnnouncementItem({ announcement }: Props) {
           variant="ghost"
           size="icon"
           className="text-blue-600 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Edit announcement (Coming soon)"
+          title="Edit announcement"
+          onClick={() => setShowUpdateModal(true)}
         >
           <SquarePen className="!h-5 !w-5" />
         </Button>
       </div>
+
+      {/* Update Modal */}
+      <UpdateAnnouncementModal
+        isOpen={showUpdateModal}
+        onClose={() => setShowUpdateModal(false)}
+        announcement={announcement}
+        eventId={eventId}
+      />
     </div>
   );
 }
