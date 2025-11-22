@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/lib/hooks/use-toast";
+import { format } from "date-fns";
 import {
   createAnnouncement,
   updateAnnouncement,
@@ -17,9 +18,10 @@ export const useCreateAnnouncementMutation = (eventId: string) => {
   return useMutation({
     mutationFn: (data: CreateAnnouncementRequest) => createAnnouncement(data),
     onSuccess: () => {
+      const formattedDate = format(new Date(), "EEEE, MMMM d, yyyy");
       toast({
-        title: "Success",
-        description: "Announcement created successfully!",
+        title: "Announcement has been successfully created",
+        description: formattedDate,
         variant: "success",
       });
       queryClient.invalidateQueries({
@@ -50,9 +52,10 @@ export const useUpdateAnnouncementMutation = (eventId: string) => {
       data: UpdateAnnouncementRequest;
     }) => updateAnnouncement(id, data),
     onSuccess: () => {
+      const formattedDate = format(new Date(), "EEEE, MMMM d, yyyy");
       toast({
-        title: "Success",
-        description: "Announcement updated successfully!",
+        title: "Announcement details has been successfully updated",
+        description: formattedDate,
         variant: "success",
       });
       queryClient.invalidateQueries({
@@ -77,9 +80,10 @@ export const useDeleteAnnouncementMutation = (eventId: string) => {
   return useMutation({
     mutationFn: deleteAnnouncement,
     onSuccess: () => {
+      const formattedDate = format(new Date(), "EEEE, MMMM d, yyyy");
       toast({
-        title: "Success",
-        description: "Announcement deleted successfully!",
+        title: "Announcement has been successfully deleted",
+        description: formattedDate,
         variant: "success",
       });
       queryClient.invalidateQueries({
