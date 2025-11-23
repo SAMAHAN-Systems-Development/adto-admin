@@ -13,7 +13,7 @@ import {
 } from "@/lib/api/mutations/eventsMutations";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { AnnouncementList } from "@/components/features/announcements/announcement-list";
-import { CreateAnnouncementModal } from "@/components/features/announcements/create-announcement-modal";
+import { AnnouncementModal } from "@/components/features/announcements/announcement-modal";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/lib/hooks/use-toast";
 import { updateEventSchema } from "@/lib/zod/event.schema";
@@ -532,10 +532,10 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         />
 
         {/* Create Announcement Modal */}
-        <CreateAnnouncementModal
+        <AnnouncementModal
           isOpen={showCreateAnnouncement}
           onClose={() => setShowCreateAnnouncement(false)}
-          eventId={params.id}
+          eventId={params.id} // no announcement prop = create mode
         />
       </div>
     </div>
