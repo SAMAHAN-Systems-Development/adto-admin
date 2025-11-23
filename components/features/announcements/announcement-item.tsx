@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { AnnouncementResponse } from "@/lib/types/requests/AnnouncementRequests";
 import { format } from "date-fns";
-import { UpdateAnnouncementModal } from "./update-announcement-modal";
-
+import { AnnouncementModal } from "@/components/features/announcements/announcement-modal";
 interface Props {
   announcement: AnnouncementResponse;
   eventId: string;
@@ -21,18 +20,14 @@ export function AnnouncementItem({ announcement, eventId }: Props) {
     "'Updated at' MM/dd/yyyy HH:mm"
   );
 
-  const getBadgeClassName = (type: string) => {
-    switch (type) {
-      case "INFO":
-        return "text-blue-700";
-      case "WARNING":
-        return "text-yellow-700";
-      case "CANCELLED":
-        return "text-red-700";
-      default:
-        return "text-gray-700";
-    }
+  const BADGE_CLASS_MAP: Record<string, string> = {
+    INFO: "text-blue-700",
+    WARNING: "text-yellow-700",
+    CANCELLED: "text-red-700",
   };
+
+  const getBadgeClassName = (type: string) =>
+    BADGE_CLASS_MAP[type] || "text-gray-700";
 
   return (
     <div className="p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-0 min-w-0">
@@ -84,10 +79,10 @@ export function AnnouncementItem({ announcement, eventId }: Props) {
       </div>
 
       {/* Update Modal */}
-      <UpdateAnnouncementModal
+      <AnnouncementModal
         isOpen={showUpdateModal}
         onClose={() => setShowUpdateModal(false)}
-        announcement={announcement}
+        announcement={announcement} // passing this triggers edit mode
         eventId={eventId}
       />
     </div>
