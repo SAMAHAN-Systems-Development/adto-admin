@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,13 @@ export function AnnouncementForm({
       content: "",
     },
   });
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+    }
+  }, [initialData, form]);
 
   async function handleSubmit(data: AnnouncementFormRequest) {
     try {

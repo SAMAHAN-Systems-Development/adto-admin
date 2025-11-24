@@ -51,15 +51,20 @@ export const useUpdateAnnouncementMutation = (eventId: string) => {
       id: string;
       data: UpdateAnnouncementRequest;
     }) => updateAnnouncement(id, data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       const formattedDate = format(new Date(), "EEEE, MMMM d, yyyy");
       toast({
         title: "Announcement details has been successfully updated",
         description: formattedDate,
         variant: "success",
       });
+      // Invalidate the list query
       queryClient.invalidateQueries({
         queryKey: ["announcements", "event", eventId],
+      });
+      // Invalidate individual announcement query
+      queryClient.invalidateQueries({
+        queryKey: ["announcement", variables.id],
       });
     },
     onError: (error) => {
