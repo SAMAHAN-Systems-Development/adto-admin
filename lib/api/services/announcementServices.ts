@@ -42,6 +42,21 @@ export const findAllAnnouncementsByEvent = async (
   return response.json();
 };
 
+export const findAnnouncementById = async (
+  id: string
+): Promise<AnnouncementResponse> => {
+  const response = await fetch(`${BASE_URL}/event-announcements/${id}`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch announcement");
+  }
+
+  return response.json();
+};
+
 export const updateAnnouncement = async (
   id: string,
   data: UpdateAnnouncementRequest

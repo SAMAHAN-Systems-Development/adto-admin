@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { findAllAnnouncementsByEvent } from "../services/announcementServices";
+import {
+  findAllAnnouncementsByEvent,
+  findAnnouncementById,
+} from "../services/announcementServices";
 
 export const useAnnouncementsByEventQuery = (eventId: string) => {
   return useQuery({
@@ -13,6 +16,18 @@ export const useAnnouncementsByEventQuery = (eventId: string) => {
       );
     },
     enabled: !!eventId,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useAnnouncementQuery = (
+  id: string,
+  options?: { enabled?: boolean }
+) => {
+  return useQuery({
+    queryKey: ["announcement", id],
+    queryFn: () => findAnnouncementById(id),
+    enabled: options?.enabled ?? !!id,
     staleTime: 5 * 60 * 1000,
   });
 };
