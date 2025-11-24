@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -17,6 +16,7 @@ import {
   useCreateAnnouncementMutation,
   useUpdateAnnouncementMutation,
 } from "@/lib/api/mutations/announcementsMutations";
+import { useAnnouncementQuery } from "@/lib/api/queries/announcementsQueries";
 
 interface Props {
   isOpen: boolean;
@@ -32,10 +32,15 @@ export function AnnouncementModal({
   announcement,
 }: Props) {
   const isEditMode = Boolean(announcement);
-
   const [pendingData, setPendingData] =
     useState<AnnouncementFormRequest | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  // Fetch fresh announcement data when in edit mode
+  const { data: freshAnnouncementData, isLoading: isFetchingAnnouncement } =
+    useAnnouncementQuery(announcement?.id || "", {
+      enabled: isEditMode && isOpen && !!announcement?.id,
+    });
 
   const createMutation = useCreateAnnouncementMutation(eventId);
   const updateMutation = useUpdateAnnouncementMutation(eventId);
@@ -72,6 +77,9 @@ export function AnnouncementModal({
     onClose();
   };
 
+  // Use fresh data from the query if available, otherwise fallback to prop
+  const announcementData = freshAnnouncementData || announcement;
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -81,27 +89,26 @@ export function AnnouncementModal({
               {isEditMode ? "Update Announcement" : "Create Announcement"}
             </DialogTitle>
           </DialogHeader>
-
           <AnnouncementForm
             onSubmit={handleSubmit}
             onCancel={onClose}
             isLoading={
-              isEditMode ? updateMutation.isPending : createMutation.isPending
+              isFetchingAnnouncement ||
+              (isEditMode ? updateMutation.isPending : createMutation.isPending)
             }
             initialData={
-              announcement
+              announcementData
                 ? {
-                    title: announcement.title,
-                    content: announcement.content,
-                    announcementType: announcement.announcementType,
+                    title: announcementData.title,
+                    content: announcementData.content,
+                    announcementType: announcementData.announcementType,
                   }
                 : undefined
-            } // <- undefined, not null
+            }
             isEditMode={isEditMode}
           />
         </DialogContent>
       </Dialog>
-
       <ConfirmationModal
         isOpen={showConfirmDialog}
         onClose={() => setShowConfirmDialog(false)}
