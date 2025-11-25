@@ -46,6 +46,7 @@ export function AnnouncementForm({
     defaultValues: initialData || {
       title: "",
       content: "",
+      announcementType: undefined,
     },
   });
 
@@ -113,7 +114,7 @@ export function AnnouncementForm({
               <FormItem>
                 <FormLabel>Announcement Type</FormLabel>
                 <Select
-                  value={field.value || ""}
+                  value={field.value ?? ""}
                   onValueChange={(value) => {
                     field.onChange(value);
                     handleFieldChange();
