@@ -3,6 +3,8 @@
 import { useAnnouncementsByEventQuery } from "@/lib/api/queries/announcementsQueries";
 import { AnnouncementItem } from "./announcement-item";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { EventAnnouncement } from "@/lib/types/entities/index";
+import type { AnnouncementResponse } from "@/lib/types/requests/AnnouncementRequests";
 
 interface Props {
   eventId: string;
@@ -41,9 +43,17 @@ export function AnnouncementList({ eventId }: Props) {
     );
   }
 
+  const formattedAnnouncements: EventAnnouncement[] = announcements.map(
+    (a: AnnouncementResponse) => ({
+      ...a,
+      createdAt: new Date(a.createdAt),
+      updatedAt: new Date(a.updatedAt),
+    })
+  );
+
   return (
     <div>
-      {announcements.map((announcement) => (
+      {formattedAnnouncements.map((announcement) => (
         <AnnouncementItem
           key={announcement.id}
           announcement={announcement}

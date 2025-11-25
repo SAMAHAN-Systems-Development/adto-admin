@@ -4,13 +4,13 @@ import { useState } from "react";
 import { Trash2, SquarePen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { AnnouncementResponse } from "@/lib/types/requests/AnnouncementRequests";
+import type { EventAnnouncement } from "@/lib/types/entities/index";
 import { format } from "date-fns";
 import { AnnouncementModal } from "@/components/features/announcements/announcement-modal";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useDeleteAnnouncementMutation } from "@/lib/api/mutations/announcementsMutations";
 interface Props {
-  announcement: AnnouncementResponse;
+  announcement: EventAnnouncement;
   eventId: string;
 }
 
@@ -94,7 +94,11 @@ export function AnnouncementItem({ announcement, eventId }: Props) {
         <AnnouncementModal
           isOpen={showUpdateModal}
           onClose={() => setShowUpdateModal(false)}
-          announcement={announcement} // passing this triggers edit mode
+          announcement={{
+            ...announcement,
+            createdAt: announcement.createdAt.toISOString(),
+            updatedAt: announcement.updatedAt.toISOString(),
+          }} // passing this triggers edit mode
           eventId={eventId}
         />
       </div>
