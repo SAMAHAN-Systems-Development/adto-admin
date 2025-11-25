@@ -11,6 +11,8 @@ import { AnnouncementForm } from "@/components/features/announcements/announceme
 import type {
   AnnouncementFormRequest,
   AnnouncementResponse,
+  CreateAnnouncementRequest,
+  UpdateAnnouncementRequest,
 } from "@/lib/types/requests/AnnouncementRequests";
 import {
   useCreateAnnouncementMutation,
@@ -61,15 +63,17 @@ export function AnnouncementModal({
     if (!pendingData) return;
 
     if (isEditMode && announcement) {
+      const updatePayload: UpdateAnnouncementRequest = { ...pendingData };
       await updateMutation.mutateAsync({
         id: announcement.id,
-        data: pendingData,
+        data: updatePayload,
       });
     } else {
-      await createMutation.mutateAsync({
+      const createPayload: CreateAnnouncementRequest = {
         ...pendingData,
         eventId,
-      });
+      };
+      await createMutation.mutateAsync(createPayload);
     }
 
     setPendingData(null);
