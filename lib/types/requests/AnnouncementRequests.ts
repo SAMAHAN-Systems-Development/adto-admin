@@ -1,13 +1,7 @@
 export type AnnouncementType = "INFO" | "WARNING" | "CANCELLED";
 
 export interface CreateAnnouncementRequest {
-  eventId: string;
-  announcementType: AnnouncementType;
-  title: string;
-  content: string;
-}
-
-export interface AnnouncementFormRequest {
+  eventId: string; // associated event
   announcementType: AnnouncementType;
   title: string;
   content: string;
@@ -17,6 +11,12 @@ export interface UpdateAnnouncementRequest {
   announcementType?: AnnouncementType;
   title?: string;
   content?: string;
+}
+
+export interface AnnouncementFormRequest {
+  announcementType: AnnouncementType;
+  title: string;
+  content: string;
 }
 
 export interface AnnouncementResponse {
