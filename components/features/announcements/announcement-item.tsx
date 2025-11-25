@@ -21,7 +21,7 @@ export function AnnouncementItem({ announcement, eventId }: Props) {
   const deleteMutation = useDeleteAnnouncementMutation(eventId);
 
   const formattedDate = format(
-    new Date(announcement.updatedAt),
+    announcement.updatedAt,
     "'Updated at' MM/dd/yyyy HH:mm"
   );
 
