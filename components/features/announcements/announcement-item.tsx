@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Trash2, SquarePen } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import type { EventAnnouncement } from "@/lib/types/entities/index";
 import { format } from "date-fns";
 import { AnnouncementModal } from "@/components/features/announcements/announcement-modal";
@@ -25,14 +25,14 @@ export function AnnouncementItem({ announcement, eventId }: Props) {
     "'Updated at' MM/dd/yyyy HH:mm"
   );
 
-  const BADGE_CLASS_MAP: Record<string, string> = {
-    INFO: "text-blue-700",
-    WARNING: "text-yellow-700",
-    CANCELLED: "text-red-700",
-  };
+  // const BADGE_CLASS_MAP: Record<string, string> = {
+  //   INFO: "text-blue-700",
+  //   WARNING: "text-yellow-700",
+  //   CANCELLED: "text-red-700",
+  // };
 
-  const getBadgeClassName = (type: string) =>
-    BADGE_CLASS_MAP[type] || "text-gray-700";
+  // const getBadgeClassName = (type: string) =>
+  //   BADGE_CLASS_MAP[type] || "text-gray-700";
 
   const handleDelete = async () => {
     await deleteMutation.mutateAsync(announcement.id);
@@ -50,12 +50,12 @@ export function AnnouncementItem({ announcement, eventId }: Props) {
               <h3 className="text-base font-semibold text-gray-900 truncate">
                 {announcement.title}
               </h3>
-              <Badge
+              {/* <Badge
                 variant="default"
                 className={`${getBadgeClassName(announcement.announcementType)} text-[0.688rem]`}
               >
                 {announcement.announcementType}
-              </Badge>
+              </Badge> */}
             </div>
             <p className="text-xs text-gray-500 whitespace-nowrap md:ml-auto">
               {formattedDate}
