@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Calendar, MapPin, Archive, ArrowLeft } from "lucide-react"
+import { Calendar, MapPin, Archive, ArrowLeft, CirclePlus  } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
@@ -12,6 +12,16 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/lib/hooks/use-toast"
 import { updateEventSchema } from "@/lib/zod/event.schema"
 import { z } from "zod"
+import toast, { Toaster } from "react-hot-toast";
+import CreateTicket from "@/components/shared/CreateTicket";
+import CardTicket from "@/components/shared/CardTicket";
+// ADD THESE IMPORTS FOR TICKETS
+import { useEventTicketsQuery } from "@/lib/api/queries/ticketQueries"
+import { 
+  useCreateEventTicketMutation, 
+  useUpdateEventTicketMutation, 
+  useDeleteEventTicketMutation 
+} from "@/lib/api/mutations/ticketMutation"
 
 interface EventDetailsPageProps {
   params: {
@@ -21,7 +31,7 @@ interface EventDetailsPageProps {
 
 export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const router = useRouter()
-  const { toast } = useToast()
+  const { toast: showToast } = useToast()
   const [activeTab, setActiveTab] = useState("additional-details")
   const [showFullDescription, setShowFullDescription] = useState(false)
   const [isEditingDescription, setIsEditingDescription] = useState(false)
@@ -29,12 +39,20 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [descriptionError, setDescriptionError] = useState<string | null>(null)
   const [showArchiveModal, setShowArchiveModal] = useState(false)
   const [showPublishModal, setShowPublishModal] = useState(false)
+  const [modal, setModal] = useState(false);
+  const [tickets, setTickets] = useState<any[]>([]);
 
   // Fetch event data
   const { data: event, isLoading, error } = useEventQuery(params.id)
   const updateEventMutation = useUpdateEventMutation()
   const archiveEventMutation = useArchiveEventMutation()
   const publishEventMutation = usePublishEventMutation()
+
+  // ADD THESE: Fetch tickets and mutations
+  const { data: ticketsData, isLoading: ticketsLoading } = useEventTicketsQuery()
+  const createTicketMutation = useCreateEventTicketMutation(setTickets)
+  const updateTicketMutation = useUpdateEventTicketMutation()
+  const deleteTicketMutation = useDeleteEventTicketMutation(setTickets)
 
   // Local state for switches
   const [registrationOpen, setRegistrationOpen] = useState(event?.isRegistrationOpen ?? false)
@@ -49,6 +67,21 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       setRegistrationRequired(event.isRegistrationRequired)
     }
   }, [event])
+
+  // ADD THIS: Load tickets from API
+  useEffect(() => {
+    console.log("📦 Tickets data:", ticketsData)
+    console.log("🎯 Event ID:", params.id)
+    
+    if (ticketsData) {
+      const eventTickets = Array.isArray(ticketsData) 
+        ? ticketsData.filter((ticket: any) => ticket.eventId === params.id)
+        : []
+      
+      console.log("✅ Filtered tickets:", eventTickets)
+      setTickets(eventTickets)
+    }
+  }, [ticketsData, params.id])
 
   const handleRegistrationOpenChange = async (checked: boolean) => {
     setRegistrationOpen(checked)
@@ -88,7 +121,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const handleDescriptionDoubleClick = () => {
     setIsEditingDescription(true)
     setEditedDescription(event?.description || "")
-    setDescriptionError(null) // Clear any previous errors
+    setDescriptionError(null)
   }
 
   const validateDescription = (description: string): boolean => {
@@ -116,7 +149,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
   const handleSaveDescription = async () => {
     if (!validateDescription(editedDescription)) {
-      toast({
+      showToast({
         variant: "destructive",
         title: "Validation Error",
         description: descriptionError || "Please fix any errors before saving.",
@@ -139,7 +172,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       setIsEditingDescription(false)
       setDescriptionError(null)
       
-      toast({
+      showToast({
         variant: "success",
         title: "Success",
         description: "Event description updated successfully.",
@@ -153,7 +186,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       
       setDescriptionError(errorMessage)
       
-      toast({
+      showToast({
         variant: "destructive",
         title: "Error",
         description: `Failed to save description: ${errorMessage}`,
@@ -164,7 +197,89 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const handleCancelEdit = () => {
     setIsEditingDescription(false)
     setEditedDescription(event?.description || "")
-    setDescriptionError(null) // Clear errors when canceling
+    setDescriptionError(null)
+  }
+
+  // REPLACE THIS FUNCTION
+  const handleCreateTicket = async (data: any) => {
+    console.log("🎫 Creating ticket:", data)
+    console.log("🎯 Event ID:", params.id)
+    
+    try {
+      const ticketData = {
+        ...data,
+        eventId: params.id
+      }
+      
+      console.log("📤 Sending to API:", ticketData)
+      
+      await createTicketMutation.mutateAsync(ticketData)
+      
+      console.log("✅ Ticket created!")
+      
+      toast.success("Ticket created successfully!", {
+        duration: 3000,
+        position: "bottom-right"
+      })
+    } catch (error) {
+      console.error("❌ Failed to create ticket:", error)
+      showToast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create ticket. Please try again.",
+      })
+    }
+  }
+
+  // REPLACE THIS FUNCTION
+  const handleUpdateTicket = async (updated: any) => {
+    console.log("📝 Updating ticket:", updated)
+    
+    try {
+      const { id, ...ticketData } = updated
+      
+      await updateTicketMutation.mutateAsync({
+        id,
+        data: ticketData
+      })
+      
+      setTickets((prev) =>
+        prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t))
+      )
+      
+      toast.success("Ticket updated successfully!", {
+        duration: 3000,
+        position: "bottom-right"
+      })
+    } catch (error) {
+      console.error("❌ Failed to update ticket:", error)
+      showToast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update ticket. Please try again.",
+      })
+    }
+  }
+
+  // ADD THIS FUNCTION
+  const handleDeleteTicket = async (ticketId: string) => {
+    console.log("🗑️ Deleting ticket:", ticketId)
+    
+    try {
+      await deleteTicketMutation.mutateAsync(ticketId)
+      
+      toast.success("Ticket archived successfully!", {
+        duration: 3000,
+        position: "bottom-right"
+      })
+    } catch (error) {
+      console.error("❌ Failed to delete ticket:", error)
+      showToast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete ticket. Please try again.",
+      })
+    }
   }
 
   if (isLoading) {
@@ -215,6 +330,8 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   return (
     <div className="min-h-screen">
       <div className="container mx-auto py-10 px-6">
+        <Toaster position="bottom-right" />
+        
         {/* Back Button */}
         <Button
           variant="ghost"
@@ -418,14 +535,58 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         )}
 
         {activeTab === "tickets" && (
-          <div className="py-8 text-center text-gray-500">Tickets content coming soon...</div>
+          <div className="py-8 text-gray-500">
+            <div className="">
+              <div className="flex justify-end w-full">
+                <button
+                  onClick={() => setModal(true)}
+                  className="border-2 border-blue-600 text-blue-600 px-5 py-2 rounded flex gap-4 hover:bg-blue-50 transition-colors"
+                >
+                  <CirclePlus /> Add Ticket
+                </button>
+              </div>
+
+              {modal && (
+                <CreateTicket
+                  setModal={setModal}
+                  title="Create Ticket"
+                  titleName="Title Name"
+                  titleDesc="Description"
+                  onCreate={handleCreateTicket}
+                  setTickets={setTickets}
+                />
+              )}
+
+              {ticketsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : tickets.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">No tickets created yet. Click "Add Ticket" to create one.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+                  {tickets.map((ticket) => (
+                    <CardTicket
+                      key={ticket.id}
+                      ticket={ticket}
+                      setTickets={setTickets}
+                      onUpdate={handleUpdateTicket}
+                      onDelete={handleDeleteTicket}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {activeTab === "announcements" && (
           <div className="py-8 text-center text-gray-500">Announcements content coming soon...</div>
         )}
 
-        {/* Archive and Publish Buttons - At the very bottom */}
+        {/* Archive and Publish Buttons */}
         <div className="flex justify-end gap-4 mt-16 pt-8 border-t border-gray-200">
           <Button
             variant="outline"
@@ -446,7 +607,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           </Button>
         </div>
 
-        {/* Publish Confirmation Modal */}
+        {/* Modals */}
         <ConfirmationModal
           isOpen={showPublishModal}
           onClose={() => setShowPublishModal(false)}
@@ -459,7 +620,6 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           variant="default"
         />
 
-        {/* Archive Confirmation Modal */}
         <ConfirmationModal
           isOpen={showArchiveModal}
           onClose={() => setShowArchiveModal(false)}

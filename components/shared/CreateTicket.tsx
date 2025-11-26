@@ -27,8 +27,6 @@ import { Label } from "@/components/ui/label";
 import DatePicker from "./registration-deadline";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 
-import { showCreateToast, showUpdateToast } from "@/components/shared/Toast";
-
 interface CreateTicketProps {
   setModal: (value: boolean) => void;
   title: string;
@@ -66,9 +64,7 @@ export default function CreateTicket({
   });
 
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingData, setPendingData] = useState<z.infer<
-    typeof TicketSchema
-  > | null>(null);
+  const [pendingData, setPendingData] = useState<z.infer<typeof TicketSchema> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const capacity = form.watch("capacity");
@@ -79,30 +75,39 @@ export default function CreateTicket({
     setConfirmOpen(true);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!pendingData) return;
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      // Format the data properly for API
+      const formattedData = {
+        ...pendingData,
+        // Convert date to ISO string if it exists
+        registrationDeadline: pendingData.registrationDeadline 
+          ? new Date(pendingData.registrationDeadline).toISOString()
+          : undefined,
+        // Only include amounts if they're actually set
+        capacityAmount: pendingData.capacity === "Limited" ? pendingData.capacityAmount : undefined,
+        priceAmount: pendingData.priceType === "Paid" ? pendingData.priceAmount : undefined,
+      };
+
       if (isUpdate && onUpdate) {
-        const updatedTicket = { ...pendingData, id: initialData?.id };
-
-        onUpdate(updatedTicket);
-
-        showUpdateToast(updatedTicket, () => onUpdate(initialData));
+        // Pass id along with the data for updates
+        await onUpdate({ ...formattedData, id: initialData?.id });
       } else if (onCreate) {
-        const newTicket = { ...pendingData, id: Date.now() };
-
-        onCreate(newTicket);
-
-        showCreateToast(newTicket.id, setTickets);
+        // For create, just pass the formatted data
+        await onCreate(formattedData);
       }
 
-      setIsLoading(false);
       setConfirmOpen(false);
       setModal(false);
       form.reset();
-    }, 1000);
+    } catch (error) {
+      console.error("Failed to save ticket:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -323,8 +328,9 @@ export default function CreateTicket({
                 <Button
                   type="submit"
                   className="bg-[#2563EB] px-14 py-4 rounded-[6px] text-[0.875rem] font-medium"
+                  disabled={isLoading}
                 >
-                  {isUpdate ? "Update Ticket" : "Create Ticket"}
+                  {isLoading ? "Saving..." : isUpdate ? "Update Ticket" : "Create Ticket"}
                 </Button>
               </div>
             </CardFooter>

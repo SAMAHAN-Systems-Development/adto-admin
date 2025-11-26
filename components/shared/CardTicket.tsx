@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { PencilIcon, TrashIcon, XIcon } from "lucide-react";
+import { XIcon, Archive, SquarePen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CreateTicket from "@/components/shared/CreateTicket";
 import { Button } from "@/components/ui/button";
+import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 
 function CardModalDetails({
   ticket,
@@ -12,22 +13,39 @@ function CardModalDetails({
   onClose,
   setTickets,
   onUpdate,
+  onDelete,
 }: {
   ticket: any;
   isOpen: boolean;
   onClose: () => void;
   setTickets: React.Dispatch<React.SetStateAction<any[]>>;
   onUpdate: (updated: any) => void;
+  onDelete: (id: string) => void;
 }) {
   const [updateOpen, setUpdateOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+
   if (!isOpen) return null;
 
   const handleUpdateTicket = (updated: any) => {
-    // preserve id
     updated.id = ticket.id;
     onUpdate(updated);
     setUpdateOpen(false);
     onClose();
+  };
+
+  const handleArchive = async () => {
+    setIsArchiving(true);
+    try {
+      await onDelete(ticket.id);
+      setArchiveOpen(false);
+      onClose();
+    } catch (error) {
+      console.error("Failed to archive ticket:", error);
+    } finally {
+      setIsArchiving(false);
+    }
   };
 
   return (
@@ -38,7 +56,10 @@ function CardModalDetails({
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-blue-700">{ticket.ticket}</h2>
             <div className="flex items-center gap-3">
-              <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">
+              <button
+                onClick={() => setArchiveOpen(true)}
+                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+              >
                 Archive
               </button>
               <button
@@ -106,6 +127,19 @@ function CardModalDetails({
           isUpdate
         />
       )}
+
+      {/* Archive Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={archiveOpen}
+        onClose={() => setArchiveOpen(false)}
+        onConfirm={handleArchive}
+        title="Archive Ticket"
+        description="Are you sure you want to archive this ticket? This action will remove it from the active tickets list."
+        confirmText="Archive Ticket"
+        cancelText="Cancel"
+        isLoading={isArchiving}
+        variant="destructive"
+      />
     </>
   );
 }
@@ -114,12 +148,35 @@ export default function CardTicket({
   ticket,
   setTickets,
   onUpdate,
+  onDelete,
 }: {
   ticket: any;
   setTickets: React.Dispatch<React.SetStateAction<any[]>>;
   onUpdate: (updated: any) => void;
+  onDelete: (id: string) => void;
 }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [updateOpen, setUpdateOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+
+  const handleUpdateTicket = (updated: any) => {
+    updated.id = ticket.id;
+    onUpdate(updated);
+    setUpdateOpen(false);
+  };
+
+  const handleArchive = async () => {
+    setIsArchiving(true);
+    try {
+      await onDelete(ticket.id);
+      setArchiveOpen(false);
+    } catch (error) {
+      console.error("Failed to archive ticket:", error);
+    } finally {
+      setIsArchiving(false);
+    }
+  };
 
   const ticketDetails = [
     {
@@ -147,53 +204,95 @@ export default function CardTicket({
 
   return (
     <>
-      <Card
-        className="border-[#94A3B8] cursor-pointer"
-        onClick={() => setModalOpen(true)}
-      >
+      <Card className="border-[#94A3B8] cursor-pointer" onClick={() => setModalOpen(true)}>
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
             <CardTitle className="lg:text-2xl font-bold text-[#1E293B]">
               {ticket.ticket}
             </CardTitle>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="icon">
-                <TrashIcon className="w-5 h-5" />
+            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setArchiveOpen(true);
+                }}
+              >
+                <Archive className="w-5 h-5 text-blue-600" />
               </Button>
-              <Button variant="ghost" size="icon">
-                <PencilIcon className="w-5 h-5" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUpdateOpen(true);
+                }}
+              >
+                <SquarePen className="w-5 h-5 text-blue-600" />
               </Button>
             </div>
           </div>
         </CardHeader>
 
         <CardContent className="pt-6">
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols-3 gap-6">
             {ticketDetails.map((detail, index) => (
               <div
                 key={index}
-                className={`flex flex-col gap-2 ${
-                  detail.hasBorder
-                    ? "border-l-2 border-r-2 border-[#9EA2AE] pl-8"
-                    : index > 0
-                    ? "pl-8"
-                    : ""
-                }`}
+                className={`
+                  flex flex-col gap-1
+                  ${detail.hasBorder ? "lg:border-l-2 lg:border-r-2 lg:px-6" : ""}
+                  ${!detail.hasBorder && index > 0 ? "lg:pl-6" : ""}
+                `}
               >
-                <span className="text-[0.75rem] font-normal text-[#94A3B8]">{detail.label}</span>
-                <span className="text-[0.9rem] font-semibold text-[#64748B]">{detail.value}</span>
+                <span className="text-sm lg:text-[0.8vw] font-normal text-[#94A3B8] whitespace-nowrap">
+                  {detail.label}
+                </span>
+                <span className="text-base lg:text-[0.8rem] font-semibold text-[#64748B] break-keep">
+                  {detail.value}
+                </span>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
 
+      {/* Detail Modal */}
       <CardModalDetails
         ticket={ticket}
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         setTickets={setTickets}
         onUpdate={onUpdate}
+        onDelete={onDelete}
+      />
+
+      {/* Quick Update Modal */}
+      {updateOpen && (
+        <CreateTicket
+          setModal={setUpdateOpen}
+          title="Update Ticket"
+          titleName="Ticket Name"
+          titleDesc="Description"
+          onUpdate={handleUpdateTicket}
+          setTickets={setTickets}
+          initialData={ticket}
+          isUpdate
+        />
+      )}
+
+      {/* Quick Archive Confirmation */}
+      <ConfirmationModal
+        isOpen={archiveOpen}
+        onClose={() => setArchiveOpen(false)}
+        onConfirm={handleArchive}
+        title="Archive Ticket"
+        description="Are you sure you want to archive this ticket? This action will remove it from the active tickets list."
+        confirmText="Archive Ticket"
+        cancelText="Cancel"
+        isLoading={isArchiving}
+        variant="destructive"
       />
     </>
   );
