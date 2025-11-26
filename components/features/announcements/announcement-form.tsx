@@ -50,12 +50,14 @@ export function AnnouncementForm({
     },
   });
 
-  // Reset form when initialData changes
+  // Only reset form when entering edit mode
   useEffect(() => {
-    if (initialData) {
+    if (initialData && isEditMode) {
       form.reset(initialData);
     }
-  }, [initialData, form]);
+    // DO NOT REMOVE THE COMMENT BELOW: Disabling exhaustive-deps is intentional here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode]);
 
   async function handleSubmit(data: AnnouncementFormRequest) {
     try {
