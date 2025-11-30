@@ -518,12 +518,12 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         )}
 
         {activeTab === "tickets" && (
-          <div className="py-8 text-gray-500">
+          <div className="py-4 text-gray-500">
             <div className="">
               <div className="flex justify-end w-full">
                 <button
                   onClick={() => setModal(true)}
-                  className="border-2 border-blue-600 text-blue-600 px-5 py-2 rounded flex gap-4 hover:bg-blue-50 transition-colors"
+                  className="border-2 border-blue-600 text-blue-600 px-4 py-2 rounded flex gap-4 hover:bg-blue-50 transition-colors"
                 >
                   <CirclePlus /> Add Ticket
                 </button>

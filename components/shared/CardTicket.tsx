@@ -77,15 +77,16 @@ function CardModalDetails({
             <div>
               <span className="text-sm font-medium text-gray-500">Capacity</span>
               <p className="text-lg font-semibold text-gray-700">
-                {ticket.capacity}
+                {ticket.capacity} Pax
               </p>
             </div>
             <div>
               <span className="text-sm font-medium text-gray-500">Price</span>
               <p className="text-lg font-semibold text-gray-700">
-                {ticket.price}
+                ₱ {ticket.price}
               </p>
             </div>
+            
             <div>
               <span className="text-sm font-medium text-gray-500">
                 Registration Deadline
@@ -101,9 +102,9 @@ function CardModalDetails({
               </p>
             </div>
           </div>
-
+          <hr />
           <div>
-            <h3 className="font-semibold mb-2">Ticket Details</h3>
+            <h3 className="font-semibold my-2">Ticket Details</h3>
             <p className="text-gray-700">{ticket.description}</p>
           </div>
         </div>
@@ -173,12 +174,12 @@ export default function CardTicket({
   const ticketDetails = [
     {
       label: "Capacity",
-      value: ticket.capacity,
+      value:  ticket.capacity ,
       hasBorder: false,
     },
     {
       label: "Price",
-      value: ticket.price,
+      value: "₱ " + ticket.price,
       hasBorder: true,
     },
     {
