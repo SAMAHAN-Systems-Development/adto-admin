@@ -6,19 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CreateTicket from "@/components/shared/CreateTicket";
 import { Button } from "@/components/ui/button";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
+import { Tickets } from "@/lib/types/requests/ticketsRequests";
 
 function CardModalDetails({
   ticket,
   isOpen,
   onClose,
-  setTickets,
   onUpdate,
   onDelete,
 }: {
-  ticket: any;
+  ticket: Tickets;
   isOpen: boolean;
   onClose: () => void;
-  setTickets: React.Dispatch<React.SetStateAction<any[]>>;
   onUpdate: (updated: any) => void;
   onDelete: (id: string) => void;
 }) {
@@ -54,7 +53,7 @@ function CardModalDetails({
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-5">
         <div className="bg-white rounded-xl w-full max-w-3xl p-6 relative">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-blue-700">{ticket.ticket}</h2>
+            <h2 className="text-2xl font-bold text-blue-700">{ticket.name}</h2>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setArchiveOpen(true)}
@@ -78,17 +77,13 @@ function CardModalDetails({
             <div>
               <span className="text-sm font-medium text-gray-500">Capacity</span>
               <p className="text-lg font-semibold text-gray-700">
-                {ticket.capacity === "Limited"
-                  ? `${ticket.capacityAmount} pax`
-                  : "Unlimited"}
+                {ticket.capacity}
               </p>
             </div>
             <div>
               <span className="text-sm font-medium text-gray-500">Price</span>
               <p className="text-lg font-semibold text-gray-700">
-                {ticket.priceType === "Paid"
-                  ? `₱${Number(ticket.priceAmount).toFixed(2)}`
-                  : "Free"}
+                {ticket.price}
               </p>
             </div>
             <div>
@@ -122,7 +117,6 @@ function CardModalDetails({
           titleName="Ticket Name"
           titleDesc="Description"
           onUpdate={handleUpdateTicket}
-          setTickets={setTickets}
           initialData={ticket}
           isUpdate
         />
@@ -146,12 +140,10 @@ function CardModalDetails({
 
 export default function CardTicket({
   ticket,
-  setTickets,
   onUpdate,
   onDelete,
 }: {
   ticket: any;
-  setTickets: React.Dispatch<React.SetStateAction<any[]>>;
   onUpdate: (updated: any) => void;
   onDelete: (id: string) => void;
 }) {
@@ -181,12 +173,12 @@ export default function CardTicket({
   const ticketDetails = [
     {
       label: "Capacity",
-      value: ticket.capacity === "Limited" ? `${ticket.capacityAmount} pax` : "Unlimited",
+      value: ticket.capacity,
       hasBorder: false,
     },
     {
       label: "Price",
-      value: ticket.priceType === "Paid" ? `₱${Number(ticket.priceAmount).toFixed(2)}` : "Free",
+      value: ticket.price,
       hasBorder: true,
     },
     {
@@ -208,7 +200,7 @@ export default function CardTicket({
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
             <CardTitle className="lg:text-2xl font-bold text-[#1E293B]">
-              {ticket.ticket}
+              {ticket.name}
             </CardTitle>
             <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
               <Button
@@ -235,7 +227,7 @@ export default function CardTicket({
           </div>
         </CardHeader>
 
-        <CardContent className="pt-6">
+        <CardContent className="pt-2">
           <div className="grid grid-cols-3 gap-6">
             {ticketDetails.map((detail, index) => (
               <div
@@ -263,7 +255,6 @@ export default function CardTicket({
         ticket={ticket}
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        setTickets={setTickets}
         onUpdate={onUpdate}
         onDelete={onDelete}
       />
@@ -276,7 +267,6 @@ export default function CardTicket({
           titleName="Ticket Name"
           titleDesc="Description"
           onUpdate={handleUpdateTicket}
-          setTickets={setTickets}
           initialData={ticket}
           isUpdate
         />

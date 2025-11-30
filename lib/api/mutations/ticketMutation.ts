@@ -1,41 +1,52 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createEventTicket,
   updateEventTicket,
   deleteEventTicket,
 } from "@/lib/api/services/ticketService";
-import type { CreateEventTicketRequest } from "@/lib/api/services/ticketService";
+import { CreateEventTicketRequest } from "@/lib/types/requests/ticketsRequests";
 
 // CREATE
-export const useCreateEventTicketMutation = (setTickets: any) => {
+// export const useCreateEventTicketMutation = (setTickets: any) => {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: (data: CreateEventTicketRequest) => {
+//       console.log("🚀 Mutation function called with:", data);
+//       return createEventTicket(data);
+//     },
+//     onSuccess: (newTicket) => {
+//       console.log("✅ Mutation onSuccess - new ticket:", newTicket);
+      
+//       // Add to local state
+//       setTickets((prev: any) => {
+//         console.log("📝 Previous tickets:", prev);
+//         const updated = [...prev, newTicket];
+//         console.log("📝 Updated tickets:", updated);
+//         return updated;
+//       });
+      
+//       // Invalidate queries
+//       queryClient.invalidateQueries({ queryKey: ["eventTickets"] });
+//     },
+//     onError: (error: any) => {
+//       console.error("❌ Mutation error:", error);
+//       console.error("❌ Error details:", error.message);
+//       console.error("❌ Full error:", JSON.stringify(error, null, 2));
+//     },
+//   });
+// };
+
+export const useCreateEventTicketMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateEventTicketRequest) => {
-      console.log("🚀 Mutation function called with:", data);
-      return createEventTicket(data);
-    },
-    onSuccess: (newTicket) => {
-      console.log("✅ Mutation onSuccess - new ticket:", newTicket);
-      
-      // Add to local state
-      setTickets((prev: any) => {
-        console.log("📝 Previous tickets:", prev);
-        const updated = [...prev, newTicket];
-        console.log("📝 Updated tickets:", updated);
-        return updated;
-      });
-      
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ["eventTickets"] });
-    },
-    onError: (error: any) => {
-      console.error("❌ Mutation error:", error);
-      console.error("❌ Error details:", error.message);
-      console.error("❌ Full error:", JSON.stringify(error, null, 2));
-    },
-  });
-};
+    mutationFn: (data: CreateEventTicketRequest) => createEventTicket(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["eventTickets"] })
+    }
+  })
+}
 
 // UPDATE
 export const useUpdateEventTicketMutation = (onUndo?: (oldTicket: any) => void) => {

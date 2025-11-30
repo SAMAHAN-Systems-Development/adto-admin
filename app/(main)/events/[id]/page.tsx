@@ -40,7 +40,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [showArchiveModal, setShowArchiveModal] = useState(false)
   const [showPublishModal, setShowPublishModal] = useState(false)
   const [modal, setModal] = useState(false);
-  const [tickets, setTickets] = useState<any[]>([]);
+
 
   // Fetch event data
   const { data: event, isLoading, error } = useEventQuery(params.id)
@@ -49,10 +49,10 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const publishEventMutation = usePublishEventMutation()
 
   // ADD THESE: Fetch tickets and mutations
-  const { data: ticketsData, isLoading: ticketsLoading } = useEventTicketsQuery()
-  const createTicketMutation = useCreateEventTicketMutation(setTickets)
+  const { data: ticketsData, isLoading: ticketsLoading } = useEventTicketsQuery({ eventId: params.id })
+  const createTicketMutation = useCreateEventTicketMutation()
   const updateTicketMutation = useUpdateEventTicketMutation()
-  const deleteTicketMutation = useDeleteEventTicketMutation(setTickets)
+  const deleteTicketMutation = useDeleteEventTicketMutation()
 
   // Local state for switches
   const [registrationOpen, setRegistrationOpen] = useState(event?.isRegistrationOpen ?? false)
@@ -68,20 +68,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     }
   }, [event])
 
-  // ADD THIS: Load tickets from API
-  useEffect(() => {
-    console.log("📦 Tickets data:", ticketsData)
-    console.log("🎯 Event ID:", params.id)
-    
-    if (ticketsData) {
-      const eventTickets = Array.isArray(ticketsData) 
-        ? ticketsData.filter((ticket: any) => ticket.eventId === params.id)
-        : []
-      
-      console.log("✅ Filtered tickets:", eventTickets)
-      setTickets(eventTickets)
-    }
-  }, [ticketsData, params.id])
+  const tickets = ticketsData?.data || [];
 
   const handleRegistrationOpenChange = async (checked: boolean) => {
     setRegistrationOpen(checked)
@@ -242,10 +229,6 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         id,
         data: ticketData
       })
-      
-      setTickets((prev) =>
-        prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t))
-      )
       
       toast.success("Ticket updated successfully!", {
         duration: 3000,
@@ -553,7 +536,6 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                   titleName="Title Name"
                   titleDesc="Description"
                   onCreate={handleCreateTicket}
-                  setTickets={setTickets}
                 />
               )}
 
@@ -567,11 +549,10 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-                  {tickets.map((ticket) => (
+                  {tickets.map((ticket: any) => (
                     <CardTicket
                       key={ticket.id}
                       ticket={ticket}
-                      setTickets={setTickets}
                       onUpdate={handleUpdateTicket}
                       onDelete={handleDeleteTicket}
                     />

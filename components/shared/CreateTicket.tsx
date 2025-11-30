@@ -34,7 +34,6 @@ interface CreateTicketProps {
   titleDesc: string;
   onCreate?: (data: any) => void;
   onUpdate?: (data: any) => void;
-  setTickets: React.Dispatch<React.SetStateAction<any[]>>;
   initialData?: any;
   isUpdate?: boolean;
 }
@@ -46,29 +45,29 @@ export default function CreateTicket({
   titleDesc,
   onCreate,
   onUpdate,
-  setTickets,
   initialData,
   isUpdate = false,
 }: CreateTicketProps) {
   const form = useForm<z.infer<typeof TicketSchema>>({
     resolver: zodResolver(TicketSchema),
     defaultValues: {
-      ticket: initialData?.ticket || "",
+      name: initialData?.name || "",
       description: initialData?.description || "",
-      capacity: initialData?.capacity || "Unlimited",
-      capacityAmount: initialData?.capacityAmount,
-      priceType: initialData?.priceType || "Free",
-      priceAmount: initialData?.priceAmount,
-      registrationDeadline: initialData?.registrationDeadline || undefined,
+      capacity: initialData?.capacity || "",
+      price: initialData?.price,
+      registrationDeadline: initialData?.registrationDeadline 
+    ? (typeof initialData.registrationDeadline === "string"
+        ? new Date(initialData.registrationDeadline)
+        : initialData.registrationDeadline)
+    : undefined,
     },
   });
 
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingData, setPendingData] = useState<z.infer<typeof TicketSchema> | null>(null);
+  const [pendingData, setPendingData] = useState<z.infer<
+    typeof TicketSchema
+  > | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const capacity = form.watch("capacity");
-  const priceType = form.watch("priceType");
 
   const handleFormSubmit = (data: any) => {
     setPendingData(data);
@@ -84,12 +83,9 @@ export default function CreateTicket({
       const formattedData = {
         ...pendingData,
         // Convert date to ISO string if it exists
-        registrationDeadline: pendingData.registrationDeadline 
+        registrationDeadline: pendingData.registrationDeadline
           ? new Date(pendingData.registrationDeadline).toISOString()
           : undefined,
-        // Only include amounts if they're actually set
-        capacityAmount: pendingData.capacity === "Limited" ? pendingData.capacityAmount : undefined,
-        priceAmount: pendingData.priceType === "Paid" ? pendingData.priceAmount : undefined,
       };
 
       if (isUpdate && onUpdate) {
@@ -125,7 +121,7 @@ export default function CreateTicket({
             <CardTitle className="flex flex-col gap-1 mb-6 px-[24px]">
               <FormField
                 control={form.control}
-                name="ticket"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="font-[700] !text-slate-700">
@@ -167,123 +163,46 @@ export default function CreateTicket({
               />
             </CardTitle>
 
-            {/* Capacity & Price */}
-            <CardContent className="flex justify-between">
-              <div className="flex flex-col gap-5">
+            {/* Capacity */}
+            <CardContent className="flex gap-3 w-full">
+              <div className="flex flex-col gap-3 flex-1">
                 <Label className="font-[700]">Capacity</Label>
-                <div className="px-2 flex flex-col gap-3">
+                <div className=" flex flex-col gap-3">
                   <FormField
                     control={form.control}
                     name="capacity"
                     render={({ field }) => (
                       <FormItem>
-                        <div className="flex flex-col gap-3">
-                          <label className="flex items-center gap-4">
-                            <input
-                              type="radio"
-                              value="Unlimited"
-                              checked={field.value === "Unlimited"}
-                              onChange={(e) => {
-                                field.onChange(e);
-                                form.setValue("capacityAmount", undefined);
-                                form.clearErrors("capacityAmount");
-                              }}
-                              className="w-4 h-4 accent-blue-600"
-                            />
-                            <Label className="font-[400]">Unlimited</Label>
-                          </label>
-
-                          <label className="flex items-center gap-4">
-                            <input
-                              type="radio"
-                              value="Limited"
-                              checked={field.value === "Limited"}
-                              onChange={field.onChange}
-                              className="w-4 h-4 accent-blue-600"
-                            />
-                            <div className="flex items-center gap-[2rem]">
-                              <Label className="font-[400]">Limited</Label>
-                              <FormField
-                                control={form.control}
-                                name="capacityAmount"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Input
-                                        {...field}
-                                        placeholder="Enter Amount"
-                                        disabled={capacity !== "Limited"}
-                                        className="disabled:opacity-50"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          </label>
-                        </div>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            placeholder="Enter capacity"
+                            className="px-2"
+                          />
+                        </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
               </div>
-
-              {/* PRICE */}
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-3 flex-1">
                 <Label className="font-[700]">Price</Label>
-                <div className="px-2 flex flex-col gap-3">
+                <div className=" flex flex-col gap-3">
                   <FormField
                     control={form.control}
-                    name="priceType"
+                    name="price"
                     render={({ field }) => (
                       <FormItem>
-                        <div className="flex flex-col gap-3">
-                          <label className="flex items-center gap-4">
-                            <input
-                              type="radio"
-                              value="Free"
-                              checked={field.value === "Free"}
-                              onChange={(e) => {
-                                field.onChange(e);
-                                form.setValue("priceAmount", undefined);
-                                form.clearErrors("priceAmount");
-                              }}
-                              className="w-4 h-4 accent-blue-600"
-                            />
-                            <Label className="font-[400]">Free</Label>
-                          </label>
-
-                          <label className="flex items-center gap-4">
-                            <input
-                              type="radio"
-                              value="Paid"
-                              checked={field.value === "Paid"}
-                              onChange={field.onChange}
-                              className="w-4 h-4 accent-blue-600"
-                            />
-                            <div className="flex items-center gap-[2.5rem]">
-                              <Label className="font-[400]">Paid</Label>
-                              <FormField
-                                control={form.control}
-                                name="priceAmount"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Input
-                                        {...field}
-                                        placeholder="800"
-                                        disabled={priceType !== "Paid"}
-                                        className="disabled:opacity-50"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          </label>
-                        </div>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Enter price"
+                            className="px-2"
+                          />
+                        </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -330,7 +249,11 @@ export default function CreateTicket({
                   className="bg-[#2563EB] px-14 py-4 rounded-[6px] text-[0.875rem] font-medium"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Saving..." : isUpdate ? "Update Ticket" : "Create Ticket"}
+                  {isLoading
+                    ? "Saving..."
+                    : isUpdate
+                      ? "Update Ticket"
+                      : "Create Ticket"}
                 </Button>
               </div>
             </CardFooter>

@@ -6,6 +6,7 @@ interface QueryParams {
   limit?: number;
   searchFilter?: string;
   orderBy?: "asc" | "desc";
+  eventId?: string;
 }
 
 // Fetch all tickets
@@ -13,14 +14,14 @@ export const useEventTicketsQuery = (params?: QueryParams) => {
   return useQuery({
     queryKey: [
       "eventTickets",
+      params?.eventId ?? "",
       params?.page ?? 1,
       params?.limit ?? 10,
       params?.searchFilter ?? "",
       params?.orderBy ?? "asc",
     ],
-    queryFn: () => findAllTicketEvents(), // your API doesn't yet handle params
+    queryFn: () => findAllTicketEvents(params?.eventId),
     staleTime: 5 * 60 * 1000,
-    keepPreviousData: true, // useful for pagination
   });
 };
 

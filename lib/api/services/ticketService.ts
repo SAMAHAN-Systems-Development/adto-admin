@@ -1,18 +1,13 @@
 import { BASE_URL } from "../../config/api";
+import { CreateEventTicketRequest } from "@/lib/types/requests/ticketsRequests";
 
-export interface CreateEventTicketRequest {
-  ticket: string;
-  description: string;
-  capacity: "Unlimited" | "Limited";
-  capacityAmount?: number;
-  priceType: "Free" | "Paid";
-  priceAmount?: number;
-  registrationDeadline: string;
-  eventId: string;
-}
+export const findAllTicketEvents = async (eventId?: string) => {
+  const url = new URL(`${BASE_URL}/tickets`);
+  if (eventId) {
+    url.searchParams.append('eventId', eventId);
+  }
 
-export const findAllTicketEvents = async () => {
-  const response = await fetch(`${BASE_URL}/event-ticket`, {
+  const response = await fetch(url.toString(), {
     method: "GET",
     headers: {
       "Content-Type": "application/json"
@@ -26,7 +21,7 @@ export const findAllTicketEvents = async () => {
 };
 
 export const findOneEventTicket = async (id: string) => {
-  const response = await fetch(`${BASE_URL}/event-ticket/${id}`, {
+  const response = await fetch(`${BASE_URL}/tickets/${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json"
@@ -45,7 +40,7 @@ export const createEventTicket = async (ticketData: CreateEventTicketRequest) =>
     registrationDeadline: new Date(ticketData.registrationDeadline).toISOString()
   };
 
-  const response = await fetch(`${BASE_URL}/event-ticket/create`, {
+  const response = await fetch(`${BASE_URL}/tickets/create`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -63,7 +58,7 @@ export const updateEventTicket = async (
   id: string,
   ticketData: Partial<CreateEventTicketRequest>
 ) => {
-  const response = await fetch(`${BASE_URL}/event-ticket/update/${id}`, {
+  const response = await fetch(`${BASE_URL}/tickets/update/${id}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json"
@@ -79,7 +74,7 @@ export const updateEventTicket = async (
 
 // DELETE
 export const deleteEventTicket = async (id: string) => {
-  const response = await fetch(`${BASE_URL}/event-ticket/delete/${id}`, {
+  const response = await fetch(`${BASE_URL}/tickets/delete/${id}`, {
     method: "DELETE",
     credentials: "include"
   });
