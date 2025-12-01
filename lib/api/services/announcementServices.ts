@@ -21,14 +21,15 @@ export const createAnnouncement = async (
     throw new Error("Failed to create announcement");
   }
 
-  return response.json();
+  const res = await response.json();
+  return res.data;
 };
 
 export const findAllAnnouncementsByEvent = async (
   eventId: string
 ): Promise<AnnouncementResponse[]> => {
   const response = await fetch(
-    `${BASE_URL}/event-announcements/event/${eventId}`,
+    `${BASE_URL}/event-announcements?eventId=${eventId}`,
     {
       method: "GET",
       credentials: "include",
@@ -39,7 +40,8 @@ export const findAllAnnouncementsByEvent = async (
     throw new Error("Failed to fetch announcements");
   }
 
-  return response.json();
+  const res = await response.json();
+  return res.data;
 };
 
 export const findAnnouncementById = async (
@@ -54,14 +56,15 @@ export const findAnnouncementById = async (
     throw new Error("Failed to fetch announcement");
   }
 
-  return response.json();
+  const res = await response.json();
+  return res.data;
 };
 
 export const updateAnnouncement = async (
   id: string,
   data: UpdateAnnouncementRequest
 ): Promise<AnnouncementResponse> => {
-  const response = await fetch(`${BASE_URL}/event-announcements/${id}`, {
+  const response = await fetch(`${BASE_URL}/event-announcements/update/${id}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -74,11 +77,12 @@ export const updateAnnouncement = async (
     throw new Error("Failed to update announcement");
   }
 
-  return response.json();
+  const res = await response.json();
+  return res.data;
 };
 
 export const deleteAnnouncement = async (id: string) => {
-  const response = await fetch(`${BASE_URL}/event-announcements/${id}`, {
+  const response = await fetch(`${BASE_URL}/event-announcements/delete/${id}`, {
     method: "DELETE",
     credentials: "include",
   });
