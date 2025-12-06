@@ -22,6 +22,8 @@ import {
   useUpdateEventTicketMutation, 
   useDeleteEventTicketMutation 
 } from "@/lib/api/mutations/ticketMutation"
+import { AnnouncementModal } from "@/components/features/announcements/announcement-modal";
+import { AnnouncementList } from "@/components/features/announcements/announcement-list";
 
 interface EventDetailsPageProps {
   params: {
