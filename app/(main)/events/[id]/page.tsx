@@ -24,6 +24,7 @@ import {
 } from "@/lib/api/mutations/ticketMutation"
 import { AnnouncementModal } from "@/components/features/announcements/announcement-modal";
 import { AnnouncementList } from "@/components/features/announcements/announcement-list";
+import { Tickets } from "@/lib/types/requests/ticketsRequests";
 
 interface EventDetailsPageProps {
   params: {
@@ -196,9 +197,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   }
 
   // REPLACE THIS FUNCTION
-  const handleCreateTicket = async (data: any) => {
-    console.log("🎫 Creating ticket:", data)
-    console.log("🎯 Event ID:", params.id)
+  const handleCreateTicket = async (data: Omit<Tickets, 'id'>) => {
+    console.log("Creating ticket:", data)
+    console.log("Event ID:", params.id)
     
     try {
       const ticketData = {
@@ -206,18 +207,18 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         eventId: params.id
       }
       
-      console.log("📤 Sending to API:", ticketData)
+      console.log("Sending to API:", ticketData)
       
       await createTicketMutation.mutateAsync(ticketData)
       
-      console.log("✅ Ticket created!")
+      console.log("Ticket created!")
       
       toast.success("Ticket created successfully!", {
         duration: 3000,
         position: "bottom-right"
       })
     } catch (error) {
-      console.error("❌ Failed to create ticket:", error)
+      console.error("Failed to create ticket:", error)
       showToast({
         variant: "destructive",
         title: "Error",
@@ -226,8 +227,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     }
   }
 
-  // REPLACE THIS FUNCTION
-  const handleUpdateTicket = async (updated: any) => {
+  const handleUpdateTicket = async (updated: Tickets) => {
     console.log("📝 Updating ticket:", updated)
     
     try {
@@ -243,7 +243,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         position: "bottom-right"
       })
     } catch (error) {
-      console.error("❌ Failed to update ticket:", error)
+      console.error(" Failed to update ticket:", error)
       showToast({
         variant: "destructive",
         title: "Error",
@@ -589,7 +589,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-                  {tickets.map((ticket: any) => (
+                  {tickets.map((ticket: Tickets) => (
                     <CardTicket
                       key={ticket.id}
                       ticket={ticket}

@@ -26,15 +26,16 @@ import {
 import { Label } from "@/components/ui/label";
 import DatePicker from "./registration-deadline";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
+import { Tickets } from "@/lib/types/requests/ticketsRequests";
 
 interface CreateTicketProps {
   setModal: (value: boolean) => void;
   title: string;
   titleName: string;
   titleDesc: string;
-  onCreate?: (data: any) => void;
-  onUpdate?: (data: any) => void;
-  initialData?: any;
+  onCreate?: (data: Omit<Tickets, 'id'>) => void;
+  onUpdate?: (data: Tickets) => void;
+  initialData?: Tickets;
   isUpdate?: boolean;
 }
 
@@ -53,8 +54,8 @@ export default function CreateTicket({
     defaultValues: {
       name: initialData?.name || "",
       description: initialData?.description || "",
-      capacity: initialData?.capacity || "",
-      price: initialData?.price,
+      capacity: initialData?.capacity || 0,
+      price: initialData?.price || 0,
       registrationDeadline: initialData?.registrationDeadline 
     ? (typeof initialData.registrationDeadline === "string"
         ? new Date(initialData.registrationDeadline)
@@ -69,7 +70,7 @@ export default function CreateTicket({
   > | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFormSubmit = (data: any) => {
+  const handleFormSubmit = (data: z.infer<typeof TicketSchema>) => {
     setPendingData(data);
     setConfirmOpen(true);
   };
@@ -84,13 +85,12 @@ export default function CreateTicket({
         ...pendingData,
         // Convert date to ISO string if it exists
         registrationDeadline: pendingData.registrationDeadline
-          ? new Date(pendingData.registrationDeadline).toISOString()
-          : undefined,
+          ? new Date(pendingData.registrationDeadline).toISOString() : "",
       };
 
       if (isUpdate && onUpdate) {
         // Pass id along with the data for updates
-        await onUpdate({ ...formattedData, id: initialData?.id });
+        await onUpdate({ ...formattedData, id: initialData?.id } as Tickets);
       } else if (onCreate) {
         // For create, just pass the formatted data
         await onCreate(formattedData);

@@ -18,7 +18,7 @@ function CardModalDetails({
   ticket: Tickets;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (updated: any) => void;
+  onUpdate: (updated: Tickets) => void;
   onDelete: (id: string) => void;
 }) {
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -27,7 +27,7 @@ function CardModalDetails({
 
   if (!isOpen) return null;
 
-  const handleUpdateTicket = (updated: any) => {
+  const handleUpdateTicket = (updated: Tickets) => {
     updated.id = ticket.id;
     onUpdate(updated);
     setUpdateOpen(false);
@@ -144,8 +144,8 @@ export default function CardTicket({
   onUpdate,
   onDelete,
 }: {
-  ticket: any;
-  onUpdate: (updated: any) => void;
+  ticket: Tickets;
+  onUpdate: (updated: Tickets) => void;
   onDelete: (id: string) => void;
 }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -153,7 +153,7 @@ export default function CardTicket({
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
 
-  const handleUpdateTicket = (updated: any) => {
+  const handleUpdateTicket = (updated: Tickets) => {
     updated.id = ticket.id;
     onUpdate(updated);
     setUpdateOpen(false);
