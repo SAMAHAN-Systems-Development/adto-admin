@@ -137,3 +137,14 @@ export enum FormElements {
   CHECKBOX = "CHECKBOX",
   SELECT = "SELECT",
 }
+
+export type AnnouncementType = "INFO" | "WARNING" | "CANCELLED";
+export interface EventAnnouncement {
+  id: string;
+  eventId: string;
+  announcementType: AnnouncementType;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
