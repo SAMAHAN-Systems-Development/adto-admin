@@ -585,7 +585,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 </div>
               ) : tickets.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">No tickets created yet. Click 'Add Ticket' to create one.</p>
+                  <p className="text-gray-500">{`No tickets created yet. Click "Add Ticket" to create one.`}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
