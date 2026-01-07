@@ -10,44 +10,62 @@ interface DecodedToken {
   orgId?: string;
 }
 
-const TOKEN_KEY = 'auth_token';
+const TOKEN_KEY = "auth_token";
+const COOKIE_NAME = "token";
+
+// COOKIE SETTER
+const setCookie = (name: string, value: string, days: number = 7): void => {
+  if (typeof document === "undefined") return;
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+};
+
+// COOKIE REMOVER
+const removeCookie = (name: string): void => {
+  if (typeof document === "undefined") return;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax`;
+};
 
 export const getStoredToken = (): string | null => {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
   try {
     const token = localStorage.getItem(TOKEN_KEY);
-    if (token && token.split('.').length === 3) {
+    if (token && token.split(".").length === 3) {
       return token;
     }
     if (token) {
       localStorage.removeItem(TOKEN_KEY);
+      removeCookie(COOKIE_NAME);
     }
     return null;
   } catch (error) {
-    console.error('Error getting stored token:', error);
+    console.error("Error getting stored token:", error);
     return null;
   }
 };
 
 export const setStoredToken = (token: string): void => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   try {
-    if (token && token.split('.').length === 3) {
+    if (token && token.split(".").length === 3) {
       localStorage.setItem(TOKEN_KEY, token);
+      setCookie(COOKIE_NAME, token);
     } else {
-      console.error('Invalid token format, not storing');
+      console.error("Invalid token format, not storing");
     }
   } catch (error) {
-    console.error('Error storing token:', error);
+    console.error("Error storing token:", error);
   }
 };
 
 export const removeStoredToken = (): void => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(TOKEN_KEY);
+    removeCookie(COOKIE_NAME);
   } catch (error) {
-    console.error('Error removing token:', error);
+    console.error("Error removing token:", error);
   }
 };
 
@@ -55,7 +73,9 @@ export const clearAllAuthData = (): void => {
   removeStoredToken();
 };
 
-const createAuthHeaders = (additionalHeaders: Record<string, string> = {}): Record<string, string> => {
+const createAuthHeaders = (
+  additionalHeaders: Record<string, string> = {}
+): Record<string, string> => {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...additionalHeaders,
@@ -72,7 +92,6 @@ const createAuthHeaders = (additionalHeaders: Record<string, string> = {}): Reco
 export const login = async (
   loginData: AdminLoginRequest
 ): Promise<{ auth_token: string; user: User }> => {
-
   removeStoredToken();
 
   const response = await fetch(`${BASE_URL}/auth/login`, {
@@ -109,7 +128,7 @@ export const login = async (
     setStoredToken(data.auth_token);
     return { auth_token: data.auth_token, user };
   } catch (error) {
-    console.error('Error decoding token:', error);
+    console.error("Error decoding token:", error);
     throw new Error("Invalid token received from server");
   }
 };
@@ -130,7 +149,7 @@ export const logout = async (): Promise<void> => {
       console.warn("Logout request failed, but token was cleared locally");
     }
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error("Logout error:", error);
     clearAllAuthData();
   }
 };
