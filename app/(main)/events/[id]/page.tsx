@@ -1,30 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react"
-import { Calendar, MapPin, Archive, ArrowLeft, CirclePlus  } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
-import { useEventQuery } from "@/lib/api/queries/eventsQueries"
-import { useUpdateEventMutation, useArchiveEventMutation, usePublishEventMutation } from "@/lib/api/mutations/eventsMutations"
-import { ConfirmationModal } from "@/components/shared/ConfirmationModal"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/lib/hooks/use-toast"
-import { updateEventSchema } from "@/lib/zod/event.schema"
-import { z } from "zod"
+import { useState, useEffect } from "react";
+import { Calendar, MapPin, Archive, ArrowLeft, CirclePlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useEventQuery } from "@/lib/api/queries/eventsQueries";
+import {
+  useUpdateEventMutation,
+  useArchiveEventMutation,
+  usePublishEventMutation,
+} from "@/lib/api/mutations/eventsMutations";
+import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/lib/hooks/use-toast";
+import { updateEventSchema } from "@/lib/zod/event.schema";
+import { z } from "zod";
 import toast, { Toaster } from "react-hot-toast";
 import CreateTicket from "@/components/shared/CreateTicket";
 import CardTicket from "@/components/shared/CardTicket";
 // ADD THESE IMPORTS FOR TICKETS
-import { useEventTicketsQuery } from "@/lib/api/queries/ticketQueries"
-import { 
-  useCreateEventTicketMutation, 
-  useUpdateEventTicketMutation, 
-  useDeleteEventTicketMutation 
-} from "@/lib/api/mutations/ticketMutation"
+import { useEventTicketsQuery } from "@/lib/api/queries/ticketQueries";
+import {
+  useCreateEventTicketMutation,
+  useUpdateEventTicketMutation,
+  useDeleteEventTicketMutation,
+} from "@/lib/api/mutations/ticketMutation";
 import { AnnouncementModal } from "@/components/features/announcements/announcement-modal";
 import { AnnouncementList } from "@/components/features/announcements/announcement-list";
 import { Tickets } from "@/lib/types/requests/ticketsRequests";
+import { useDebounce } from "@/lib/hooks/use-debounce";
+import { useAuthStore } from "@/lib/store/authStore";
+import { useRegistrationsQuery } from "@/lib/api/queries/registrationQueries";
+import { DataTable } from "@/components/shared/data-table";
+import { createRegistrationsColumns } from "@/components/features/registrations/registration-columns";
+import { useUpdateRegistration } from "@/lib/api/mutations/registrationMutation";
 
 interface EventDetailsPageProps {
   params: {
@@ -44,7 +54,38 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [showCreateAnnouncement, setShowCreateAnnouncement] = useState(false);
   const [modal, setModal] = useState(false);
+  const [clusterFilter, setClusterFilter] = useState("all");
+  const [courseFilter, setCourseFilter] = useState("all");
+  const [ticketCategoryFilter, setTicketCategoryFilter] = useState("all");
 
+  const eventId = params.id;
+  console.log(eventId, "WTF EVENT ID");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [searchFilter, setSearchFilter] = useState("");
+  const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
+  // Debounce search to avoid too many API calls
+  const debouncedSearch = useDebounce(searchFilter, 500);
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setPage(1);
+    setClusterFilter("all");
+    setCourseFilter("all");
+    setTicketCategoryFilter("all");
+  }, [debouncedSearch]);
+
+  const {
+    data: registrationsData,
+    isLoading: isRegistrationsLoading,
+    error: isRegistrationsError,
+  } = useRegistrationsQuery(eventId || "", {
+    page,
+    limit,
+    searchFilter: debouncedSearch,
+    orderBy,
+  });
+
+  const updateRegistration = useUpdateRegistration();
 
   // Fetch event data
   const { data: event, isLoading, error } = useEventQuery(params.id);
@@ -53,10 +94,12 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const publishEventMutation = usePublishEventMutation();
 
   // ADD THESE: Fetch tickets and mutations
-  const { data: ticketsData, isLoading: ticketsLoading } = useEventTicketsQuery({ eventId: params.id })
-  const createTicketMutation = useCreateEventTicketMutation()
-  const updateTicketMutation = useUpdateEventTicketMutation()
-  const deleteTicketMutation = useDeleteEventTicketMutation()
+  const { data: ticketsData, isLoading: ticketsLoading } = useEventTicketsQuery(
+    { eventId: params.id }
+  );
+  const createTicketMutation = useCreateEventTicketMutation();
+  const updateTicketMutation = useUpdateEventTicketMutation();
+  const deleteTicketMutation = useDeleteEventTicketMutation();
 
   // Local state for switches
   const [registrationOpen, setRegistrationOpen] = useState(
@@ -194,82 +237,82 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     setIsEditingDescription(false);
     setEditedDescription(event?.description || "");
     setDescriptionError(null);
-  }
+  };
 
   // REPLACE THIS FUNCTION
-  const handleCreateTicket = async (data: Omit<Tickets, 'id'>) => {
-    console.log("Creating ticket:", data)
-    console.log("Event ID:", params.id)
-    
+  const handleCreateTicket = async (data: Omit<Tickets, "id">) => {
+    console.log("Creating ticket:", data);
+    console.log("Event ID:", params.id);
+
     try {
       const ticketData = {
         ...data,
-        eventId: params.id
-      }
-      
-      console.log("Sending to API:", ticketData)
-      
-      await createTicketMutation.mutateAsync(ticketData)
-      
-      console.log("Ticket created!")
-      
+        eventId: params.id,
+      };
+
+      console.log("Sending to API:", ticketData);
+
+      await createTicketMutation.mutateAsync(ticketData);
+
+      console.log("Ticket created!");
+
       toast.success("Ticket created successfully!", {
         duration: 3000,
-        position: "bottom-right"
-      })
+        position: "bottom-right",
+      });
     } catch (error) {
-      console.error("Failed to create ticket:", error)
+      console.error("Failed to create ticket:", error);
       showToast({
         variant: "destructive",
         title: "Error",
         description: "Failed to create ticket. Please try again.",
-      })
+      });
     }
-  }
+  };
 
   const handleUpdateTicket = async (updated: Tickets) => {
-    console.log("📝 Updating ticket:", updated)
-    
+    console.log("📝 Updating ticket:", updated);
+
     try {
-      const { id, ...ticketData } = updated
-      
+      const { id, ...ticketData } = updated;
+
       await updateTicketMutation.mutateAsync({
         id,
-        data: ticketData
-      })
-      
+        data: ticketData,
+      });
+
       toast.success("Ticket updated successfully!", {
         duration: 3000,
-        position: "bottom-right"
-      })
+        position: "bottom-right",
+      });
     } catch (error) {
-      console.error(" Failed to update ticket:", error)
+      console.error(" Failed to update ticket:", error);
       showToast({
         variant: "destructive",
         title: "Error",
         description: "Failed to update ticket. Please try again.",
-      })
+      });
     }
-  }
+  };
 
   // ADD THIS FUNCTION
   const handleDeleteTicket = async (ticketId: string) => {
-    console.log("🗑️ Deleting ticket:", ticketId)
-    
+    console.log("🗑️ Deleting ticket:", ticketId);
+
     try {
-      await deleteTicketMutation.mutateAsync(ticketId)
-      
+      await deleteTicketMutation.mutateAsync(ticketId);
+
       toast.success("Ticket archived successfully!", {
         duration: 3000,
-        position: "bottom-right"
-      })
+        position: "bottom-right",
+      });
     } catch (error) {
-      console.error("❌ Failed to delete ticket:", error)
+      console.error("❌ Failed to delete ticket:", error);
       showToast({
         variant: "destructive",
         title: "Error",
         description: "Failed to delete ticket. Please try again.",
-      })
+      });
     }
   };
 
@@ -320,11 +363,25 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     return text.slice(0, maxLength) + "...";
   };
 
+  const handleIsAttendedChange = async (
+    registrationId: string,
+    isAttended: boolean
+  ) => {
+    updateRegistration.mutate({
+      id: registrationId,
+      data: { isAttended },
+    });
+  };
+
+  const columns = createRegistrationsColumns({
+    onIsAttendedChange: handleIsAttendedChange,
+  });
+
   return (
     <div className="min-h-screen">
       <div className="container mx-auto py-10 px-6">
         <Toaster position="bottom-right" />
-        
+
         {/* Back Button */}
         <Button
           variant="ghost"
@@ -552,8 +609,47 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         )}
 
         {activeTab === "registration" && (
-          <div className="py-8 text-center text-gray-500">
-            Registration content coming soon...
+          <div className="space-y-6 mb-16">
+            <DataTable
+              title="Registrations"
+              columns={columns}
+              data={registrationsData?.data || []}
+              searchColumn="fullName"
+              searchPlaceholder="Search by name or email..."
+              entityName="registrations"
+              pagination={{
+                page,
+                limit,
+                totalCount: registrationsData?.meta?.totalCount || 0,
+                totalPages: registrationsData?.meta?.totalPages || 0,
+                onPageChange: setPage,
+                onLimitChange: setLimit,
+              }}
+              search={{
+                value: searchFilter,
+                onSearchChange: setSearchFilter,
+              }}
+              filters={[
+                {
+                  field: "cluster",
+                  placeholder: "Select Cluster",
+                  value: clusterFilter,
+                  onChange: setClusterFilter,
+                },
+                {
+                  field: "course",
+                  placeholder: "Select Course",
+                  value: courseFilter,
+                  onChange: setCourseFilter,
+                },
+                {
+                  field: "ticketCategory.name", // Supports nested fields!
+                  placeholder: "Select Ticket Category",
+                  value: ticketCategoryFilter,
+                  onChange: setTicketCategoryFilter,
+                },
+              ]}
+            />
           </div>
         )}
 
