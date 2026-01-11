@@ -6,13 +6,17 @@ import { createEventsColumns } from "@/components/features/events/events-columns
 import { CreateEventModal } from "@/components/features/events/create-event-modal";
 import { ViewEventModal } from "@/components/features/events/view-event-modal";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
-import { useOrganizationEventsQuery } from "@/lib/api/queries/eventsQueries";
+import {
+  useEventsQuery,
+  useOrganizationEventsQuery,
+} from "@/lib/api/queries/eventsQueries";
 import { useArchiveEventMutation } from "@/lib/api/mutations/eventsMutations";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useRouter } from "next/navigation";
 import type { Event } from "@/lib/types/entities";
 import { toast } from "sonner";
 import { useDebounce } from "@/lib/hooks/use-debounce";
+import { UserType } from "@/lib/types/user-type";
 
 export default function EventsPage() {
   const router = useRouter();
@@ -27,6 +31,7 @@ export default function EventsPage() {
   const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
 
   const { user } = useAuthStore();
+
   const orgId = user?.orgId;
 
   // Debounce search to avoid too many API calls
@@ -37,14 +42,32 @@ export default function EventsPage() {
     setPage(1);
   }, [debouncedSearch]);
 
-  const { data, isLoading, error } = useOrganizationEventsQuery(orgId || "", {
+  const {
+    data: adminData,
+    isLoading: isAdminLoading,
+    error: isAdminError,
+  } = useEventsQuery({
     page,
     limit,
     searchFilter: debouncedSearch,
     orderBy,
   });
-  const events = data?.data || [];
-  const meta = data?.meta;
+
+  const {
+    data: orgData,
+    isLoading: isOrgLoading,
+    error: isOrgError,
+  } = useOrganizationEventsQuery(orgId || "", {
+    page,
+    limit,
+    searchFilter: debouncedSearch,
+    orderBy,
+  });
+
+  const events =
+    user?.role === UserType.ADMIN ? adminData?.data || [] : orgData?.data || [];
+
+  const meta = user?.role === UserType.ADMIN ? adminData?.meta : orgData?.meta;
 
   const archiveEventMutation = useArchiveEventMutation();
 
@@ -91,7 +114,7 @@ export default function EventsPage() {
     onViewEvent: handleViewEvent,
   });
 
-  if (isLoading) {
+  if (isAdminLoading || isOrgLoading) {
     return (
       <div className="container mx-auto py-6">
         <div className="space-y-4">
@@ -102,7 +125,7 @@ export default function EventsPage() {
     );
   }
 
-  if (error) {
+  if (isAdminError || isOrgError) {
     return (
       <div className="container mx-auto py-6">
         <div className="text-center">
