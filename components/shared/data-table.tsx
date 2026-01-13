@@ -60,6 +60,7 @@ interface DataTableProps<TData> {
     order: "asc" | "desc";
     onSortChange: (field: string, order: "asc" | "desc") => void;
   };
+  onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData>({
@@ -74,6 +75,7 @@ export function DataTable<TData>({
   pagination,
   search,
   sorting,
+  onRowClick,
 }: DataTableProps<TData>) {
   const [localSorting, setLocalSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -207,12 +209,14 @@ export function DataTable<TData>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
+                <TableRow 
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell  key={cell.id}> 
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
