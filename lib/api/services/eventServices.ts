@@ -7,11 +7,13 @@ import type {
 export const findAllPublishedEvents = async (params?: {
   page?: number;
   limit?: number;
+  searchFilter?: string;
+  orderBy?: "asc" | "desc";
 }) => {
   const queryParams = new URLSearchParams({
     page: (params?.page || 1).toString(),
     limit: (params?.limit || 20).toString(),
-  })
+  });
   const response = await fetch(`${BASE_URL}/events/published?${queryParams}`, {
     method: "GET",
     headers: {
@@ -28,29 +30,35 @@ export const findAllPublishedEvents = async (params?: {
   return data; // Returns { data: [...], meta: { totalCount, totalPages, currentPage, limit } }
 };
 
-export const findAllByOrganizationChild = async (orgId: string, params?: {
-  page?: number;
-  limit?: number;
-  searchFilter?: string;
-  orderBy?: "asc" | "desc";
-}) => {
+export const findAllByOrganizationChild = async (
+  orgId: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    searchFilter?: string;
+    orderBy?: "asc" | "desc";
+  }
+) => {
   const queryParams = new URLSearchParams({
     page: (params?.page || 1).toString(),
     limit: (params?.limit || 20).toString(),
   });
-  
+
   if (params?.searchFilter) {
     queryParams.append("searchFilter", params.searchFilter);
   }
-  
+
   if (params?.orderBy) {
     queryParams.append("orderBy", params.orderBy);
   }
-  
-  const response = await fetch(`${BASE_URL}/events/organization/${orgId}?${queryParams}`, {
-    method: "GET",
-    credentials: "include",
-  });
+
+  const response = await fetch(
+    `${BASE_URL}/events/organization/${orgId}?${queryParams}`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch organization events");
