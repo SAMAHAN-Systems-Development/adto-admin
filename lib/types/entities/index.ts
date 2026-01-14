@@ -101,6 +101,7 @@ export interface Event {
   registrations: Registration[];
   ticketCategories: TicketCategory[];
   formQuestions: FormQuestions[];
+  totalRegistrants?: number;
 }
 
 export interface FormAnswers {
