@@ -6,20 +6,20 @@ import { createEventsColumns } from "@/components/features/events/events-columns
 import { CreateEventModal } from "@/components/features/events/create-event-modal";
 import { ViewEventModal } from "@/components/features/events/view-event-modal";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
-import {
-  useEventsQuery,
-  useOrganizationEventsQuery,
-} from "@/lib/api/queries/eventsQueries";
+import { useEventsQuery } from "@/lib/api/queries/eventsQueries";
 import { useArchiveEventMutation } from "@/lib/api/mutations/eventsMutations";
-import { useAuthStore } from "@/lib/store/authStore";
 import { useRouter } from "next/navigation";
 import type { Event } from "@/lib/types/entities";
 import { toast } from "sonner";
 import { useDebounce } from "@/lib/hooks/use-debounce";
-import { UserType } from "@/lib/types/user-type";
+import { useAuthStore } from "@/lib/store/authStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function EventsPage() {
   const router = useRouter();
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -30,44 +30,29 @@ export default function EventsPage() {
   const [searchFilter, setSearchFilter] = useState("");
   const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
 
-  const { user } = useAuthStore();
-
-  const orgId = user?.orgId;
-
   // Debounce search to avoid too many API calls
   const debouncedSearch = useDebounce(searchFilter, 500);
+
+  useEffect(() => {
+    if (user) {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    }
+  }, [user?.id, user?.orgId, queryClient]);
+
+  const { data, isLoading, error } = useEventsQuery({
+    page,
+    limit,
+    searchFilter: debouncedSearch,
+    orderBy,
+  });
+
+  const events = data?.data || [];
+  const meta = data?.meta;
 
   // Reset to page 1 when search changes
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch]);
-
-  const {
-    data: adminData,
-    isLoading: isAdminLoading,
-    error: isAdminError,
-  } = useEventsQuery({
-    page,
-    limit,
-    searchFilter: debouncedSearch,
-    orderBy,
-  });
-
-  const {
-    data: orgData,
-    isLoading: isOrgLoading,
-    error: isOrgError,
-  } = useOrganizationEventsQuery(orgId || "", {
-    page,
-    limit,
-    searchFilter: debouncedSearch,
-    orderBy,
-  });
-
-  const events =
-    user?.role === UserType.ADMIN ? adminData?.data || [] : orgData?.data || [];
-
-  const meta = user?.role === UserType.ADMIN ? adminData?.meta : orgData?.meta;
 
   const archiveEventMutation = useArchiveEventMutation();
 
@@ -114,7 +99,7 @@ export default function EventsPage() {
     onViewEvent: handleViewEvent,
   });
 
-  if (isAdminLoading || isOrgLoading) {
+  if (isLoading) {
     return (
       <div className="container mx-auto py-6">
         <div className="space-y-4">
@@ -125,7 +110,7 @@ export default function EventsPage() {
     );
   }
 
-  if (isAdminError || isOrgError) {
+  if (error) {
     return (
       <div className="container mx-auto py-6">
         <div className="text-center">
