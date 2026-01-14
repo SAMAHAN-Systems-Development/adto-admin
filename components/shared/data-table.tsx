@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, Plus, Search, Settings2, Filter } from "lucide-react";
+import { ChevronDown, Plus, Search, Settings2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -106,12 +106,12 @@ export function DataTable<TData>({
     (field: string) => {
       const uniqueValues = new Set<string>();
 
-      data.forEach((item: any) => {
+      data.forEach((item) => {
         const fieldParts = field.split(".");
-        let value = item;
+        let value: unknown = item;
 
         for (const part of fieldParts) {
-          value = value?.[part];
+          value = (value as Record<string, unknown>)?.[part];
         }
 
         if (value !== null && value !== undefined && value !== "") {
@@ -132,15 +132,15 @@ export function DataTable<TData>({
   const filteredData = React.useMemo(() => {
     if (!filters || filters.length === 0) return data;
 
-    return data.filter((item: any) => {
+    return data.filter((item) => {
       return filters.every((filter) => {
         if (filter.value === "all") return true;
 
         const fieldParts = filter.field.split(".");
-        let value = item;
+        let value: unknown = item;
 
         for (const part of fieldParts) {
-          value = value?.[part];
+          value = (value as Record<string, unknown>)?.[part];
         }
 
         const normalizedValue = String(value || "")

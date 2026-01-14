@@ -30,7 +30,6 @@ import { AnnouncementModal } from "@/components/features/announcements/announcem
 import { AnnouncementList } from "@/components/features/announcements/announcement-list";
 import { Tickets } from "@/lib/types/requests/ticketsRequests";
 import { useDebounce } from "@/lib/hooks/use-debounce";
-import { useAuthStore } from "@/lib/store/authStore";
 import { useRegistrationsQuery } from "@/lib/api/queries/registrationQueries";
 import { DataTable } from "@/components/shared/data-table";
 import { createRegistrationsColumns } from "@/components/features/registrations/registration-columns";
@@ -63,7 +62,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [searchFilter, setSearchFilter] = useState("");
-  const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
+
   // Debounce search to avoid too many API calls
   const debouncedSearch = useDebounce(searchFilter, 500);
   // Reset to page 1 when search changes
@@ -74,15 +73,10 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     setTicketCategoryFilter("all");
   }, [debouncedSearch]);
 
-  const {
-    data: registrationsData,
-    isLoading: isRegistrationsLoading,
-    error: isRegistrationsError,
-  } = useRegistrationsQuery(eventId || "", {
+  const { data: registrationsData } = useRegistrationsQuery(eventId || "", {
     page,
     limit,
     searchFilter: debouncedSearch,
-    orderBy,
   });
 
   const updateRegistration = useUpdateRegistration();
