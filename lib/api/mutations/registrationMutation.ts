@@ -21,7 +21,7 @@ export const useUpdateRegistration = () => {
         description: "Registration updated successfully!",
         variant: "success",
       });
-      // Invalidate both the events list and the specific event query
+      // Invalidate both the registrations list and the specific registration query
       queryClient.invalidateQueries({ queryKey: ["registrations"] });
       queryClient.invalidateQueries({
         queryKey: ["registration", variables.id],

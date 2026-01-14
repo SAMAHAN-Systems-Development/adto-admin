@@ -68,9 +68,6 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   // Reset to page 1 when search changes
   useEffect(() => {
     setPage(1);
-    setClusterFilter("all");
-    setCourseFilter("all");
-    setTicketCategoryFilter("all");
   }, [debouncedSearch]);
 
   const { data: registrationsData } = useRegistrationsQuery(eventId || "", {
@@ -637,7 +634,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                   onChange: setCourseFilter,
                 },
                 {
-                  field: "ticketCategory.name", // Supports nested fields!
+                  field: "ticketCategory.name",
                   placeholder: "Select Ticket Category",
                   value: ticketCategoryFilter,
                   onChange: setTicketCategoryFilter,
