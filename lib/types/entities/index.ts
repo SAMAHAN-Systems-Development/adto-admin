@@ -148,3 +148,4 @@ export interface EventAnnouncement {
   createdAt: Date;
   updatedAt: Date;
 }
+
