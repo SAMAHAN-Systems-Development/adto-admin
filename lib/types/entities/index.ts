@@ -30,12 +30,6 @@ export interface OrganizationChild {
   organizationParents: OrganizationGroup[];
 }
 
-export interface Course {
-  id: string;
-  name: string;
-  users: User[];
-}
-
 export interface User {
   id: string;
   email: string;
@@ -43,34 +37,22 @@ export interface User {
   contactNumber: string;
   validId?: string;
   courseId: string;
-  course: Course;
   isAlumni: boolean;
   batch?: number;
   isActive: boolean;
-  registrations: Registration[];
-}
-
-export interface Payment {
-  id: string;
-  amount: number;
-  currency: string;
-  paymentDate: Date;
-  registrationId: string;
-  registration: Registration;
 }
 
 export interface Registration {
   id: string;
-  userId: string;
-  eventId: string;
+  fullName: string;
+  email: string;
+  yearLevel: string;
+  course: string;
+  cluster: string;
   confirmedAt?: Date;
   isAttended: boolean;
   ticketCategoryId: string;
   ticketCategory: TicketCategory;
-  user: User;
-  event: Event;
-  payment?: Payment;
-  formAnswers: FormAnswers[];
 }
 
 export interface TicketCategory {
