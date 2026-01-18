@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Facebook, Linkedin, Instagram } from "lucide-react";
+import { Facebook, Linkedin, Instagram, Calendar, Clock } from "lucide-react";
 import type { OrganizationChild } from "@/lib/types/entities";
 
 interface ViewOrganizationModalProps {
@@ -40,23 +40,32 @@ export function ViewOrganizationModal({
         </DialogHeader>
 
         <div className="space-y-6 pt-4">
-          {/* Status Row */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <path d="M9 11l3 3L22 4" />
-              </svg>
-              <span className="font-medium">Status</span>
+          <div className="grid grid-cols-2 gap-6">
+            {/* Status */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Calendar className="w-5 h-5" />
+                <span className="font-medium">Status</span>
+              </div>
+              <p className="text-foreground pl-7">
+                {organization.isActive ? "Active" : "Inactive"}
+              </p>
             </div>
-            <p className="text-foreground pl-7">
-              {organization.isActive ? "Active" : "Inactive"}
-            </p>
+
+            {/* Date Created */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="w-5 h-5" />
+                <span className="font-medium">Date Created</span>
+              </div>
+              <p className="text-foreground pl-7">
+                {new Date(organization.createdAt).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
           </div>
 
           {/* Description */}
@@ -153,14 +162,14 @@ export function ViewOrganizationModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex justify-end gap-3 pt-6">
+        <div className="flex justify-end gap-3 pt-6 mt-6">
           {onEdit && (
             <Button
               onClick={() => {
                 onEdit();
                 onClose();
               }}
-              className="bg-primary hover:bg-primary/90"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               Edit organization
             </Button>

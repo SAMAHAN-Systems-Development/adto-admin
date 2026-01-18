@@ -28,6 +28,8 @@ export interface OrganizationChild {
   userId?: string;
   events: Event[];
   organizationParents: OrganizationGroup[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface User {
