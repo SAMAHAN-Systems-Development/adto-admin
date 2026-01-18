@@ -151,6 +151,7 @@ export default function OrganizationsPage() {
             setPage(1); // Reset to first page when limit changes
           },
         }}
+        onRowClick={(organization) => handleViewOrganization(organization)}
       />
       <ViewOrganizationModal
         isOpen={isViewModalOpen}
