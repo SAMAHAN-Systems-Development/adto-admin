@@ -6,6 +6,7 @@ export interface CreateEventRequest {
   isRegistrationOpen?: boolean;
   isRegistrationRequired?: boolean;
   isOpenToOutsiders?: boolean;
+  isPublished?: boolean;
 }
 
 export interface UpdateEventRequest {
@@ -16,4 +17,5 @@ export interface UpdateEventRequest {
   isRegistrationOpen?: boolean;
   isRegistrationRequired?: boolean;
   isOpenToOutsiders?: boolean;
+  isPublished?: boolean;
 }
