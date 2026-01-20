@@ -85,7 +85,7 @@ export interface Event {
   registrations: Registration[];
   ticketCategories: TicketCategory[];
   formQuestions: FormQuestions[];
-  totalRegistrants: number;
+  totalRegistrants?: number;
 }
 
 export interface FormAnswers {

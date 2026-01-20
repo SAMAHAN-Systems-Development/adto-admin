@@ -1,13 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  MoreHorizontal,
-  Eye,
-  Edit,
-  Archive,
-  Check,
-} from "lucide-react";
+import { MoreHorizontal, Eye, Edit, Archive, Check } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -110,7 +104,7 @@ export const createEventsColumns = ({
       const event = row.original;
       return (
         <div className="text-center">
-          <div className="font-medium">{event.registrations?.length || 0}</div>
+          <div className="font-medium">{event.totalRegistrants || 0}</div>
           <div className="text-xs text-muted-foreground">participants</div>
         </div>
       );

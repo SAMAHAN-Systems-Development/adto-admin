@@ -6,16 +6,20 @@ import { createEventsColumns } from "@/components/features/events/events-columns
 import { CreateEventModal } from "@/components/features/events/create-event-modal";
 import { ViewEventModal } from "@/components/features/events/view-event-modal";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
-import { useOrganizationEventsQuery } from "@/lib/api/queries/eventsQueries";
+import { useEventsQuery } from "@/lib/api/queries/eventsQueries";
 import { useArchiveEventMutation } from "@/lib/api/mutations/eventsMutations";
-import { useAuthStore } from "@/lib/store/authStore";
 import { useRouter } from "next/navigation";
 import type { Event } from "@/lib/types/entities";
 import { toast } from "sonner";
 import { useDebounce } from "@/lib/hooks/use-debounce";
+import { useAuthStore } from "@/lib/store/authStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function EventsPage() {
   const router = useRouter();
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -26,25 +30,29 @@ export default function EventsPage() {
   const [searchFilter, setSearchFilter] = useState("");
   const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
 
-  const { user } = useAuthStore();
-  const orgId = user?.orgId;
-
   // Debounce search to avoid too many API calls
   const debouncedSearch = useDebounce(searchFilter, 500);
 
-  // Reset to page 1 when search changes
   useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch]);
+    if (user) {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    }
+  }, [user?.id, user?.orgId, queryClient]);
 
-  const { data, isLoading, error } = useOrganizationEventsQuery(orgId || "", {
+  const { data, isLoading, error } = useEventsQuery({
     page,
     limit,
     searchFilter: debouncedSearch,
     orderBy,
   });
+
   const events = data?.data || [];
   const meta = data?.meta;
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
 
   const archiveEventMutation = useArchiveEventMutation();
 
