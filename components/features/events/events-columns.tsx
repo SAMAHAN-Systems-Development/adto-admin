@@ -135,7 +135,7 @@ export const createEventsColumns = ({
   },
   {
     id: "status",
-    header: () => <span className="text-secondary-100">Event Status</span>,
+    header: () => <span className="text-secondary-100">Published</span>,
     cell: ({ row }) => {
       const event = row.original;
 
