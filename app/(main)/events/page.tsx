@@ -159,6 +159,7 @@ export default function EventsPage() {
             setPage(1); // Reset to first page when limit changes
           },
         }}
+        onRowClick={(event) => handleViewEvent(event)}
       />
 
       <CreateEventModal
