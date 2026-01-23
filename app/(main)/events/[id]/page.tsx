@@ -96,7 +96,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [registrationOpen, setRegistrationOpen] = useState(
     event?.isRegistrationOpen ?? false
   );
-  const [openToAll, setOpenToAll] = useState(event?.isOpenToOutsiders ?? false);
+  const [eventVisibility, setEventVisibility] = useState(
+    event?.isPublished ?? false
+  );
   const [registrationRequired, setRegistrationRequired] = useState(
     event?.isRegistrationRequired ?? true
   );
@@ -105,7 +107,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   useEffect(() => {
     if (event) {
       setRegistrationOpen(event.isRegistrationOpen);
-      setOpenToAll(event.isOpenToOutsiders);
+      setEventVisibility(event.isPublished);
       setRegistrationRequired(event.isRegistrationRequired);
     }
   }, [event]);
@@ -120,11 +122,11 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     });
   };
 
-  const handleOpenToAllChange = async (checked: boolean) => {
-    setOpenToAll(checked);
+  const handleEventVisibilityChange = async (checked: boolean) => {
+    setEventVisibility(checked);
     await updateEventMutation.mutateAsync({
       id: params.id,
-      data: { isOpenToOutsiders: checked },
+      data: { isPublished: checked },
     });
   };
 
@@ -566,16 +568,17 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             <div className="flex items-start justify-between py-4">
               <div>
                 <h3 className="text-base font-semibold text-gray-900 mb-1">
-                  Open to All Participants
+                  Event Visibility
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Enable this if anyone can join the event. Disable if the event
-                  is restricted to invited or specific groups only.
+                  Enable this to make the event visible to participants. When
+                  turned off, the event will be hidden and inaccessible to the
+                  public.
                 </p>
               </div>
               <Switch
-                checked={openToAll}
-                onCheckedChange={handleOpenToAllChange}
+                checked={eventVisibility}
+                onCheckedChange={handleEventVisibilityChange}
                 className="data-[state=checked]:bg-blue-600"
               />
             </div>
