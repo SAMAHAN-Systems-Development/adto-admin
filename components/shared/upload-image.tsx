@@ -4,26 +4,30 @@ import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IoCloudUploadOutline } from "react-icons/io5";
-import { IoCheckmarkCircleOutline, IoCloseCircleOutline } from "react-icons/io5";
+import {
+  IoCheckmarkCircleOutline,
+  IoCloseCircleOutline,
+} from "react-icons/io5";
 import Image from "next/image";
 
-
 // how to use
-{/* <UploadImage
-onUploadComplete={(imageData) => { */}
-  // imageData is a JSON object with:
-  // {
-  //   uploadType: eventBanner, eventThumbnail, ticketThumbnail
-  //   name: "image.png",
-  //   type: "image/png",
-  //   size: 12345,
-  //   data: "data:image/png;base64,...",
-  //   url: "data:image/png;base64,..."
-  // }
-  
-  // You can save this to a JSON file:
-  // const jsonString = JSON.stringify(imageData, null, 2);
-  // Or use it directly
+{
+  /* <UploadImage
+onUploadComplete={(imageData) => { */
+}
+// imageData is a JSON object with:
+// {
+//   uploadType: eventBanner, eventThumbnail, ticketThumbnail
+//   name: "image.png",
+//   type: "image/png",
+//   size: 12345,
+//   data: "data:image/png;base64,...",
+//   url: "data:image/png;base64,..."
+// }
+
+// You can save this to a JSON file:
+// const jsonString = JSON.stringify(imageData, null, 2);
+// Or use it directly
 //   console.log(imageData);
 // }}
 // />
@@ -43,12 +47,11 @@ interface UploadImageProps {
   className?: string;
 }
 
-
 export default function UploadImage({
   onUploadComplete,
   onUploadError,
-  maxSizeMB = 5,
-  acceptedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"],
+  maxSizeMB = 10,
+  acceptedTypes = ["image/png", "image/jpeg", "image/jpg"],
   className = "",
 }: UploadImageProps) {
   const [loading, setLoading] = useState<boolean>(false);
@@ -182,11 +185,7 @@ export default function UploadImage({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        className="h-full"
-      >
+      <div onDrop={handleDrop} onDragOver={handleDragOver} className="h-full">
         <label
           htmlFor="dropzone-file"
           className={`
@@ -213,11 +212,14 @@ export default function UploadImage({
           {!loading && !imageData && !error && (
             <div className="text-center space-y-2">
               <div className="border p-3 rounded-md max-w-min mx-auto">
-                <IoCloudUploadOutline size="2em" className="text-muted-foreground" />
+                <IoCloudUploadOutline
+                  size="2em"
+                  className="text-muted-foreground"
+                />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-semibold">
-                  <span className="text-primary">Click to upload</span> or drag and drop
+                <p className="text-sm font-semibold text-black">
+                  Click to upload or drag and drop
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {acceptedTypes.join(", ").toUpperCase()} (MAX. {maxSizeMB}MB)
@@ -228,7 +230,10 @@ export default function UploadImage({
 
           {error && !loading && (
             <div className="text-center space-y-2">
-              <IoCloseCircleOutline size="2em" className="text-destructive mx-auto" />
+              <IoCloseCircleOutline
+                size="2em"
+                className="text-destructive mx-auto"
+              />
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-destructive">Error</p>
                 <p className="text-xs text-muted-foreground">{error}</p>
@@ -247,7 +252,10 @@ export default function UploadImage({
                   alt="Uploaded image"
                 />
                 <div className="absolute top-2 right-2 bg-background/80 rounded-full p-1">
-                  <IoCheckmarkCircleOutline size="1.5em" className="text-green-500" />
+                  <IoCheckmarkCircleOutline
+                    size="1.5em"
+                    className="text-green-500"
+                  />
                 </div>
               </div>
               <div className="space-y-1">
