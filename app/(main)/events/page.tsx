@@ -29,7 +29,6 @@ export default function EventsPage() {
   const [limit, setLimit] = useState(20);
   const [searchFilter, setSearchFilter] = useState("");
   const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
-  console.log(searchFilter, "searchFilter");
 
   // Debounce search to avoid too many API calls
   const debouncedSearch = useDebounce(searchFilter, 500);
