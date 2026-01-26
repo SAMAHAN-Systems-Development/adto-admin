@@ -14,6 +14,14 @@ export const findAllPublishedEvents = async (params?: {
     page: (params?.page || 1).toString(),
     limit: (params?.limit || 20).toString(),
   });
+
+  if (params?.searchFilter) {
+    queryParams.append("searchFilter", params.searchFilter);
+  }
+  if (params?.orderBy) {
+    queryParams.append("orderBy", params.orderBy);
+  }
+  
   const response = await fetch(`${BASE_URL}/events/published?${queryParams}`, {
     method: "GET",
     headers: {
