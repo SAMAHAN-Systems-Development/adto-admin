@@ -27,13 +27,14 @@ import { Label } from "@/components/ui/label";
 import DatePicker from "./registration-deadline";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { Tickets } from "@/lib/types/requests/ticketsRequests";
+import UploadImage from "@/components/shared/upload-image";
 
 interface CreateTicketProps {
   setModal: (value: boolean) => void;
   title: string;
   titleName: string;
   titleDesc: string;
-  onCreate?: (data: Omit<Tickets, 'id'>) => void;
+  onCreate?: (data: Omit<Tickets, "id">) => void;
   onUpdate?: (data: Tickets) => void;
   initialData?: Tickets;
   isUpdate?: boolean;
@@ -56,11 +57,11 @@ export default function CreateTicket({
       description: initialData?.description || "",
       capacity: initialData?.capacity || 0,
       price: initialData?.price || 0,
-      registrationDeadline: initialData?.registrationDeadline 
-    ? (typeof initialData.registrationDeadline === "string"
-        ? new Date(initialData.registrationDeadline)
-        : initialData.registrationDeadline)
-    : undefined,
+      registrationDeadline: initialData?.registrationDeadline
+        ? typeof initialData.registrationDeadline === "string"
+          ? new Date(initialData.registrationDeadline)
+          : initialData.registrationDeadline
+        : undefined,
     },
   });
 
@@ -85,7 +86,8 @@ export default function CreateTicket({
         ...pendingData,
         // Convert date to ISO string if it exists
         registrationDeadline: pendingData.registrationDeadline
-          ? new Date(pendingData.registrationDeadline).toISOString() : "",
+          ? new Date(pendingData.registrationDeadline).toISOString()
+          : "",
       };
 
       if (isUpdate && onUpdate) {
@@ -230,6 +232,30 @@ export default function CreateTicket({
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+              </div>
+
+              {/* Upload Ticket Thumbnail */}
+              <div className="w-full flex flex-col gap-3">
+                <h3 className="font-[700] !text-slate-700 text-lg">
+                  Upload Ticket Thumbnail
+                </h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  Your uploaded image will be what users see while viewing the
+                  ticket's details.
+                </p>
+                <div className="text-sm text-gray-500 space-y-1 mb-4">
+                  <p>Maximum file size: 10 MB</p>
+                  <p>Accepted File type: png, jpg, jpeg</p>
+                  <p>
+                    Note: For optimal display, your image should have a 1:1
+                    ratio
+                  </p>
+                </div>
+                <UploadImage
+                  onUploadComplete={(imageData) => {
+                    console.log("Ticket thumbnail uploaded:", imageData);
+                  }}
                 />
               </div>
 

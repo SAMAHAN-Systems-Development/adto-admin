@@ -67,7 +67,10 @@ function CardModalDetails({
               >
                 Update Ticket
               </button>
-              <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-800"
+              >
                 <XIcon className="w-6 h-6" />
               </button>
             </div>
@@ -75,7 +78,9 @@ function CardModalDetails({
 
           <div className="flex justify-between mb-6">
             <div>
-              <span className="text-sm font-medium text-gray-500">Capacity</span>
+              <span className="text-sm font-medium text-gray-500">
+                Capacity
+              </span>
               <p className="text-lg font-semibold text-gray-700">
                 {ticket.capacity} Pax
               </p>
@@ -86,18 +91,21 @@ function CardModalDetails({
                 ₱ {ticket.price}
               </p>
             </div>
-            
+
             <div>
               <span className="text-sm font-medium text-gray-500">
                 Registration Deadline
               </span>
               <p className="text-lg font-semibold text-gray-700">
                 {ticket.registrationDeadline
-                  ? new Date(ticket.registrationDeadline).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })
+                  ? new Date(ticket.registrationDeadline).toLocaleDateString(
+                      "en-US",
+                      {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      },
+                    )
                   : "None"}
               </p>
             </div>
@@ -174,7 +182,7 @@ export default function CardTicket({
   const ticketDetails = [
     {
       label: "Capacity",
-      value:  ticket.capacity ,
+      value: ticket.capacity,
       hasBorder: false,
     },
     {
@@ -197,58 +205,74 @@ export default function CardTicket({
 
   return (
     <>
-      <Card className="border-[#94A3B8] cursor-pointer" onClick={() => setModalOpen(true)}>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-start">
-            <CardTitle className="lg:text-2xl font-bold text-[#1E293B]">
-              {ticket.name}
-            </CardTitle>
-            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setArchiveOpen(true);
-                }}
-              >
-                <Archive className="w-5 h-5 text-blue-600" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setUpdateOpen(true);
-                }}
-              >
-                <SquarePen className="w-5 h-5 text-blue-600" />
-              </Button>
+      <Card
+        className="border-[#94A3B8] cursor-pointer"
+        onClick={() => setModalOpen(true)}
+      >
+        <div className="flex gap-4 p-4">
+          {/* Image Placeholder - Full Left Side */}
+          <div className="flex-shrink-0">
+            <div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+              <span className="text-xs text-gray-500 text-center">Image</span>
             </div>
           </div>
-        </CardHeader>
 
-        <CardContent className="pt-2">
-          <div className="grid grid-cols-3 gap-6">
-            {ticketDetails.map((detail, index) => (
+          {/* Content Area */}
+          <div className="flex-1 flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-4">
+              <CardTitle className="lg:text-2xl font-bold text-[#1E293B] flex-1 pr-4">
+                {ticket.name}
+              </CardTitle>
               <div
-                key={index}
-                className={`
-                  flex flex-col gap-1
-                  ${detail.hasBorder ? "lg:border-l-2 lg:border-r-2 lg:px-6" : ""}
-                  ${!detail.hasBorder && index > 0 ? "lg:pl-6" : ""}
-                `}
+                className="flex gap-2 flex-shrink-0"
+                onClick={(e) => e.stopPropagation()}
               >
-                <span className="text-sm lg:text-[0.8vw] font-normal text-[#94A3B8] whitespace-nowrap">
-                  {detail.label}
-                </span>
-                <span className="text-base lg:text-[0.8rem] font-semibold text-[#64748B] break-keep">
-                  {detail.value}
-                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setArchiveOpen(true);
+                  }}
+                >
+                  <Archive className="w-5 h-5 text-blue-600" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setUpdateOpen(true);
+                  }}
+                >
+                  <SquarePen className="w-5 h-5 text-blue-600" />
+                </Button>
               </div>
-            ))}
+            </div>
+
+            {/* Ticket Details */}
+            <div className="grid grid-cols-3 gap-4">
+              {ticketDetails.map((detail, index) => (
+                <div
+                  key={index}
+                  className={`
+                    flex flex-col gap-1
+                    ${detail.hasBorder ? "lg:border-l-2 lg:border-r-2 lg:px-3" : ""}
+                    ${!detail.hasBorder && index > 0 ? "lg:pl-3" : ""}
+                  `}
+                >
+                  <span className="text-xs lg:text-sm font-normal text-[#94A3B8] whitespace-nowrap">
+                    {detail.label}
+                  </span>
+                  <span className="text-sm lg:text-base font-semibold text-[#64748B] break-keep">
+                    {detail.value}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        </CardContent>
+        </div>
       </Card>
 
       {/* Detail Modal */}

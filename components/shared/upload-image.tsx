@@ -290,6 +290,7 @@ export default function UploadImage({
               type="button"
               variant="secondary"
               size="sm"
+              className="text-white"
             >
               Remove
             </Button>
