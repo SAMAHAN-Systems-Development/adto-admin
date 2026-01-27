@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, Plus, Search, Settings2 } from "lucide-react";
+import { ChevronDown, Plus, Search, Settings2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -76,6 +76,7 @@ interface DataTableProps<TData> {
   };
   onRowClick?: (row: TData) => void;
   filters?: FilterConfig[];
+  isTableLoading?: boolean;
 }
 
 export function DataTable<TData>({
@@ -92,6 +93,7 @@ export function DataTable<TData>({
   sorting,
   onRowClick,
   filters,
+  isTableLoading = false,
 }: DataTableProps<TData>) {
   const [localSorting, setLocalSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -257,6 +259,9 @@ export function DataTable<TData>({
               }}
               className="pl-10"
             />
+            {isTableLoading && (
+              <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 animate-spin" />
+            )}
           </div>
 
           {/* Column Visibility */}
@@ -310,7 +315,23 @@ export function DataTable<TData>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody className="relative">
+            {/* Loading overlay for table rows only */}
+            {isTableLoading && (
+              <tr>
+                <td 
+                  colSpan={columns.length} 
+                  className="!p-0 !m-0 absolute inset-0 pointer-events-none"
+                >
+                  <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] z-50 flex items-center justify-center pointer-events-auto">
+                    <div className="flex flex-col items-center gap-2 bg-white/90 px-6 py-4 rounded-lg shadow-sm">
+                      <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                      <p className="text-sm text-gray-600">Loading...</p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            )}
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow 
@@ -320,7 +341,7 @@ export function DataTable<TData>({
                   className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell  key={cell.id}> 
+                    <TableCell key={cell.id}> 
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -401,7 +422,7 @@ export function DataTable<TData>({
                   variant="outline"
                   size="sm"
                   onClick={() => pagination.onPageChange(pagination.page - 1)}
-                  disabled={pagination.page === 1}
+                  disabled={pagination.page === 1 || isTableLoading}
                 >
                   Previous
                 </Button>
@@ -409,7 +430,7 @@ export function DataTable<TData>({
                   variant="outline"
                   size="sm"
                   onClick={() => pagination.onPageChange(pagination.page + 1)}
-                  disabled={pagination.page === pagination.totalPages}
+                  disabled={pagination.page === pagination.totalPages || isTableLoading}
                 >
                   Next
                 </Button>
