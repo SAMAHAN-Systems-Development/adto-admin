@@ -9,7 +9,7 @@ export function OverviewSection() {
   return (
     <section>
       <h2 className="text-2xl font-medium mb-3">Events Overview</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-9">
         <StatCard
           title="Total Organizations"
           value={data?.totalOrganizations ?? 0}
