@@ -104,10 +104,18 @@ export default function EventsPage() {
     setEventToArchive(null);
   };
 
-  const columns = createEventsColumns({
-    onArchiveEvent: handleArchiveEvent,
-    onViewEvent: handleViewEvent,
-  });
+  const columns = React.useMemo(() => {
+    const allColumns = createEventsColumns({
+      onArchiveEvent: handleArchiveEvent,
+      onViewEvent: handleViewEvent,
+    });
+
+    if (user?.role === "ORGANIZATION") {
+      return allColumns.filter((col) => (col as any).accessorKey !== "org.name");
+    }
+
+    return allColumns;
+  }, [user?.role, handleArchiveEvent, handleViewEvent]);
 
   // Only show full page loading skeleton on initial load
   if (isLoading && isInitialLoad.current) {
