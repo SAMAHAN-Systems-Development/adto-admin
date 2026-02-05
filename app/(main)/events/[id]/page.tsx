@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, MapPin, Archive, ArrowLeft, CirclePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -370,7 +370,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     return text.slice(0, maxLength) + "...";
   };
 
-  const handleIsAttendedChange = React.useCallback(async (
+  const handleIsAttendedChange = async (
     registrationId: string,
     isAttended: boolean
   ) => {
@@ -378,11 +378,11 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       id: registrationId,
       data: { isAttended },
     });
-  }, [updateRegistration]);
+  };
 
-  const columns = React.useMemo(() => createRegistrationsColumns({
+  const columns = createRegistrationsColumns({
     onIsAttendedChange: handleIsAttendedChange,
-  }), [handleIsAttendedChange]);
+  });
 
   return (
     <div className="min-h-screen">
