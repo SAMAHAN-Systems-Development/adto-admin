@@ -40,7 +40,7 @@ export default function EventsPage() {
     if (user) {
       queryClient.invalidateQueries({ queryKey: ["events"] });
     }
-  }, [user?.id, user?.orgId, queryClient]);
+  }, [user, queryClient]);
 
   const { data, isLoading, error, isFetching } = useEventsQuery({
     page,
@@ -66,19 +66,19 @@ export default function EventsPage() {
 
   const archiveEventMutation = useArchiveEventMutation();
 
-  const handleViewEvent = (event: Event) => {
+  const handleViewEvent = React.useCallback((event: Event) => {
     setSelectedEvent(event);
     setIsViewModalOpen(true);
-  };
+  }, []);
 
   const handleEditEvent = (eventId: string) => {
     router.push(`/events/${eventId}`);
   };
 
-  const handleArchiveEvent = (eventId: string) => {
+  const handleArchiveEvent = React.useCallback((eventId: string) => {
     setEventToArchive(eventId);
     setShowArchiveDialog(true);
-  };
+  }, []);
 
   const handleArchiveConfirm = async () => {
     if (eventToArchive) {
@@ -111,7 +111,12 @@ export default function EventsPage() {
     });
 
     if (user?.role === "ORGANIZATION") {
-      return allColumns.filter((col) => (col as any).accessorKey !== "org.name");
+      return allColumns.filter((col) => {
+        if ("accessorKey" in col) {
+          return (col as { accessorKey: string }).accessorKey !== "org.name";
+        }
+        return true;
+      });
     }
 
     return allColumns;
