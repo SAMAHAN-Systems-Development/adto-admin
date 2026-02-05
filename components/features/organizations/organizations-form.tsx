@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useOrganizationParentsQuery } from "@/lib/api/queries/organizationParentQueries";
+import { OrganizationParent } from "@/lib/types/entities";
 
 interface OrganizationsFormProps {
   onSubmit: (data: OrganizationType) => void;
@@ -147,7 +148,7 @@ export default function OrganizationsForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {parents.map((parent: any) => (
+                  {parents.map((parent: OrganizationParent) => (
                     <SelectItem key={parent.id} value={parent.id}>
                       {parent.name}
                     </SelectItem>

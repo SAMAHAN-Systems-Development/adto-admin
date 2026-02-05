@@ -11,6 +11,7 @@ import { useOrganizationQuery } from "@/lib/api/queries/organizationsQueries";
 import { 
   useUpdateOrganizationMutation,
 } from "@/lib/api/mutations/organizationsMutations";
+import { UpdateOrganizationRequest } from "@/lib/types/requests/OrganizationRequests";
 
 export default function EditOrganizationPage() {
   const router = useRouter();
@@ -45,7 +46,7 @@ export default function EditOrganizationPage() {
   const confirmSubmit = async () => {
     if (!formData || !id) return;
 
-    const updateData = {
+    const updateData: UpdateOrganizationRequest = {
       ...formData,
     };
 
