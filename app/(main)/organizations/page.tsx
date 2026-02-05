@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DataTable } from "@/components/shared/data-table";
 import { createOrganizationsColumns } from "@/components/features/organizations/organizations-columns";
 import { ViewOrganizationModal } from "@/components/features/organizations/view-organization-modal";
@@ -26,13 +26,16 @@ export default function OrganizationsPage() {
   const [searchFilter, setSearchFilter] = useState("");
   const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
 
+  // Track if this is the initial load
+  const isInitialLoad = useRef(true);
+
   const debouncedSearch = useDebounce(searchFilter, 500);
 
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch]);
 
-  const { data, isLoading, error } = useOrganizationsQuery({
+  const { data, isLoading, error, isFetching } = useOrganizationsQuery({
     page,
     limit,
     searchFilter: debouncedSearch,
@@ -41,6 +44,13 @@ export default function OrganizationsPage() {
 
   const organizations = data?.data || [];
   const meta = data?.meta;
+
+  // After first successful load, mark as no longer initial
+  useEffect(() => {
+    if (data && isInitialLoad.current) {
+      isInitialLoad.current = false;
+    }
+  }, [data]);
 
   const archiveOrganizationMutation = useArchiveOrganizationMutation();
 
@@ -91,7 +101,8 @@ export default function OrganizationsPage() {
     onViewOrganization: handleViewOrganization,
   });
 
-  if (isLoading) {
+  // Only show full page loading skeleton on initial load
+  if (isLoading && isInitialLoad.current) {
     return (
       <div className="container mx-auto py-6">
         <div className="space-y-4">
@@ -152,6 +163,7 @@ export default function OrganizationsPage() {
           },
         }}
         onRowClick={(organization) => handleViewOrganization(organization)}
+        isTableLoading={isFetching && !isInitialLoad.current}
       />
       <ViewOrganizationModal
         isOpen={isViewModalOpen}
