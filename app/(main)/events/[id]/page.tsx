@@ -34,6 +34,7 @@ import { useRegistrationsQuery } from "@/lib/api/queries/registrationQueries";
 import { DataTable } from "@/components/shared/data-table";
 import { createRegistrationsColumns } from "@/components/features/registrations/registration-columns";
 import { useUpdateRegistration } from "@/lib/api/mutations/registrationMutation";
+import { useAuthStore } from "@/lib/store/authStore";
 
 interface EventDetailsPageProps {
   params: {
@@ -57,8 +58,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [courseFilter, setCourseFilter] = useState("all");
   const [ticketCategoryFilter, setTicketCategoryFilter] = useState("all");
 
+  const { user } = useAuthStore();
+
   const eventId = params.id;
-  console.log(eventId, "WTF EVENT ID");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [searchFilter, setSearchFilter] = useState("");
@@ -83,6 +85,18 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const updateEventMutation = useUpdateEventMutation();
   const archiveEventMutation = useArchiveEventMutation();
   const publishEventMutation = usePublishEventMutation();
+
+  useEffect(() => {
+    if (
+      !isLoading &&
+      event &&
+      user &&
+      user.role === "ORGANIZATION" &&
+      event.orgId !== user.orgId
+    ) {
+      router.push("/unauthorized");
+    }
+  }, [event, user, isLoading, router]);
 
   // ADD THESE: Fetch tickets and mutations
   const { data: ticketsData, isLoading: ticketsLoading } = useEventTicketsQuery(
