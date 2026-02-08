@@ -30,6 +30,8 @@ export default function CreateOrganizationPage() {
       name: formData.name,
       acronym: formData.acronym,
       email: formData.email,
+      password: formData.password,
+      organizationParentId: formData.organizationParentId,
       description: formData.description || "",
       facebook: formData.facebook || "",
       instagram: formData.instagram || "",

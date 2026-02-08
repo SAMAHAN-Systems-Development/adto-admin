@@ -19,6 +19,16 @@ import {
   type OrganizationSchema as OrganizationType,
 } from "@/lib/zod/organization.schema";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useOrganizationParentsQuery } from "@/lib/api/queries/organizationParentQueries";
+import { OrganizationParent } from "@/lib/types/entities";
+
 interface OrganizationsFormProps {
   onSubmit: (data: OrganizationType) => void;
   onCancel: () => void;
@@ -34,12 +44,17 @@ export default function OrganizationsForm({
   isSubmitting = false,
   isEditMode = false,
 }: OrganizationsFormProps) {
+  const { data: parentsResponse } = useOrganizationParentsQuery();
+  const parents = parentsResponse || [];
+
   const form = useForm<OrganizationType>({
     resolver: zodResolver(OrganizationSchema),
     defaultValues: {
       name: "",
       acronym: "",
       email: "",
+      password: "",
+      organizationParentId: "",
       description: "",
       facebook: "https://facebook.com/",
       instagram: "https://instagram.com/",
@@ -94,23 +109,56 @@ export default function OrganizationsForm({
           )}
         />
 
-        {/* <FormField
+        <FormField
           control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Temporary Password *</FormLabel>
+              <FormLabel>
+                {isEditMode
+                  ? "Change Password (leave blank to keep current)"
+                  : "Password *"}
+              </FormLabel>
               <FormControl>
                 <Input
                   type="password"
-                  placeholder="Minimum 6 characters"
+                  placeholder={
+                    isEditMode
+                      ? "Enter new password"
+                      : "Minimum 6 characters"
+                  }
                   {...field}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
-        /> */}
+        />
+
+        <FormField
+          control={form.control}
+          name="organizationParentId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Organization Parent *</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an organization parent" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {parents.map((parent: OrganizationParent) => (
+                    <SelectItem key={parent.id} value={parent.id}>
+                      {parent.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
