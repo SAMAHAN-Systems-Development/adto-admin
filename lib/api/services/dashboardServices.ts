@@ -5,21 +5,8 @@ export interface DashboardOverviewResponse {
   upcomingEvents: number;
 }
 
-// Temporary mock toggle
-const USE_MOCK = true;
-
 export const getDashboardOverview =
   async (): Promise<DashboardOverviewResponse> => {
-    if (USE_MOCK) {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      return {
-        totalOrganizations: 13,
-        upcomingEvents: 6,
-      };
-    }
-
     const response = await fetch(`${BASE_URL}/dashboard/overview`, {
       method: "GET",
       headers: {
