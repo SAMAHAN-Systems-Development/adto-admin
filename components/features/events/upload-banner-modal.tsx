@@ -76,11 +76,16 @@ export function UploadBannerModal({
 
           {/* Upload Image Component */}
           <div className="mt-1 sm:mt-2 md:mt-4">
-            <UploadImage 
+            <UploadImage
               uploadType="event-banner"
               onUploadComplete={handleUploadComplete}
               onUploadError={handleUploadError}
-              acceptedTypes={["image/png", "image/jpeg", "image/jpg", "image/webp"]}
+              acceptedTypes={[
+                "image/png",
+                "image/jpeg",
+                "image/jpg",
+                "image/webp",
+              ]}
             />
           </div>
 

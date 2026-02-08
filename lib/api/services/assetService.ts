@@ -7,7 +7,7 @@ import { BASE_URL } from "../../config/api";
  */
 export const uploadEventBanner = async (file: File) => {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append("file", file);
 
   const response = await fetch(`${BASE_URL}/assets/event-banner`, {
     method: "POST",
@@ -32,9 +32,9 @@ export const uploadEventBanner = async (file: File) => {
  */
 export const uploadAsset = async (file: File, folder?: string) => {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append("file", file);
 
-  const url = folder 
+  const url = folder
     ? `${BASE_URL}/assets/upload?folder=${encodeURIComponent(folder)}`
     : `${BASE_URL}/assets/upload`;
 
@@ -58,10 +58,13 @@ export const uploadAsset = async (file: File, folder?: string) => {
  * @param key - File key from upload response
  */
 export const deleteAsset = async (key: string) => {
-  const response = await fetch(`${BASE_URL}/assets/${encodeURIComponent(key)}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
+  const response = await fetch(
+    `${BASE_URL}/assets/${encodeURIComponent(key)}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -83,7 +86,7 @@ export const getSignedUrl = async (key: string, expiresIn: number = 3600) => {
     {
       method: "GET",
       credentials: "include",
-    }
+    },
   );
 
   if (!response.ok) {
@@ -103,7 +106,7 @@ export const getSignedUrl = async (key: string, expiresIn: number = 3600) => {
  */
 export const uploadOrganizationIcon = async (id: string, file: File) => {
   const formData = new FormData();
-  formData.append('icon', file);
+  formData.append("icon", file);
 
   const response = await fetch(`${BASE_URL}/organizations/uploadIcon/${id}`, {
     method: "PATCH",

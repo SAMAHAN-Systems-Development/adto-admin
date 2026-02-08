@@ -70,7 +70,8 @@ export default function CreateTicket({
     typeof TicketSchema
   > | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [ticketThumbnailData, setTicketThumbnailData] = useState<UploadData | null>(null);
+  const [ticketThumbnailData, setTicketThumbnailData] =
+    useState<UploadData | null>(null);
 
   const handleFormSubmit = (data: z.infer<typeof TicketSchema>) => {
     setPendingData(data);

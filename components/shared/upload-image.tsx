@@ -9,7 +9,10 @@ import {
   IoCloseCircleOutline,
 } from "react-icons/io5";
 import Image from "next/image";
-import { uploadEventBanner, uploadAsset } from "@/lib/api/services/assetService";
+import {
+  uploadEventBanner,
+  uploadAsset,
+} from "@/lib/api/services/assetService";
 
 // how to use
 {
@@ -207,9 +210,7 @@ export default function UploadImage({
             <div className="text-center space-y-2">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               <p className="text-sm font-semibold">Uploading Image</p>
-              <p className="text-xs text-muted-foreground">
-                Please wait...
-              </p>
+              <p className="text-xs text-muted-foreground">Please wait...</p>
             </div>
           )}
 
@@ -265,7 +266,8 @@ export default function UploadImage({
               <div className="space-y-1">
                 <p className="text-sm font-semibold">Upload Successful</p>
                 <p className="text-xs text-muted-foreground">
-                  {uploadData.fileName} ({(uploadData.fileSize / 1024).toFixed(2)} KB)
+                  {uploadData.fileName} (
+                  {(uploadData.fileSize / 1024).toFixed(2)} KB)
                 </p>
               </div>
             </div>
@@ -304,9 +306,15 @@ export default function UploadImage({
               View upload details
             </summary>
             <div className="mt-2 p-2 bg-muted rounded-md text-[10px] space-y-1">
-              <p><strong>URL:</strong> {uploadData.url}</p>
-              <p><strong>Key:</strong> {uploadData.key}</p>
-              <p><strong>Bucket:</strong> {uploadData.bucket}</p>
+              <p>
+                <strong>URL:</strong> {uploadData.url}
+              </p>
+              <p>
+                <strong>Key:</strong> {uploadData.key}
+              </p>
+              <p>
+                <strong>Bucket:</strong> {uploadData.bucket}
+              </p>
             </div>
           </details>
         </div>
