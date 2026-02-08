@@ -9,38 +9,33 @@ import {
   IoCloseCircleOutline,
 } from "react-icons/io5";
 import Image from "next/image";
+import { uploadEventBanner, uploadAsset } from "@/lib/api/services/assetService";
 
 // how to use
 {
   /* <UploadImage
-onUploadComplete={(imageData) => { */
+  uploadType="event-banner" // or "asset"
+  folder="custom-folder" // optional, for asset uploads
+  onUploadComplete={(uploadData) => {
+    // uploadData contains: { url, key, bucket, fileName }
+    console.log(uploadData);
+  }}
+/> */
 }
-// imageData is a JSON object with:
-// {
-//   uploadType: eventBanner, eventThumbnail, ticketThumbnail
-//   name: "image.png",
-//   type: "image/png",
-//   size: 12345,
-//   data: "data:image/png;base64,...",
-//   url: "data:image/png;base64,..."
-// }
 
-// You can save this to a JSON file:
-// const jsonString = JSON.stringify(imageData, null, 2);
-// Or use it directly
-//   console.log(imageData);
-// }}
-// />
-interface ImageData {
-  name: string;
-  type: string;
-  size: number;
-  data: string; // base64 data
-  url?: string; // data URL for preview
+export interface UploadData {
+  url: string;
+  key: string;
+  bucket: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
 }
 
 interface UploadImageProps {
-  onUploadComplete?: (imageData: ImageData) => void;
+  uploadType?: "event-banner" | "asset"; // Type of upload
+  folder?: string; // Optional folder for asset uploads
+  onUploadComplete?: (uploadData: UploadData) => void;
   onUploadError?: (error: string) => void;
   maxSizeMB?: number;
   acceptedTypes?: string[];
@@ -48,6 +43,8 @@ interface UploadImageProps {
 }
 
 export default function UploadImage({
+  uploadType = "asset",
+  folder,
   onUploadComplete,
   onUploadError,
   maxSizeMB = 10,
@@ -55,8 +52,9 @@ export default function UploadImage({
   className = "",
 }: UploadImageProps) {
   const [loading, setLoading] = useState<boolean>(false);
-  const [imageData, setImageData] = useState<ImageData | null>(null);
+  const [uploadData, setUploadData] = useState<UploadData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): string | null => {
@@ -106,32 +104,43 @@ export default function UploadImage({
     setError(null);
 
     try {
-      // Convert to base64
-      const base64Data = await convertToBase64(file);
+      // Create preview URL for immediate display
+      const preview = await convertToBase64(file);
+      setPreviewUrl(preview);
 
-      const imageDataObj: ImageData = {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: base64Data,
-        url: base64Data, // data URL for preview
+      // Upload to backend
+      let uploadResult;
+      if (uploadType === "event-banner") {
+        uploadResult = await uploadEventBanner(file);
+      } else {
+        uploadResult = await uploadAsset(file, folder);
+      }
+
+      const uploadDataObj: UploadData = {
+        url: uploadResult.url,
+        key: uploadResult.key,
+        bucket: uploadResult.bucket,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
       };
 
-      setImageData(imageDataObj);
+      setUploadData(uploadDataObj);
       setLoading(false);
 
       if (onUploadComplete) {
-        onUploadComplete(imageDataObj);
+        onUploadComplete(uploadDataObj);
       }
     } catch (error) {
       setLoading(false);
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to process image";
+        error instanceof Error ? error.message : "Failed to upload image";
       setError(errorMessage);
+      setPreviewUrl(null);
       if (onUploadError) {
         onUploadError(errorMessage);
       }
-      console.error("Error processing image:", error);
+      console.error("Error uploading image:", error);
     }
   };
 
@@ -146,7 +155,7 @@ export default function UploadImage({
     e.preventDefault();
     e.stopPropagation();
 
-    if (loading || imageData) return;
+    if (loading || uploadData) return;
 
     const files = e.dataTransfer.files;
     if (files.length > 0) {
@@ -166,7 +175,8 @@ export default function UploadImage({
 
   const removeSelectedImage = () => {
     setLoading(false);
-    setImageData(null);
+    setUploadData(null);
+    setPreviewUrl(null);
     setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -175,12 +185,6 @@ export default function UploadImage({
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
-  };
-
-  // Convert imageData to JSON string
-  const getImageJson = (): string => {
-    if (!imageData) return "";
-    return JSON.stringify(imageData, null, 2);
   };
 
   return (
@@ -196,20 +200,20 @@ export default function UploadImage({
                 ? "border-destructive bg-destructive/5"
                 : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
             }
-            ${loading || imageData ? "cursor-not-allowed opacity-60" : ""}
+            ${loading || uploadData ? "cursor-not-allowed opacity-60" : ""}
           `}
         >
           {loading && (
             <div className="text-center space-y-2">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-sm font-semibold">Processing Image</p>
+              <p className="text-sm font-semibold">Uploading Image</p>
               <p className="text-xs text-muted-foreground">
-                Converting to base64 format...
+                Please wait...
               </p>
             </div>
           )}
 
-          {!loading && !imageData && !error && (
+          {!loading && !uploadData && !error && (
             <div className="text-center space-y-2">
               <div className="border p-3 rounded-md max-w-min mx-auto">
                 <IoCloudUploadOutline
@@ -241,13 +245,13 @@ export default function UploadImage({
             </div>
           )}
 
-          {imageData && !loading && (
+          {uploadData && previewUrl && !loading && (
             <div className="text-center space-y-3 w-full">
               <div className="relative w-full max-h-48 flex items-center justify-center">
                 <Image
                   width={400}
                   height={400}
-                  src={imageData.url || imageData.data}
+                  src={previewUrl}
                   className="w-full object-contain max-h-48 rounded-md"
                   alt="Uploaded image"
                 />
@@ -259,9 +263,9 @@ export default function UploadImage({
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-semibold">Image Ready</p>
+                <p className="text-sm font-semibold">Upload Successful</p>
                 <p className="text-xs text-muted-foreground">
-                  {imageData.name} ({(imageData.size / 1024).toFixed(2)} KB)
+                  {uploadData.fileName} ({(uploadData.fileSize / 1024).toFixed(2)} KB)
                 </p>
               </div>
             </div>
@@ -274,16 +278,16 @@ export default function UploadImage({
           accept={acceptedTypes.join(",")}
           type="file"
           className="hidden"
-          disabled={loading || imageData !== null}
+          disabled={loading || uploadData !== null}
           onChange={handleImageChange}
         />
       </div>
 
-      {imageData && (
+      {uploadData && (
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground truncate flex-1">
-              Image stored as JSON
+              File uploaded to: {uploadData.bucket}
             </p>
             <Button
               onClick={removeSelectedImage}
@@ -297,11 +301,13 @@ export default function UploadImage({
           </div>
           <details className="text-xs">
             <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-              View JSON data
+              View upload details
             </summary>
-            <pre className="mt-2 p-2 bg-muted rounded-md overflow-auto max-h-40 text-[10px]">
-              {getImageJson()}
-            </pre>
+            <div className="mt-2 p-2 bg-muted rounded-md text-[10px] space-y-1">
+              <p><strong>URL:</strong> {uploadData.url}</p>
+              <p><strong>Key:</strong> {uploadData.key}</p>
+              <p><strong>Bucket:</strong> {uploadData.bucket}</p>
+            </div>
           </details>
         </div>
       )}

@@ -27,7 +27,7 @@ import { Label } from "@/components/ui/label";
 import DatePicker from "./registration-deadline";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { Tickets } from "@/lib/types/requests/ticketsRequests";
-import UploadImage from "@/components/shared/upload-image";
+import UploadImage, { type UploadData } from "@/components/shared/upload-image";
 
 interface CreateTicketProps {
   setModal: (value: boolean) => void;
@@ -70,6 +70,7 @@ export default function CreateTicket({
     typeof TicketSchema
   > | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [ticketThumbnailData, setTicketThumbnailData] = useState<UploadData | null>(null);
 
   const handleFormSubmit = (data: z.infer<typeof TicketSchema>) => {
     setPendingData(data);
@@ -253,8 +254,15 @@ export default function CreateTicket({
                   </p>
                 </div>
                 <UploadImage
-                  onUploadComplete={(imageData) => {
-                    console.log("Ticket thumbnail uploaded:", imageData);
+                  uploadType="asset"
+                  folder="ticket-thumbnails"
+                  onUploadComplete={(uploadData) => {
+                    console.log("Ticket thumbnail uploaded:", uploadData);
+                    setTicketThumbnailData(uploadData);
+                  }}
+                  onUploadError={(error) => {
+                    console.error("Ticket thumbnail upload error:", error);
+                    setTicketThumbnailData(null);
                   }}
                 />
               </div>
