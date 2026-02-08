@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DataTable } from "@/components/shared/data-table";
 import { createEventsColumns } from "@/components/features/events/events-columns";
 import { CreateEventModal } from "@/components/features/events/create-event-modal";
@@ -30,6 +30,9 @@ export default function EventsPage() {
   const [searchFilter, setSearchFilter] = useState("");
   const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
 
+  // Track if this is the initial load
+  const isInitialLoad = useRef(true);
+
   // Debounce search to avoid too many API calls
   const debouncedSearch = useDebounce(searchFilter, 500);
 
@@ -39,7 +42,7 @@ export default function EventsPage() {
     }
   }, [user?.id, user?.orgId, queryClient]);
 
-  const { data, isLoading, error } = useEventsQuery({
+  const { data, isLoading, error, isFetching } = useEventsQuery({
     page,
     limit,
     searchFilter: debouncedSearch,
@@ -48,6 +51,13 @@ export default function EventsPage() {
 
   const events = data?.data || [];
   const meta = data?.meta;
+
+  // After first successful load, mark as no longer initial
+  useEffect(() => {
+    if (data && isInitialLoad.current) {
+      isInitialLoad.current = false;
+    }
+  }, [data]);
 
   // Reset to page 1 when search changes
   useEffect(() => {
@@ -99,7 +109,8 @@ export default function EventsPage() {
     onViewEvent: handleViewEvent,
   });
 
-  if (isLoading) {
+  // Only show full page loading skeleton on initial load
+  if (isLoading && isInitialLoad.current) {
     return (
       <div className="container mx-auto py-6">
         <div className="space-y-4">
@@ -160,6 +171,7 @@ export default function EventsPage() {
           },
         }}
         onRowClick={(event) => handleViewEvent(event)}
+        isTableLoading={isFetching && !isInitialLoad.current}
       />
 
       <CreateEventModal
