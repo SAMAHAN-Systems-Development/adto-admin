@@ -1,26 +1,24 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Eye, Edit, Archive } from "lucide-react";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { OrganizationParent } from "@/lib/types/entities";
 
 interface OrganizationParentColumnsProps {
-  onArchiveOrganizationParent: (id: string) => void;
+  onRemoveOrganizationParent: (id: string) => void;
   onViewOrganizationParent?: (organizationParent: OrganizationParent) => void;
 }
 
 export const createOrganizationParentsColumns = ({
-  onArchiveOrganizationParent,
-  onViewOrganizationParent,
+  onRemoveOrganizationParent,
 }: OrganizationParentColumnsProps): ColumnDef<OrganizationParent>[] => [
   {
     accessorKey: "name",
@@ -81,7 +79,11 @@ export const createOrganizationParentsColumns = ({
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button 
+              variant="ghost" 
+              className="h-8 w-8 p-0"
+              onClick={(e) => e.stopPropagation()}
+            >
               <span className="sr-only">Open menu</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -89,36 +91,14 @@ export const createOrganizationParentsColumns = ({
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(organizationParent.id)
-              }
-            >
-              Copy organization parent ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {onViewOrganizationParent && (
-              <DropdownMenuItem
-                onClick={() => onViewOrganizationParent(organizationParent)}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                View Details
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem
-              onClick={() => {
-                window.location.href = `/organizations/parents/${organizationParent.id}`;
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveOrganizationParent(organizationParent.id);
               }}
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onArchiveOrganizationParent(organizationParent.id)}
               className="text-destructive focus:text-destructive"
             >
-              <Archive className="mr-2 h-4 w-4" />
-              Archive
+              <Trash2 className="mr-2 h-4 w-4" />
+              Remove
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

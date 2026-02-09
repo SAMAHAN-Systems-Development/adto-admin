@@ -9,11 +9,22 @@ import { useRouter } from "next/navigation";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useOrganizationsQuery } from "@/lib/api/queries/organizationsQueries";
 import { useArchiveOrganizationMutation } from "@/lib/api/mutations/organizationsMutations";
+import { useDeleteOrganizationParentMutation } from "@/lib/api/mutations/organizationParentMutations";
 import type { OrganizationChild, OrganizationParent } from "@/lib/types/entities";
 import { toast } from "sonner";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useOrganizationParentsQuery } from "@/lib/api/queries/organizationParentQueries";
+import { AddParentOrganizationModal } from "@/components/features/organizations/parent-organization-modal-form";
 
 export default function OrganizationsPage() {
   const router = useRouter();
@@ -21,6 +32,13 @@ export default function OrganizationsPage() {
   const [selectedOrganization, setSelectedOrganization] =
     useState<OrganizationChild | null>(null);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  const [isAddParentModalOpen, setIsAddParentModalOpen] = useState(false);
+  const [selectedParentOrganization, setSelectedParentOrganization] =
+    useState<OrganizationParent | null>(null);
+  const [showRemoveParentDialog, setShowRemoveParentDialog] = useState(false);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorDialogMessage, setErrorDialogMessage] = useState("");
+  const [parentToRemove, setParentToRemove] = useState<string | null>(null);
   const [organizationToArchive, setOrganizationToArchive] = useState<
     string | null
   >(null);
@@ -58,7 +76,7 @@ export default function OrganizationsPage() {
 
   const { data: organizationParentData, isLoading: isParentsLoading } = useOrganizationParentsQuery();
 
-  console.log("Organization parents data:", organizationParentData);
+
   const organizations = data?.data || [];
   const meta = data?.meta;
 
@@ -100,6 +118,7 @@ export default function OrganizationsPage() {
   }, [data]);
 
   const archiveOrganizationMutation = useArchiveOrganizationMutation();
+  const deleteParentOrganizationMutation = useDeleteOrganizationParentMutation();
 
   const handleViewOrganization = (organization: OrganizationChild) => {
     setSelectedOrganization(organization);
@@ -144,17 +163,55 @@ export default function OrganizationsPage() {
   };
 
   const handleViewParentOrganization = (parentOrg: OrganizationParent) => {
-    console.log("View parent organization:", parentOrg);
-    // TODO: Implement parent organization view modal
+    setSelectedParentOrganization(parentOrg);
+    setIsAddParentModalOpen(true);
   };
 
-  const handleArchiveParentOrganization = (parentOrgId: string) => {
-    console.log("Archive parent organization:", parentOrgId);
-    // TODO: Implement parent organization archive logic
+  const handleRemoveParentOrganization = (parentOrgId: string) => {
+    setParentToRemove(parentOrgId);
+    setShowRemoveParentDialog(true);
+  };
+
+  const handleRemoveParentConfirm = async () => {
+    if (parentToRemove) {
+      try {
+        await deleteParentOrganizationMutation.mutateAsync(parentToRemove);
+        toast.success("Parent organization removed successfully", {
+          description:
+            "The parent organization has been removed from the system.",
+        });
+        setShowRemoveParentDialog(false);
+        setParentToRemove(null);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An error occurred while removing the parent organization. Please try again.";
+        
+        // Check if it's a conflict error (existing children)
+        if (errorMessage.includes("existing organization children") || errorMessage.includes("Cannot delete")) {
+          setShowRemoveParentDialog(false);
+          setErrorDialogMessage("You can't delete this parent organization because it has existing organizations associated with it. Please remove or reassign the organizations first.");
+          setShowErrorDialog(true);
+        } else {
+          toast.error("Failed to remove parent organization", {
+            description: errorMessage,
+          });
+        }
+      }
+    }
+  };
+
+  const handleRemoveParentCancel = () => {
+    setShowRemoveParentDialog(false);
+    setParentToRemove(null);
   };
 
   const handleCreateParentOrganization = () => {
-    router.push("/organizations/parents/create");
+    setSelectedParentOrganization(null);
+    setIsAddParentModalOpen(true);
+  };
+
+  const handleCloseParentModal = () => {
+    setIsAddParentModalOpen(false);
+    setSelectedParentOrganization(null);
   };
 
   const columns = createOrganizationsColumns({
@@ -163,7 +220,7 @@ export default function OrganizationsPage() {
   });
 
   const parentColumns = createOrganizationParentsColumns({
-    onArchiveOrganizationParent: handleArchiveParentOrganization,
+    onRemoveOrganizationParent: handleRemoveParentOrganization,
     onViewOrganizationParent: handleViewParentOrganization,
   });
 
@@ -298,6 +355,40 @@ export default function OrganizationsPage() {
         isLoading={archiveOrganizationMutation.isPending}
         variant="destructive"
       />
+      <AddParentOrganizationModal
+        isOpen={isAddParentModalOpen}
+        onClose={handleCloseParentModal}
+        parentOrganization={selectedParentOrganization}
+      />
+      <ConfirmationModal
+        isOpen={showRemoveParentDialog}
+        onClose={handleRemoveParentCancel}
+        onConfirm={handleRemoveParentConfirm}
+        title="Remove Parent Organization?"
+        description="Are you sure you want to remove this parent organization? This action cannot be undone if there are no associated organizations."
+        confirmText="Yes, remove"
+        cancelText="No, keep it"
+        isLoading={deleteParentOrganizationMutation.isPending}
+        variant="destructive"
+      />
+      <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600">Cannot Remove Parent Organization</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-700">
+              {errorDialogMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setShowErrorDialog(false)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
