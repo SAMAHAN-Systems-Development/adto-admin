@@ -11,6 +11,7 @@ import { useArchiveOrganizationMutation } from "@/lib/api/mutations/organization
 import type { OrganizationChild } from "@/lib/types/entities";
 import { toast } from "sonner";
 import { useDebounce } from "@/lib/hooks/use-debounce";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function OrganizationsPage() {
   const router = useRouter();
@@ -130,41 +131,81 @@ export default function OrganizationsPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <DataTable
-        title="Organizations"
-        columns={columns}
-        data={organizations}
-        searchColumn="name"
-        searchPlaceholder="Search organizations by name or acronym..."
-        addButtonLabel="Add Organization"
-        onCreateItem={handleCreateOrganization}
-        entityName="organizations"
-        search={{
-          value: searchFilter,
-          onSearchChange: setSearchFilter,
-        }}
-        sorting={{
-          field: "name",
-          order: orderBy,
-          onSortChange: (field, order) => {
-            setOrderBy(order);
-            setPage(1); // Reset to first page when sorting changes
-          },
-        }}
-        pagination={{
-          page,
-          limit,
-          totalCount: meta?.totalCount || 0,
-          totalPages: meta?.totalPages || 0,
-          onPageChange: setPage,
-          onLimitChange: (newLimit) => {
-            setLimit(newLimit);
-            setPage(1); // Reset to first page when limit changes
-          },
-        }}
-        onRowClick={(organization) => handleViewOrganization(organization)}
-        isTableLoading={isFetching && !isInitialLoad.current}
-      />
+      <Tabs defaultValue="organizations" className="w-full">
+        <TabsList>
+          <TabsTrigger value="organizations">Organizations</TabsTrigger>
+          <TabsTrigger value="parent-organizations">Parent Organizations</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="organizations" className="mt-6">
+          <DataTable
+            title="Organizations"
+            columns={columns}
+            data={organizations}
+            searchColumn="name"
+            searchPlaceholder="Search organizations by name or acronym..."
+            addButtonLabel="Add Organization"
+            onCreateItem={handleCreateOrganization}
+            entityName="organizations"
+            search={{
+              value: searchFilter,
+              onSearchChange: setSearchFilter,
+            }}
+            sorting={{
+              field: "name",
+              order: orderBy,
+              onSortChange: (field, order) => {
+                setOrderBy(order);
+                setPage(1); // Reset to first page when sorting changes
+              },
+            }}
+            pagination={{
+              page,
+              limit,
+              totalCount: meta?.totalCount || 0,
+              totalPages: meta?.totalPages || 0,
+              onPageChange: setPage,
+              onLimitChange: (newLimit) => {
+                setLimit(newLimit);
+                setPage(1); // Reset to first page when limit changes
+              },
+            }}
+            onRowClick={(organization) => handleViewOrganization(organization)}
+            isTableLoading={isFetching && !isInitialLoad.current}
+          />
+        </TabsContent>
+
+        <TabsContent value="parent-organizations" className="mt-6">
+          <DataTable
+            title="Parent Organizations"
+            columns={[]} // You'll configure these columns later
+            data={[]} // You'll configure this data later
+            searchColumn="name"
+            searchPlaceholder="Search parent organizations..."
+            addButtonLabel="Add Parent Organization"
+            onCreateItem={() => {}} // You'll configure this action later
+            entityName="parent-organizations"
+            search={{
+              value: "",
+              onSearchChange: () => {},
+            }}
+            sorting={{
+              field: "name",
+              order: "asc",
+              onSortChange: () => {},
+            }}
+            pagination={{
+              page: 1,
+              limit: 20,
+              totalCount: 0,
+              totalPages: 0,
+              onPageChange: () => {},
+              onLimitChange: () => {},
+            }}
+          />
+        </TabsContent>
+      </Tabs>
+
       <ViewOrganizationModal
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
