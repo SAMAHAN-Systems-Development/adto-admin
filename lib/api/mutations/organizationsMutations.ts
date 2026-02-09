@@ -25,6 +25,7 @@ export const useCreateOrganizationMutation = () => {
         variant: "success",
       });
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      queryClient.invalidateQueries({ queryKey: ["organization-parents"] });
     },
     onError: (error) => {
       toast({
@@ -59,6 +60,7 @@ export const useUpdateOrganizationMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ["organization", variables.id],
       });
+      queryClient.invalidateQueries({ queryKey: ["organization-parents"] });
     },
     onError: (error) => {
       toast({
@@ -113,6 +115,7 @@ export const useArchiveOrganizationMutation = () => {
         variant: "success",
       });
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      queryClient.invalidateQueries({ queryKey: ["organization-parents"] });
     },
     onError: (error) => {
       toast({
@@ -138,6 +141,7 @@ export const useUnarchiveOrganizationMutation = () => {
         variant: "success",
       });
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      queryClient.invalidateQueries({ queryKey: ["organization-parents"] });
     },
     onError: (error) => {
       toast({
