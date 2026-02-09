@@ -1,17 +1,19 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { DataTable } from "@/components/shared/data-table";
 import { createOrganizationsColumns } from "@/components/features/organizations/organizations-columns";
+import { createOrganizationParentsColumns } from "@/components/features/organizations/organizationParents-columns";
 import { ViewOrganizationModal } from "@/components/features/organizations/view-organization-modal";
 import { useRouter } from "next/navigation";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useOrganizationsQuery } from "@/lib/api/queries/organizationsQueries";
 import { useArchiveOrganizationMutation } from "@/lib/api/mutations/organizationsMutations";
-import type { OrganizationChild } from "@/lib/types/entities";
+import type { OrganizationChild, OrganizationParent } from "@/lib/types/entities";
 import { toast } from "sonner";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useOrganizationParentsQuery } from "@/lib/api/queries/organizationParentQueries";
 
 export default function OrganizationsPage() {
   const router = useRouter();
@@ -27,14 +29,25 @@ export default function OrganizationsPage() {
   const [searchFilter, setSearchFilter] = useState("");
   const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
 
+  // Parent Organizations pagination state
+  const [parentPage, setParentPage] = useState(1);
+  const [parentLimit, setParentLimit] = useState(20);
+  const [parentSearchFilter, setParentSearchFilter] = useState("");
+  const [parentOrderBy, setParentOrderBy] = useState<"asc" | "desc">("asc");
+
   // Track if this is the initial load
   const isInitialLoad = useRef(true);
 
   const debouncedSearch = useDebounce(searchFilter, 500);
+  const debouncedParentSearch = useDebounce(parentSearchFilter, 500);
 
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch]);
+
+  useEffect(() => {
+    setParentPage(1);
+  }, [debouncedParentSearch]);
 
   const { data, isLoading, error, isFetching } = useOrganizationsQuery({
     page,
@@ -43,8 +56,41 @@ export default function OrganizationsPage() {
     orderBy,
   });
 
+  const { data: organizationParentData, isLoading: isParentsLoading } = useOrganizationParentsQuery();
+
+  console.log("Organization parents data:", organizationParentData);
   const organizations = data?.data || [];
   const meta = data?.meta;
+
+  // Client-side pagination and filtering for parent organizations
+  const paginatedParentOrgs = useMemo(() => {
+    let filtered = organizationParentData || [];
+
+    // Apply search filter
+    if (debouncedParentSearch) {
+      filtered = filtered.filter((parentorg: OrganizationParent) =>
+        parentorg.name.toLowerCase().includes(debouncedParentSearch.toLowerCase()) ||
+        parentorg.description?.toLowerCase().includes(debouncedParentSearch.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      const comparison = a.name.localeCompare(b.name);
+      return parentOrderBy === "asc" ? comparison : -comparison;
+    });
+
+    // Calculate pagination
+    const startIndex = (parentPage - 1) * parentLimit;
+    const endIndex = startIndex + parentLimit;
+    const paginated = sorted.slice(startIndex, endIndex);
+
+    return {
+      data: paginated,
+      totalCount: sorted.length,
+      totalPages: Math.ceil(sorted.length / parentLimit),
+    };
+  }, [organizationParentData, debouncedParentSearch, parentOrderBy, parentPage, parentLimit]);
 
   // After first successful load, mark as no longer initial
   useEffect(() => {
@@ -97,9 +143,28 @@ export default function OrganizationsPage() {
     router.push("/organizations/create");
   };
 
+  const handleViewParentOrganization = (parentOrg: OrganizationParent) => {
+    console.log("View parent organization:", parentOrg);
+    // TODO: Implement parent organization view modal
+  };
+
+  const handleArchiveParentOrganization = (parentOrgId: string) => {
+    console.log("Archive parent organization:", parentOrgId);
+    // TODO: Implement parent organization archive logic
+  };
+
+  const handleCreateParentOrganization = () => {
+    router.push("/organizations/parents/create");
+  };
+
   const columns = createOrganizationsColumns({
     onArchiveOrganization: handleArchiveOrganization,
     onViewOrganization: handleViewOrganization,
+  });
+
+  const parentColumns = createOrganizationParentsColumns({
+    onArchiveOrganizationParent: handleArchiveParentOrganization,
+    onViewOrganizationParent: handleViewParentOrganization,
   });
 
   // Only show full page loading skeleton on initial load
@@ -178,30 +243,38 @@ export default function OrganizationsPage() {
         <TabsContent value="parent-organizations" className="mt-6">
           <DataTable
             title="Parent Organizations"
-            columns={[]} // You'll configure these columns later
-            data={[]} // You'll configure this data later
+            columns={parentColumns}
+            data={paginatedParentOrgs.data}
             searchColumn="name"
             searchPlaceholder="Search parent organizations..."
             addButtonLabel="Add Parent Organization"
-            onCreateItem={() => {}} // You'll configure this action later
+            onCreateItem={handleCreateParentOrganization}
             entityName="parent-organizations"
             search={{
-              value: "",
-              onSearchChange: () => {},
+              value: parentSearchFilter,
+              onSearchChange: setParentSearchFilter,
             }}
             sorting={{
               field: "name",
-              order: "asc",
-              onSortChange: () => {},
+              order: parentOrderBy,
+              onSortChange: (field, order) => {
+                setParentOrderBy(order);
+                setParentPage(1);
+              },
             }}
             pagination={{
-              page: 1,
-              limit: 20,
-              totalCount: 0,
-              totalPages: 0,
-              onPageChange: () => {},
-              onLimitChange: () => {},
+              page: parentPage,
+              limit: parentLimit,
+              totalCount: paginatedParentOrgs.totalCount,
+              totalPages: paginatedParentOrgs.totalPages,
+              onPageChange: setParentPage,
+              onLimitChange: (newLimit) => {
+                setParentLimit(newLimit);
+                setParentPage(1);
+              },
             }}
+            onRowClick={(parentOrg) => handleViewParentOrganization(parentOrg)}
+            isTableLoading={isParentsLoading}
           />
         </TabsContent>
       </Tabs>
