@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { XIcon, Archive, SquarePen } from "lucide-react";
+import { XIcon, Archive, SquarePen, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CreateTicket from "@/components/shared/CreateTicket";
 import { Button } from "@/components/ui/button";
@@ -47,11 +47,27 @@ function CardModalDetails({
     }
   };
 
+  const handleDownloadImage = () => {
+    if (!ticket.thumbnail) return;
+
+    const link = document.createElement("a");
+    link.href = ticket.thumbnail;
+    link.download = `${ticket.name}-ticket-image.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleRequest = () => {
+    // Static for now
+    alert("Request button clicked - functionality coming soon!");
+  };
+
   return (
     <>
       {/* Ticket Details Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-5">
-        <div className="bg-white rounded-xl w-full max-w-3xl p-6 relative">
+        <div className="bg-white rounded-xl w-full max-w-3xl p-6 relative max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-blue-700">{ticket.name}</h2>
             <div className="flex items-center gap-3">
@@ -75,6 +91,38 @@ function CardModalDetails({
               </button>
             </div>
           </div>
+
+          {/* Ticket Thumbnail */}
+          {ticket.thumbnail && (
+            <div className="mb-6">
+              <img
+                src={ticket.thumbnail}
+                alt={ticket.name}
+                className="w-full max-h-96 object-cover rounded-lg"
+              />
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownloadImage();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Image
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRequest();
+                  }}
+                  className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition-colors"
+                >
+                  Request
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-between mb-6">
             <div>
@@ -210,11 +258,23 @@ export default function CardTicket({
         onClick={() => setModalOpen(true)}
       >
         <div className="flex gap-4 p-4">
-          {/* Image Placeholder - Full Left Side */}
+          {/* Ticket Thumbnail - Full Left Side */}
           <div className="flex-shrink-0">
-            <div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-              <span className="text-xs text-gray-500 text-center">Image</span>
-            </div>
+            {ticket.thumbnail ? (
+              <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200">
+                <img
+                  src={ticket.thumbnail}
+                  alt={ticket.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+                <span className="text-xs text-gray-500 text-center">
+                  No Image
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Content Area */}

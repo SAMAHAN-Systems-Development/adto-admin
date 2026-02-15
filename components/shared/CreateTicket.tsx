@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -72,6 +72,40 @@ export default function CreateTicket({
   const [isLoading, setIsLoading] = useState(false);
   const [ticketThumbnailData, setTicketThumbnailData] =
     useState<UploadData | null>(null);
+  const [ticketLink, setTicketLink] = useState("");
+  const [isEditingTicketLink, setIsEditingTicketLink] = useState(false);
+  const [tempTicketLink, setTempTicketLink] = useState("");
+
+  // Load existing thumbnail if in update mode
+  useEffect(() => {
+    if (initialData?.thumbnail && isUpdate) {
+      setTicketThumbnailData({
+        url: initialData.thumbnail,
+        key: initialData.thumbnail.split("/").pop() || "",
+        bucket: "event-images",
+        fileName: initialData.thumbnail.split("/").pop() || "",
+        fileSize: 0,
+        fileType: "image/jpeg",
+      });
+    }
+  }, [initialData, isUpdate]);
+
+  const handleSaveTicketLink = () => {
+    setTicketLink(tempTicketLink);
+    setIsEditingTicketLink(false);
+    // TODO: Save to database when API is ready
+    console.log("Ticket link saved:", tempTicketLink);
+  };
+
+  const handleCancelTicketLink = () => {
+    setTempTicketLink(ticketLink);
+    setIsEditingTicketLink(false);
+  };
+
+  const handleEditTicketLink = () => {
+    setTempTicketLink(ticketLink);
+    setIsEditingTicketLink(true);
+  };
 
   const handleFormSubmit = (data: z.infer<typeof TicketSchema>) => {
     setPendingData(data);
@@ -90,6 +124,9 @@ export default function CreateTicket({
         registrationDeadline: pendingData.registrationDeadline
           ? new Date(pendingData.registrationDeadline).toISOString()
           : "",
+        // Include thumbnail URL if uploaded
+        thumbnail:
+          ticketThumbnailData?.url || initialData?.thumbnail || undefined,
       };
 
       if (isUpdate && onUpdate) {
@@ -117,6 +154,57 @@ export default function CreateTicket({
           <CardTitle>
             <h1 className="text-3xl text-blue-800 font-[700] mb-4">{title}</h1>
           </CardTitle>
+
+          {/* Ticket Link Field - Only in Update Mode */}
+          {isUpdate && (
+            <div className="border-b pb-4 mb-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Ticket Link
+                </label>
+                {!isEditingTicketLink && (
+                  <button
+                    onClick={handleEditTicketLink}
+                    className="text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={isEditingTicketLink ? tempTicketLink : ticketLink}
+                  onChange={(e) => setTempTicketLink(e.target.value)}
+                  placeholder="Enter ticket link URL"
+                  className="flex-1"
+                  disabled={!isEditingTicketLink}
+                />
+                {isEditingTicketLink && (
+                  <>
+                    <Button
+                      type="button"
+                      onClick={handleSaveTicketLink}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleCancelTicketLink}
+                      variant="outline"
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                )}
+              </div>
+              {ticketLink && !isEditingTicketLink && (
+                <p className="text-xs text-gray-500 mt-1 truncate">
+                  {ticketLink}
+                </p>
+              )}
+            </div>
+          )}
         </CardHeader>
 
         <Form {...form}>

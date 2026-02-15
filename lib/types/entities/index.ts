@@ -73,6 +73,8 @@ export interface Event {
   id: string;
   name: string;
   description: string;
+  banner?: string;
+  thumbnail?: string;
   dateStart: Date;
   dateEnd: Date;
   isRegistrationOpen: boolean;
@@ -133,4 +135,3 @@ export interface EventAnnouncement {
   createdAt: Date;
   updatedAt: Date;
 }
-

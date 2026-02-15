@@ -34,7 +34,7 @@ import { useRegistrationsQuery } from "@/lib/api/queries/registrationQueries";
 import { DataTable } from "@/components/shared/data-table";
 import { createRegistrationsColumns } from "@/components/features/registrations/registration-columns";
 import { useUpdateRegistration } from "@/lib/api/mutations/registrationMutation";
-import UploadImage from "@/components/shared/upload-image";
+import UploadImage, { type UploadData } from "@/components/shared/upload-image";
 import { UploadBannerModal } from "@/components/features/events/upload-banner-modal";
 import { UploadThumbnailModal } from "@/components/features/events/upload-thumbnail-modal";
 
@@ -61,6 +61,13 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [ticketCategoryFilter, setTicketCategoryFilter] = useState("all");
   const [showBannerModal, setShowBannerModal] = useState(false);
   const [showThumbnailModal, setShowThumbnailModal] = useState(false);
+
+  // Store uploaded banner and thumbnail data
+  const [bannerImageData, setBannerImageData] = useState<UploadData | null>(
+    null,
+  );
+  const [thumbnailImageData, setThumbnailImageData] =
+    useState<UploadData | null>(null);
 
   const eventId = params.id;
   console.log(eventId, "WTF EVENT ID");
@@ -114,6 +121,28 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       setRegistrationOpen(event.isRegistrationOpen);
       setEventVisibility(event.isPublished);
       setRegistrationRequired(event.isRegistrationRequired);
+
+      // Load existing banner and thumbnail from event data
+      if (event.banner) {
+        setBannerImageData({
+          url: event.banner,
+          key: event.banner.split("/").pop() || "",
+          bucket: "event-images",
+          fileName: event.banner.split("/").pop() || "",
+          fileSize: 0,
+          fileType: "image/jpeg",
+        });
+      }
+      if (event.thumbnail) {
+        setThumbnailImageData({
+          url: event.thumbnail,
+          key: event.thumbnail.split("/").pop() || "",
+          bucket: "event-images",
+          fileName: event.thumbnail.split("/").pop() || "",
+          fileSize: 0,
+          fileType: "image/jpeg",
+        });
+      }
     }
   }, [event]);
 
@@ -539,14 +568,31 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 </label>
                 <div
                   onClick={() => setShowBannerModal(true)}
-                  className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 p-8 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-150 transition-colors"
+                  className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 p-8 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-150 transition-colors relative overflow-hidden group"
                 >
-                  <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
-                    <span className="text-gray-400 text-2xl">+</span>
-                  </div>
-                  <span className="text-gray-500 text-sm font-medium">
-                    Upload Image
-                  </span>
+                  {bannerImageData ? (
+                    <>
+                      <img
+                        src={bannerImageData.url}
+                        alt="Banner preview"
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white font-medium">
+                          Change Image
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
+                        <span className="text-gray-400 text-2xl">+</span>
+                      </div>
+                      <span className="text-gray-500 text-sm font-medium">
+                        Upload Image
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -557,14 +603,31 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 </label>
                 <div
                   onClick={() => setShowThumbnailModal(true)}
-                  className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 p-8 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-150 transition-colors"
+                  className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 p-8 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-150 transition-colors relative overflow-hidden group"
                 >
-                  <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
-                    <span className="text-gray-400 text-2xl">+</span>
-                  </div>
-                  <span className="text-gray-500 text-sm font-medium">
-                    Upload Image
-                  </span>
+                  {thumbnailImageData ? (
+                    <>
+                      <img
+                        src={thumbnailImageData.url}
+                        alt="Thumbnail preview"
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white font-medium">
+                          Change Image
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
+                        <span className="text-gray-400 text-2xl">+</span>
+                      </div>
+                      <span className="text-gray-500 text-sm font-medium">
+                        Upload Image
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -838,12 +901,44 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         <UploadBannerModal
           isOpen={showBannerModal}
           onClose={() => setShowBannerModal(false)}
+          onSubmit={async (uploadData) => {
+            setBannerImageData(uploadData);
+            console.log("Banner saved to state:", uploadData);
+
+            // Automatically save to database
+            try {
+              await updateEventMutation.mutateAsync({
+                id: params.id,
+                data: { banner: uploadData.url },
+              });
+              toast.success("Banner image uploaded and saved!");
+            } catch (error) {
+              console.error("Failed to save banner:", error);
+              toast.error("Failed to save banner to database");
+            }
+          }}
         />
 
         {/* Upload Thumbnail Modal */}
         <UploadThumbnailModal
           isOpen={showThumbnailModal}
           onClose={() => setShowThumbnailModal(false)}
+          onSubmit={async (uploadData) => {
+            setThumbnailImageData(uploadData);
+            console.log("Thumbnail saved to state:", uploadData);
+
+            // Automatically save to database
+            try {
+              await updateEventMutation.mutateAsync({
+                id: params.id,
+                data: { thumbnail: uploadData.url },
+              });
+              toast.success("Thumbnail image uploaded and saved!");
+            } catch (error) {
+              console.error("Failed to save thumbnail:", error);
+              toast.error("Failed to save thumbnail to database");
+            }
+          }}
         />
       </div>
     </div>
