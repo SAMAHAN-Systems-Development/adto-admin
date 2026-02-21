@@ -50,6 +50,7 @@ export const createEventsColumns = ({
   {
     accessorKey: "name",
     header: () => <span className="text-secondary-100">Event Name</span>,
+    enableHiding: false,
     cell: ({ row }) => {
       const event = row.original;
       return (
