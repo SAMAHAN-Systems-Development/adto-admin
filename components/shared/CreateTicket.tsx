@@ -76,7 +76,6 @@ export default function CreateTicket({
     useState<UploadData | null>(null);
   const [selectedThumbnailFile, setSelectedThumbnailFile] =
     useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [ticketLink, setTicketLink] = useState("");
   const [isEditingTicketLink, setIsEditingTicketLink] = useState(false);
   const [tempTicketLink, setTempTicketLink] = useState("");
@@ -126,16 +125,15 @@ export default function CreateTicket({
     setIsEditingTicketLink(true);
   };
 
-  const handleThumbnailFileSelect = (file: File, previewUrl: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleThumbnailFileSelect = (file: File, _previewUrl: string) => {
     console.log("Ticket thumbnail file selected:", file.name);
     setSelectedThumbnailFile(file);
-    setThumbnailPreview(previewUrl);
   };
 
   const handleThumbnailError = (error: string) => {
     console.error("Ticket thumbnail error:", error);
     setSelectedThumbnailFile(null);
-    setThumbnailPreview(null);
   };
 
   const handleDeleteThumbnail = async () => {
@@ -152,7 +150,6 @@ export default function CreateTicket({
         }
         setTicketThumbnailData(null);
         setSelectedThumbnailFile(null);
-        setThumbnailPreview(null);
         console.log("Ticket thumbnail removed successfully!");
       } catch (error) {
         console.error("Failed to delete ticket thumbnail:", error);

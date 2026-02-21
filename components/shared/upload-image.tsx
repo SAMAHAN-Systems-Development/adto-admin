@@ -12,7 +12,6 @@ import Image from "next/image";
 import {
   uploadEventBanner,
   uploadAsset,
-  deleteAsset,
 } from "@/lib/api/services/assetService";
 
 // how to use
@@ -179,13 +178,6 @@ export default function UploadImage({
     }
   };
 
-  // Function to upload the selected file (for delayed upload mode)
-  const uploadSelectedFile = async () => {
-    if (selectedFile) {
-      await performUpload(selectedFile);
-    }
-  };
-
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files?.length) {
       const image = event.target.files[0];
@@ -223,17 +215,6 @@ export default function UploadImage({
     setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
-    }
-  };
-
-  // Function to delete an uploaded image
-  const deleteUploadedImage = async (key: string) => {
-    try {
-      await deleteAsset(key);
-      console.log("Image deleted successfully:", key);
-    } catch (error) {
-      console.error("Failed to delete image:", key, error);
-      throw error;
     }
   };
 

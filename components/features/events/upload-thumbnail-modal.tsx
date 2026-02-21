@@ -20,16 +20,15 @@ export function UploadThumbnailModal({
   existingImageKey,
 }: UploadThumbnailModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleFileSelect = (file: File, preview: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleFileSelect = (file: File, _preview: string) => {
     console.log("Thumbnail file selected:", file.name);
     setSelectedFile(file);
-    setPreviewUrl(preview);
     setUploadError(null);
   };
 
@@ -83,7 +82,6 @@ export function UploadThumbnailModal({
 
   const handleClose = () => {
     setSelectedFile(null);
-    setPreviewUrl(null);
     setUploadError(null);
     setIsUploading(false);
     onClose();

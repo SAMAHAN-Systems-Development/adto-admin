@@ -20,16 +20,15 @@ export function UploadBannerModal({
   existingImageKey,
 }: UploadBannerModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleFileSelect = (file: File, preview: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleFileSelect = (file: File, _preview: string) => {
     console.log("Banner file selected:", file.name);
     setSelectedFile(file);
-    setPreviewUrl(preview);
     setUploadError(null);
   };
 
@@ -55,7 +54,6 @@ export function UploadBannerModal({
       }
 
       // Upload new image
-      const uploadImage = await import("@/components/shared/upload-image");
       const { uploadEventBanner } = await import(
         "@/lib/api/services/assetService"
       );
@@ -86,7 +84,6 @@ export function UploadBannerModal({
 
   const handleClose = () => {
     setSelectedFile(null);
-    setPreviewUrl(null);
     setUploadError(null);
     setIsUploading(false);
     onClose();
