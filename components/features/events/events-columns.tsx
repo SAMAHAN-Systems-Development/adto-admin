@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Eye, Edit, Archive, Check } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, Archive, Check, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -127,7 +127,13 @@ export const createEventsColumns = ({
               <span className="text-sm">Open</span>
             </>
           ) : (
-            <span className="text-sm text-muted-foreground">Closed</span>
+            <>    
+              <div className="relative flex items-center justify-center w-5 h-5 bg-red-500 rounded-full">
+                  <X className="w-3 h-3 text-white" />
+              </div>
+              <span className="text-sm text-muted-foreground">Closed</span>
+            </>
+            
           )}
         </div>
       );
