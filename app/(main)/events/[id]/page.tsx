@@ -726,14 +726,15 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
         {/* Archive and Publish Buttons */}
         <div className="flex justify-end gap-4 mt-16 pt-8 border-t border-gray-200">
-          <Button
+          {/* PUBLISH BUTTON REMOVED */}
+          {/* <Button
             variant="outline"
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
             onClick={() => setShowPublishModal(true)}
             disabled={publishEventMutation.isPending || event.isPublished}
           >
             {event.isPublished ? "Published" : "Publish Event"}
-          </Button>
+          </Button> */}
           <Button
             variant="outline"
             className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent"
