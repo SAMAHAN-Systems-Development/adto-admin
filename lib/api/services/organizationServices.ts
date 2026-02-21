@@ -57,7 +57,7 @@ export const findAllByOrganizationParent = async (
   params?: {
     page?: number;
     limit?: number;
-  }
+  },
 ) => {
   const queryParams = new URLSearchParams({
     page: (params?.page || 1).toString(),
@@ -69,7 +69,7 @@ export const findAllByOrganizationParent = async (
     {
       method: "GET",
       credentials: "include",
-    }
+    },
   );
 
   if (!response.ok) {
@@ -91,11 +91,17 @@ export const findOneOrganization = async (id: string) => {
   }
 
   const data = await response.json();
+  if (data.user?.email) {
+    return {
+      ...data,
+      email: data.user.email,
+    };
+  }
   return data;
 };
 
 export const createOrganization = async (
-  orgData: CreateOrganizationRequest
+  orgData: CreateOrganizationRequest,
 ) => {
   const response = await fetch(`${BASE_URL}/organizations`, {
     method: "POST",
@@ -116,7 +122,7 @@ export const createOrganization = async (
 
 export const updateOrganization = async (
   id: string,
-  orgData: Partial<CreateOrganizationRequest>
+  orgData: Partial<CreateOrganizationRequest>,
 ) => {
   const response = await fetch(`${BASE_URL}/organizations/${id}`, {
     method: "PATCH",
