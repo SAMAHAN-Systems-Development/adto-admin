@@ -130,9 +130,7 @@ export const createOrganizationsColumns = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(organization.id)}
-            >
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(organization.id)}>
               Copy organization ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
