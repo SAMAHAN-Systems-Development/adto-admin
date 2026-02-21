@@ -69,7 +69,7 @@ export default function OrganizationsForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mb-8">
         <FormField
           control={form.control}
           name="name"
