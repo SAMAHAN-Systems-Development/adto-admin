@@ -23,6 +23,7 @@ export const createOrganizationParentsColumns = ({
   {
     accessorKey: "name",
     header: () => <span className="text-secondary-100">Name</span>,
+    enableHiding: false,
     cell: ({ row }) => {
       const orgParent = row.original;
       return (
