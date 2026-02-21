@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { XIcon, Archive, SquarePen, Download } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
 import CreateTicket from "@/components/shared/CreateTicket";
 import { Button } from "@/components/ui/button";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { Tickets } from "@/lib/types/requests/ticketsRequests";
+import { deleteAsset } from "@/lib/api/services/assetService";
 
 function CardModalDetails({
   ticket,
@@ -24,8 +26,46 @@ function CardModalDetails({
   const [updateOpen, setUpdateOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
+  const [showThumbnailDeleteConfirm, setShowThumbnailDeleteConfirm] =
+    useState(false);
 
   if (!isOpen) return null;
+
+  // Helper function to extract S3 key from Supabase URL
+  const extractKeyFromUrl = (url: string): string => {
+    try {
+      const match = url.match(/\/object\/public\/[^/]+\/(.+)$/);
+      if (match) {
+        return match[1];
+      }
+      return url.split("/").pop() || "";
+    } catch (error) {
+      console.error("Error extracting key from URL:", error);
+      return url.split("/").pop() || "";
+    }
+  };
+
+  const handleDeleteThumbnail = async () => {
+    if (ticket.thumbnail) {
+      try {
+        const thumbnailKey = extractKeyFromUrl(ticket.thumbnail);
+        console.log("Deleting ticket thumbnail with key:", thumbnailKey);
+
+        if (thumbnailKey) {
+          await deleteAsset(thumbnailKey);
+          console.log("Ticket thumbnail deleted from storage successfully");
+        }
+
+        // Update the ticket to remove thumbnail
+        const updatedTicket = { ...ticket, thumbnail: null };
+        onUpdate(updatedTicket);
+        console.log("Ticket thumbnail removed successfully!");
+      } catch (error) {
+        console.error("Failed to delete ticket thumbnail:", error);
+      }
+    }
+    setShowThumbnailDeleteConfirm(false);
+  };
 
   const handleUpdateTicket = (updated: Tickets) => {
     updated.id = ticket.id;
@@ -95,11 +135,26 @@ function CardModalDetails({
           {/* Ticket Thumbnail */}
           {ticket.thumbnail && (
             <div className="mb-6">
-              <img
-                src={ticket.thumbnail}
-                alt={ticket.name}
-                className="w-full max-h-96 object-cover rounded-lg"
-              />
+              <div className="w-full max-h-96 relative overflow-hidden rounded-lg group">
+                <Image
+                  src={ticket.thumbnail}
+                  alt={ticket.name}
+                  width={800}
+                  height={384}
+                  className="w-full max-h-96 object-cover"
+                />
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowThumbnailDeleteConfirm(true);
+                  }}
+                  className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10"
+                  title="Remove thumbnail"
+                >
+                  ×
+                </button>
+              </div>
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={(e) => {
@@ -191,6 +246,19 @@ function CardModalDetails({
         isLoading={isArchiving}
         variant="destructive"
       />
+
+      {/* Delete Thumbnail Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showThumbnailDeleteConfirm}
+        onClose={() => setShowThumbnailDeleteConfirm(false)}
+        onConfirm={handleDeleteThumbnail}
+        title="Remove Ticket Thumbnail"
+        description="Are you sure you want to remove the ticket thumbnail? This action cannot be undone."
+        confirmText="Yes, Remove"
+        cancelText="Cancel"
+        isLoading={false}
+        variant="destructive"
+      />
     </>
   );
 }
@@ -208,6 +276,44 @@ export default function CardTicket({
   const [updateOpen, setUpdateOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
+  const [showThumbnailDeleteConfirm, setShowThumbnailDeleteConfirm] =
+    useState(false);
+
+  // Helper function to extract S3 key from Supabase URL
+  const extractKeyFromUrl = (url: string): string => {
+    try {
+      const match = url.match(/\/object\/public\/[^/]+\/(.+)$/);
+      if (match) {
+        return match[1];
+      }
+      return url.split("/").pop() || "";
+    } catch (error) {
+      console.error("Error extracting key from URL:", error);
+      return url.split("/").pop() || "";
+    }
+  };
+
+  const handleDeleteThumbnail = async () => {
+    if (ticket.thumbnail) {
+      try {
+        const thumbnailKey = extractKeyFromUrl(ticket.thumbnail);
+        console.log("Deleting ticket thumbnail with key:", thumbnailKey);
+
+        if (thumbnailKey) {
+          await deleteAsset(thumbnailKey);
+          console.log("Ticket thumbnail deleted from storage successfully");
+        }
+
+        // Update the ticket to remove thumbnail
+        const updatedTicket = { ...ticket, thumbnail: null };
+        onUpdate(updatedTicket);
+        console.log("Ticket thumbnail removed successfully!");
+      } catch (error) {
+        console.error("Failed to delete ticket thumbnail:", error);
+      }
+    }
+    setShowThumbnailDeleteConfirm(false);
+  };
 
   const handleUpdateTicket = (updated: Tickets) => {
     updated.id = ticket.id;
@@ -261,12 +367,24 @@ export default function CardTicket({
           {/* Ticket Thumbnail - Full Left Side */}
           <div className="flex-shrink-0">
             {ticket.thumbnail ? (
-              <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200">
-                <img
+              <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200 relative group">
+                <Image
                   src={ticket.thumbnail}
                   alt={ticket.name}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowThumbnailDeleteConfirm(true);
+                  }}
+                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10 text-xs"
+                  title="Remove thumbnail"
+                >
+                  ×
+                </button>
               </div>
             ) : (
               <div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
@@ -367,6 +485,19 @@ export default function CardTicket({
         confirmText="Archive Ticket"
         cancelText="Cancel"
         isLoading={isArchiving}
+        variant="destructive"
+      />
+
+      {/* Delete Thumbnail Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showThumbnailDeleteConfirm}
+        onClose={() => setShowThumbnailDeleteConfirm(false)}
+        onConfirm={handleDeleteThumbnail}
+        title="Remove Ticket Thumbnail"
+        description="Are you sure you want to remove the ticket thumbnail? This action cannot be undone."
+        confirmText="Yes, Remove"
+        cancelText="Cancel"
+        isLoading={false}
         variant="destructive"
       />
     </>

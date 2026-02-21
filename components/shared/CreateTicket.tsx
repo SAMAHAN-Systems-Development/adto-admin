@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import Image from "next/image";
 import { TicketSchema } from "@/lib/zod/ticket.schema";
 import {
   Form,
@@ -28,6 +29,7 @@ import DatePicker from "./registration-deadline";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { Tickets } from "@/lib/types/requests/ticketsRequests";
 import UploadImage, { type UploadData } from "@/components/shared/upload-image";
+import { deleteAsset } from "@/lib/api/services/assetService";
 
 interface CreateTicketProps {
   setModal: (value: boolean) => void;
@@ -72,6 +74,9 @@ export default function CreateTicket({
   const [isLoading, setIsLoading] = useState(false);
   const [ticketThumbnailData, setTicketThumbnailData] =
     useState<UploadData | null>(null);
+  const [selectedThumbnailFile, setSelectedThumbnailFile] =
+    useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [ticketLink, setTicketLink] = useState("");
   const [isEditingTicketLink, setIsEditingTicketLink] = useState(false);
   const [tempTicketLink, setTempTicketLink] = useState("");
@@ -79,9 +84,23 @@ export default function CreateTicket({
   // Load existing thumbnail if in update mode
   useEffect(() => {
     if (initialData?.thumbnail && isUpdate) {
+      // Helper function to extract S3 key from Supabase URL
+      const extractKeyFromUrl = (url: string): string => {
+        try {
+          const match = url.match(/\/object\/public\/[^/]+\/(.+)$/);
+          if (match) {
+            return match[1]; // e.g., "ticket-thumbnails/1640995200000-abc123def456.jpg"
+          }
+          return url.split("/").pop() || "";
+        } catch (error) {
+          console.error("Error extracting key from URL:", error);
+          return url.split("/").pop() || "";
+        }
+      };
+
       setTicketThumbnailData({
         url: initialData.thumbnail,
-        key: initialData.thumbnail.split("/").pop() || "",
+        key: extractKeyFromUrl(initialData.thumbnail),
         bucket: "event-images",
         fileName: initialData.thumbnail.split("/").pop() || "",
         fileSize: 0,
@@ -107,6 +126,40 @@ export default function CreateTicket({
     setIsEditingTicketLink(true);
   };
 
+  const handleThumbnailFileSelect = (file: File, previewUrl: string) => {
+    console.log("Ticket thumbnail file selected:", file.name);
+    setSelectedThumbnailFile(file);
+    setThumbnailPreview(previewUrl);
+  };
+
+  const handleThumbnailError = (error: string) => {
+    console.error("Ticket thumbnail error:", error);
+    setSelectedThumbnailFile(null);
+    setThumbnailPreview(null);
+  };
+
+  const handleDeleteThumbnail = async () => {
+    if (ticketThumbnailData) {
+      try {
+        // Delete from storage if it has a key
+        if (ticketThumbnailData.key) {
+          console.log(
+            "Deleting ticket thumbnail with key:",
+            ticketThumbnailData.key,
+          );
+          await deleteAsset(ticketThumbnailData.key);
+          console.log("Ticket thumbnail deleted from storage successfully");
+        }
+        setTicketThumbnailData(null);
+        setSelectedThumbnailFile(null);
+        setThumbnailPreview(null);
+        console.log("Ticket thumbnail removed successfully!");
+      } catch (error) {
+        console.error("Failed to delete ticket thumbnail:", error);
+      }
+    }
+  };
+
   const handleFormSubmit = (data: z.infer<typeof TicketSchema>) => {
     setPendingData(data);
     setConfirmOpen(true);
@@ -117,6 +170,46 @@ export default function CreateTicket({
     setIsLoading(true);
 
     try {
+      let thumbnailUrl = ticketThumbnailData?.url;
+
+      // If there's a selected file, upload it first
+      if (selectedThumbnailFile) {
+        console.log("Uploading ticket thumbnail...");
+
+        // Delete old thumbnail if replacing
+        if (ticketThumbnailData?.key) {
+          try {
+            await deleteAsset(ticketThumbnailData.key);
+            console.log(
+              "Old ticket thumbnail deleted:",
+              ticketThumbnailData.key,
+            );
+          } catch (error) {
+            console.error("Failed to delete old ticket thumbnail:", error);
+          }
+        }
+
+        // Upload new thumbnail
+        const { uploadAsset } = await import("@/lib/api/services/assetService");
+        const uploadResult = await uploadAsset(
+          selectedThumbnailFile,
+          "ticket-thumbnails",
+        );
+
+        const uploadData = {
+          url: uploadResult.url,
+          key: uploadResult.key,
+          bucket: uploadResult.bucket,
+          fileName: selectedThumbnailFile.name,
+          fileSize: selectedThumbnailFile.size,
+          fileType: selectedThumbnailFile.type,
+        };
+
+        setTicketThumbnailData(uploadData);
+        thumbnailUrl = uploadData.url;
+        console.log("Ticket thumbnail uploaded successfully:", thumbnailUrl);
+      }
+
       // Format the data properly for API
       const formattedData = {
         ...pendingData,
@@ -125,8 +218,7 @@ export default function CreateTicket({
           ? new Date(pendingData.registrationDeadline).toISOString()
           : "",
         // Include thumbnail URL if uploaded
-        thumbnail:
-          ticketThumbnailData?.url || initialData?.thumbnail || undefined,
+        thumbnail: thumbnailUrl || undefined,
       };
 
       if (isUpdate && onUpdate) {
@@ -332,7 +424,7 @@ export default function CreateTicket({
                 </h3>
                 <p className="text-sm text-gray-600 mb-2">
                   Your uploaded image will be what users see while viewing the
-                  ticket's details.
+                  ticket&apos;s details.
                 </p>
                 <div className="text-sm text-gray-500 space-y-1 mb-4">
                   <p>Maximum file size: 10 MB</p>
@@ -342,18 +434,49 @@ export default function CreateTicket({
                     ratio
                   </p>
                 </div>
-                <UploadImage
-                  uploadType="asset"
-                  folder="ticket-thumbnails"
-                  onUploadComplete={(uploadData) => {
-                    console.log("Ticket thumbnail uploaded:", uploadData);
-                    setTicketThumbnailData(uploadData);
-                  }}
-                  onUploadError={(error) => {
-                    console.error("Ticket thumbnail upload error:", error);
-                    setTicketThumbnailData(null);
-                  }}
-                />
+
+                {/* Show existing thumbnail with delete option */}
+                {ticketThumbnailData && !selectedThumbnailFile && (
+                  <div className="mb-4 relative group">
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-gray-300">
+                      <Image
+                        src={ticketThumbnailData.url}
+                        alt="Ticket thumbnail"
+                        width={400}
+                        height={192}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white font-medium">
+                          Current Thumbnail
+                        </span>
+                      </div>
+                      {/* Delete Button */}
+                      <button
+                        onClick={handleDeleteThumbnail}
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10"
+                        title="Remove thumbnail"
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {ticketThumbnailData.fileName}
+                    </p>
+                  </div>
+                )}
+
+                {/* Upload component - only show if no existing thumbnail or user deleted it */}
+                {(!ticketThumbnailData || selectedThumbnailFile) && (
+                  <UploadImage
+                    uploadType="asset"
+                    folder="ticket-thumbnails"
+                    immediateUpload={false}
+                    onFileSelect={handleThumbnailFileSelect}
+                    onUploadError={handleThumbnailError}
+                  />
+                )}
               </div>
 
               {/* Buttons */}
