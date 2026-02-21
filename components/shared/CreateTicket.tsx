@@ -155,9 +155,15 @@ export default function CreateTicket({
                         {...field}
                         placeholder="dolor sit amet..."
                         className="h-[9.5rem] border-[#94A3B8] border-2 p-5 font-[400] resize-none rounded-sm"
+                        maxLength={90}
                       />
-                    </FormControl>
-                    <FormMessage />
+                    </FormControl>      
+                    <div className="flex justify-between items-center mt-2">
+                      <FormMessage />
+                        <span className={`text-xs ${field.value.length > 90 ? "text-red-600" : "text-gray-500"}`}>
+                          {field.value.length} / 90 characters
+                        </span>
+                    </div>
                   </FormItem>
                 )}
               />

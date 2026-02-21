@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const TicketSchema = z.object({
   name: z.string().min(1, "Ticket name is required"),
-  description: z.string().min(1, "Description is required"),
+  description: z.string()
+  .min(1, "Description is required")
+  .max(90, "Description cannot exceed 90 characters"),
   capacity: z.coerce
     .number()
     .positive("Capacity must be positive")
