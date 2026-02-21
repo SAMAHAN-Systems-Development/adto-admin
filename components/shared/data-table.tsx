@@ -103,6 +103,21 @@ export function DataTable<TData>({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
+  const shouldIgnoreRowClick = React.useCallback(
+    (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) {
+        return false;
+      }
+
+      return Boolean(
+        target.closest(
+          "button, a, input, select, textarea, [role='button'], [role='menuitem'], [role='checkbox'], [role='radio']"
+        )
+      );
+    },
+    []
+  );
+
   const isBackendSearch = !!search;
   const isBackendSort = !!sorting;
 
@@ -337,7 +352,13 @@ export function DataTable<TData>({
                 <TableRow 
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  onClick={() => onRowClick?.(row.original)}
+                  onClick={(event) => {
+                    if (shouldIgnoreRowClick(event.target)) {
+                      return;
+                    }
+
+                    onRowClick?.(row.original);
+                  }}
                   className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
