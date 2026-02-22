@@ -15,7 +15,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import {
-  OrganizationSchema,
+  CreateOrganizationSchema,
+  UpdateOrganizationSchema,
   type OrganizationSchema as OrganizationType,
 } from "@/lib/zod/organization.schema";
 
@@ -47,8 +48,10 @@ export default function OrganizationsForm({
   const { data: parentsResponse } = useOrganizationParentsQuery();
   const parents = parentsResponse || [];
 
+  const schema = isEditMode ? UpdateOrganizationSchema : CreateOrganizationSchema;
+
   const form = useForm<OrganizationType>({
-    resolver: zodResolver(OrganizationSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       name: "",
       acronym: "",
@@ -125,7 +128,7 @@ export default function OrganizationsForm({
                   placeholder={
                     isEditMode
                       ? "Enter new password"
-                      : "Minimum 6 characters"
+                      : "Minimum 8 characters"
                   }
                   {...field}
                 />

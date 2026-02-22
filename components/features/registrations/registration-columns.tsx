@@ -37,10 +37,12 @@ export const createRegistrationsColumns = ({
   {
     accessorKey: "fullName",
     header: () => <span className="text-secondary-100">Full Name</span>,
+    enableHiding: false,
     cell: ({ row }) => {
       const registration = row.original;
       return <div className="font-medium">{registration.fullName}</div>;
     },
+    enableHiding: false,
   },
   {
     accessorKey: "email",
@@ -49,6 +51,7 @@ export const createRegistrationsColumns = ({
       const registration = row.original;
       return <div className="font-medium">{registration.email}</div>;
     },
+    enableHiding: false,
   },
   {
     accessorKey: "cluster",
