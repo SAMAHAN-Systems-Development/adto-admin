@@ -42,6 +42,7 @@ export const createRegistrationsColumns = ({
       const registration = row.original;
       return <div className="font-medium">{registration.fullName}</div>;
     },
+    enableHiding: false,
   },
   {
     accessorKey: "email",
@@ -50,6 +51,7 @@ export const createRegistrationsColumns = ({
       const registration = row.original;
       return <div className="font-medium">{registration.email}</div>;
     },
+    enableHiding: false,
   },
   {
     accessorKey: "cluster",

@@ -21,6 +21,24 @@ interface EventsColumnsProps {
   onViewEvent?: (event: Event) => void;
 }
 
+const DESCRIPTION_PREVIEW_MAX_LENGTH = 100;
+
+const getDescriptionPreview = (description: string) => {
+  const normalizedDescription = description?.trim() || "";
+
+  if (normalizedDescription.length <= DESCRIPTION_PREVIEW_MAX_LENGTH) {
+    return {
+      text: normalizedDescription,
+      truncated: false,
+    };
+  }
+
+  return {
+    text: normalizedDescription.slice(0, DESCRIPTION_PREVIEW_MAX_LENGTH),
+    truncated: true,
+  };
+};
+
 export const createEventsColumns = ({
   onArchiveEvent,
   onViewEvent,
@@ -53,11 +71,21 @@ export const createEventsColumns = ({
     enableHiding: false,
     cell: ({ row }) => {
       const event = row.original;
+      const descriptionPreview = getDescriptionPreview(event.description);
+
       return (
         <div className="space-y-1">
           <div className="font-medium">{event.name}</div>
-          <div className="text-sm text-muted-foreground line-clamp-2">
-            {event.description}
+          <div className="text-sm text-muted-foreground line-clamp-2 break-words">
+            {descriptionPreview.text}
+            {descriptionPreview.truncated && (
+              <>
+                ...{" "}
+                <span className="cursor-pointer text-secondary-400">
+                  See more
+                </span>
+              </>
+            )}
           </div>
         </div>
       );
