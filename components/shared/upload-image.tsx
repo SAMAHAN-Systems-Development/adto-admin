@@ -40,6 +40,8 @@ interface UploadImageProps {
   folder?: string; // Optional folder for asset uploads
   onUploadComplete?: (uploadData: UploadData) => void;
   onUploadError?: (error: string) => void;
+  onFileSelect?: (file: File, previewUrl: string) => void; // For delayed upload mode
+  immediateUpload?: boolean; // If false, only shows preview until manual upload
   maxSizeMB?: number;
   acceptedTypes?: string[];
   className?: string;
@@ -50,6 +52,8 @@ export default function UploadImage({
   folder,
   onUploadComplete,
   onUploadError,
+  onFileSelect,
+  immediateUpload = true,
   maxSizeMB = 10,
   acceptedTypes = ["image/png", "image/jpeg", "image/jpg"],
   className = "",
@@ -58,6 +62,7 @@ export default function UploadImage({
   const [uploadData, setUploadData] = useState<UploadData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): string | null => {
@@ -103,14 +108,40 @@ export default function UploadImage({
       return;
     }
 
-    setLoading(true);
     setError(null);
+    setSelectedFile(file);
 
     try {
       // Create preview URL for immediate display
       const preview = await convertToBase64(file);
       setPreviewUrl(preview);
 
+      if (immediateUpload) {
+        // Upload immediately (existing behavior)
+        await performUpload(file);
+      } else {
+        // Just show preview, let parent handle upload
+        if (onFileSelect) {
+          onFileSelect(file, preview);
+        }
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to process image";
+      setError(errorMessage);
+      setPreviewUrl(null);
+      if (onUploadError) {
+        onUploadError(errorMessage);
+      }
+      console.error("Error processing image:", error);
+    }
+  };
+
+  // Separate function to perform actual upload
+  const performUpload = async (file: File) => {
+    setLoading(true);
+
+    try {
       // Upload to backend
       let uploadResult;
       if (uploadType === "event-banner") {
@@ -180,6 +211,7 @@ export default function UploadImage({
     setLoading(false);
     setUploadData(null);
     setPreviewUrl(null);
+    setSelectedFile(null);
     setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -242,6 +274,32 @@ export default function UploadImage({
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-destructive">Error</p>
                 <p className="text-xs text-muted-foreground">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Show preview for delayed upload mode (file selected but not uploaded yet) */}
+          {previewUrl && !uploadData && !loading && !error && (
+            <div className="text-center space-y-3 w-full">
+              <div className="relative w-full max-h-48 flex items-center justify-center">
+                <Image
+                  width={400}
+                  height={400}
+                  src={previewUrl}
+                  className="w-full object-contain max-h-48 rounded-md"
+                  alt="Image preview"
+                />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold">Image Selected</p>
+                <p className="text-xs text-muted-foreground">
+                  {selectedFile?.name} (
+                  {selectedFile ? (selectedFile.size / 1024).toFixed(2) : "0"}{" "}
+                  KB)
+                </p>
+                <p className="text-xs text-blue-600">
+                  Click Submit to upload this image
+                </p>
               </div>
             </div>
           )}

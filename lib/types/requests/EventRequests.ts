@@ -12,6 +12,8 @@ export interface CreateEventRequest {
 export interface UpdateEventRequest {
   name?: string;
   description?: string;
+  banner?: string;
+  thumbnail?: string;
   dateStart?: string;
   dateEnd?: string;
   isRegistrationOpen?: boolean;

@@ -4,45 +4,86 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UploadImage, { type UploadData } from "@/components/shared/upload-image";
 import { useState } from "react";
+import { deleteAsset } from "@/lib/api/services/assetService";
 
 interface UploadThumbnailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: (uploadData: UploadData) => void;
+  onSubmit?: (uploadData: UploadData) => Promise<void>;
+  existingImageKey?: string; // Key of existing image to replace
 }
 
 export function UploadThumbnailModal({
   isOpen,
   onClose,
   onSubmit,
+  existingImageKey,
 }: UploadThumbnailModalProps) {
-  const [uploadData, setUploadData] = useState<UploadData | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleUploadComplete = (data: UploadData) => {
-    console.log("Thumbnail uploaded:", data);
-    setUploadData(data);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleFileSelect = (file: File, _preview: string) => {
+    console.log("Thumbnail file selected:", file.name);
+    setSelectedFile(file);
     setUploadError(null);
   };
 
   const handleUploadError = (error: string) => {
     console.error("Upload error:", error);
     setUploadError(error);
-    setUploadData(null);
   };
 
-  const handleSubmit = () => {
-    if (uploadData && onSubmit) {
-      onSubmit(uploadData);
+  const handleSubmit = async () => {
+    if (!selectedFile) return;
+
+    setIsUploading(true);
+    try {
+      // Delete old image if replacing
+      if (existingImageKey) {
+        try {
+          await deleteAsset(existingImageKey);
+          console.log("Old thumbnail deleted:", existingImageKey);
+        } catch (error) {
+          console.error("Failed to delete old thumbnail:", error);
+          // Continue with upload even if delete fails
+        }
+      }
+
+      // Upload new image
+      const { uploadAsset } = await import("@/lib/api/services/assetService");
+
+      const uploadResult = await uploadAsset(selectedFile, "event-thumbnails");
+
+      const uploadData: UploadData = {
+        url: uploadResult.url,
+        key: uploadResult.key,
+        bucket: uploadResult.bucket,
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        fileType: selectedFile.type,
+      };
+
+      if (onSubmit) {
+        await onSubmit(uploadData);
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to upload thumbnail";
+      setUploadError(errorMessage);
+      console.error("Thumbnail upload failed:", error);
+    } finally {
+      setIsUploading(false);
     }
-    onClose();
   };
 
   const handleClose = () => {
-    setUploadData(null);
+    setSelectedFile(null);
     setUploadError(null);
+    setIsUploading(false);
     onClose();
   };
 
@@ -78,7 +119,8 @@ export function UploadThumbnailModal({
             <UploadImage
               uploadType="asset"
               folder="event-thumbnails"
-              onUploadComplete={handleUploadComplete}
+              immediateUpload={false}
+              onFileSelect={handleFileSelect}
               onUploadError={handleUploadError}
               acceptedTypes={["image/png", "image/jpeg", "image/jpg"]}
             />
@@ -98,10 +140,10 @@ export function UploadThumbnailModal({
         <div className="flex justify-end p-2 sm:p-3 md:p-6 border-t border-gray-200">
           <Button
             onClick={handleSubmit}
-            disabled={!uploadData}
+            disabled={!selectedFile || isUploading}
             className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 sm:px-3 sm:py-1.5 md:px-6 md:py-2 text-[10px] sm:text-xs md:text-base w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit
+            {isUploading ? "Uploading..." : "Submit"}
           </Button>
         </div>
       </div>

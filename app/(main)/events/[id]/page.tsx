@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Calendar, MapPin, Archive, ArrowLeft, CirclePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useEventQuery } from "@/lib/api/queries/eventsQueries";
@@ -35,9 +36,10 @@ import { DataTable } from "@/components/shared/data-table";
 import { createRegistrationsColumns } from "@/components/features/registrations/registration-columns";
 import { useUpdateRegistration } from "@/lib/api/mutations/registrationMutation";
 import { useAuthStore } from "@/lib/store/authStore";
-import UploadImage from "@/components/shared/upload-image";
 import { UploadBannerModal } from "@/components/features/events/upload-banner-modal";
 import { UploadThumbnailModal } from "@/components/features/events/upload-thumbnail-modal";
+import { UploadData } from "@/components/shared/upload-image";
+import { deleteAsset } from "@/lib/api/services/assetService";
 
 interface EventDetailsPageProps {
   params: {
@@ -64,6 +66,16 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const { user } = useAuthStore();
   const [showBannerModal, setShowBannerModal] = useState(false);
   const [showThumbnailModal, setShowThumbnailModal] = useState(false);
+
+  // Store uploaded banner and thumbnail data
+  const [bannerImageData, setBannerImageData] = useState<UploadData | null>(
+    null,
+  );
+  const [thumbnailImageData, setThumbnailImageData] =
+    useState<UploadData | null>(null);
+  const [showBannerDeleteConfirm, setShowBannerDeleteConfirm] = useState(false);
+  const [showThumbnailDeleteConfirm, setShowThumbnailDeleteConfirm] =
+    useState(false);
 
   const eventId = params.id;
   const [page, setPage] = useState(1);
@@ -122,12 +134,51 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     event?.isRegistrationRequired ?? true,
   );
 
+  // Helper function to extract S3 key from Supabase URL
+  const extractKeyFromUrl = (url: string): string => {
+    try {
+      // For Supabase URLs like: https://xyz.supabase.co/storage/v1/object/public/bucket/event-banners/file.jpg
+      // We need to extract everything after "/public/bucket-name/"
+      const match = url.match(/\/object\/public\/[^/]+\/(.+)$/);
+      if (match) {
+        return match[1]; // e.g., "event-banners/1640995200000-abc123def456.jpg"
+      }
+      // Fallback: just get the filename
+      return url.split("/").pop() || "";
+    } catch (error) {
+      console.error("Error extracting key from URL:", error);
+      return url.split("/").pop() || "";
+    }
+  };
+
   // Update local state when event data is loaded
   useEffect(() => {
     if (event) {
       setRegistrationOpen(event.isRegistrationOpen);
       setEventVisibility(event.isPublished);
       setRegistrationRequired(event.isRegistrationRequired);
+
+      // Load existing banner and thumbnail from event data
+      if (event.banner) {
+        setBannerImageData({
+          url: event.banner,
+          key: extractKeyFromUrl(event.banner),
+          bucket: "event-images",
+          fileName: event.banner.split("/").pop() || "",
+          fileSize: 0,
+          fileType: "image/jpeg",
+        });
+      }
+      if (event.thumbnail) {
+        setThumbnailImageData({
+          url: event.thumbnail,
+          key: extractKeyFromUrl(event.thumbnail),
+          bucket: "event-images",
+          fileName: event.thumbnail.split("/").pop() || "",
+          fileSize: 0,
+          fileType: "image/jpeg",
+        });
+      }
     }
   }, [event]);
 
@@ -249,6 +300,64 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     setIsEditingDescription(false);
     setEditedDescription(event?.description || "");
     setDescriptionError(null);
+  };
+
+  const handleDeleteBanner = async () => {
+    if (bannerImageData) {
+      try {
+        // Delete from storage if it has a key
+        if (bannerImageData.key) {
+          console.log("Deleting banner with key:", bannerImageData.key);
+          await deleteAsset(bannerImageData.key);
+          console.log("Banner deleted from storage successfully");
+        }
+
+        // Remove from database
+        await updateEventMutation.mutateAsync({
+          id: params.id,
+          data: { banner: null },
+        });
+        console.log("Banner removed from database successfully");
+
+        // Clear state
+        setBannerImageData(null);
+        toast.success("Banner image removed successfully!");
+      } catch (error) {
+        console.error("Failed to delete banner:", error);
+        toast.error(`Failed to remove banner image: ${error.message || error}`);
+      }
+    }
+    setShowBannerDeleteConfirm(false);
+  };
+
+  const handleDeleteThumbnail = async () => {
+    if (thumbnailImageData) {
+      try {
+        // Delete from storage if it has a key
+        if (thumbnailImageData.key) {
+          console.log("Deleting thumbnail with key:", thumbnailImageData.key);
+          await deleteAsset(thumbnailImageData.key);
+          console.log("Thumbnail deleted from storage successfully");
+        }
+
+        // Remove from database
+        await updateEventMutation.mutateAsync({
+          id: params.id,
+          data: { thumbnail: null },
+        });
+        console.log("Thumbnail removed from database successfully");
+
+        // Clear state
+        setThumbnailImageData(null);
+        toast.success("Thumbnail image removed successfully!");
+      } catch (error) {
+        console.error("Failed to delete thumbnail:", error);
+        toast.error(
+          `Failed to remove thumbnail image: ${error.message || error}`,
+        );
+      }
+    }
+    setShowThumbnailDeleteConfirm(false);
   };
 
   // REPLACE THIS FUNCTION
@@ -542,7 +651,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             <h2 className="text-xl font-semibold mb-4">Event Design</h2>
             <p className="text-gray-600 text-sm mb-6">
               Your uploaded images will be what users see while viewing the
-              event's details.
+              event&apos;s details.
             </p>
 
             <div className="flex gap-4">
@@ -553,14 +662,43 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 </label>
                 <div
                   onClick={() => setShowBannerModal(true)}
-                  className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 p-8 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-150 transition-colors"
+                  className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 p-8 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-150 transition-colors relative overflow-hidden group"
                 >
-                  <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
-                    <span className="text-gray-400 text-2xl">+</span>
-                  </div>
-                  <span className="text-gray-500 text-sm font-medium">
-                    Upload Image
-                  </span>
+                  {bannerImageData ? (
+                    <>
+                      <Image
+                        src={bannerImageData.url}
+                        alt="Banner preview"
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white font-medium">
+                          Change Image
+                        </span>
+                      </div>
+                      {/* Delete Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowBannerDeleteConfirm(true);
+                        }}
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10"
+                        title="Remove banner"
+                      >
+                        ×
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
+                        <span className="text-gray-400 text-2xl">+</span>
+                      </div>
+                      <span className="text-gray-500 text-sm font-medium">
+                        Upload Image
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -571,14 +709,43 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 </label>
                 <div
                   onClick={() => setShowThumbnailModal(true)}
-                  className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 p-8 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-150 transition-colors"
+                  className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 p-8 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-150 transition-colors relative overflow-hidden group"
                 >
-                  <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
-                    <span className="text-gray-400 text-2xl">+</span>
-                  </div>
-                  <span className="text-gray-500 text-sm font-medium">
-                    Upload Image
-                  </span>
+                  {thumbnailImageData ? (
+                    <>
+                      <Image
+                        src={thumbnailImageData.url}
+                        alt="Thumbnail preview"
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white font-medium">
+                          Change Image
+                        </span>
+                      </div>
+                      {/* Delete Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowThumbnailDeleteConfirm(true);
+                        }}
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10"
+                        title="Remove thumbnail"
+                      >
+                        ×
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
+                        <span className="text-gray-400 text-2xl">+</span>
+                      </div>
+                      <span className="text-gray-500 text-sm font-medium">
+                        Upload Image
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -852,12 +1019,74 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         <UploadBannerModal
           isOpen={showBannerModal}
           onClose={() => setShowBannerModal(false)}
+          existingImageKey={bannerImageData?.key}
+          onSubmit={async (uploadData) => {
+            setBannerImageData(uploadData);
+            console.log("Banner saved to state:", uploadData);
+
+            // Automatically save to database
+            try {
+              await updateEventMutation.mutateAsync({
+                id: params.id,
+                data: { banner: uploadData.url },
+              });
+              toast.success("Banner image uploaded and saved!");
+              setShowBannerModal(false); // Close modal after success
+            } catch (error) {
+              console.error("Failed to save banner:", error);
+              toast.error("Failed to save banner to database");
+            }
+          }}
         />
 
         {/* Upload Thumbnail Modal */}
         <UploadThumbnailModal
           isOpen={showThumbnailModal}
           onClose={() => setShowThumbnailModal(false)}
+          existingImageKey={thumbnailImageData?.key}
+          onSubmit={async (uploadData) => {
+            setThumbnailImageData(uploadData);
+            console.log("Thumbnail saved to state:", uploadData);
+
+            // Automatically save to database
+            try {
+              await updateEventMutation.mutateAsync({
+                id: params.id,
+                data: { thumbnail: uploadData.url },
+              });
+              toast.success("Thumbnail image uploaded and saved!");
+              setShowThumbnailModal(false); // Close modal after success
+            } catch (error) {
+              console.error("Failed to save thumbnail:", error);
+              toast.error("Failed to save thumbnail to database");
+            }
+          }}
+        />
+
+        {/* Delete Banner Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showBannerDeleteConfirm}
+          onClose={() => setShowBannerDeleteConfirm(false)}
+          onConfirm={handleDeleteBanner}
+          title="Remove Banner Image"
+          description="Are you sure you want to remove the banner image? This action cannot be undone."
+          confirmText="Yes, Remove"
+          cancelText="Cancel"
+          isLoading={updateEventMutation.isPending}
+          variant="destructive"
+        />
+
+        {/* Delete Thumbnail Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showThumbnailDeleteConfirm}
+          onClose={() => setShowThumbnailDeleteConfirm(false)}
+          onConfirm={handleDeleteThumbnail}
+          title="Remove Thumbnail Image"
+          description="Are you sure you want to remove the thumbnail image? This action cannot be undone."
+          confirmText="Yes, Remove"
+          cancelText="Cancel"
+          isLoading={updateEventMutation.isPending}
+          variant="destructive"
         />
       </div>
     </div>
