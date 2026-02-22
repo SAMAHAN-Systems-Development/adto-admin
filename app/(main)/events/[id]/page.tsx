@@ -278,7 +278,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       showToast({
         variant: "success",
         title: "Success",
-        description: "Event description updated successfully.",
+        description: "Event description updated successfully. ",
       });
     } catch (error) {
       console.error("Failed to save description:", error);
