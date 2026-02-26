@@ -142,7 +142,7 @@ export const createEventsColumns = ({
   {
     accessorKey: "isRegistrationOpen",
     header: () => (
-      <span className="text-secondary-100">Status</span>
+      <span className="text-secondary-100">Registration Status</span>
     ),
     cell: ({ row }) => {
       const event = row.original;
