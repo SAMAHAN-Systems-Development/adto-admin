@@ -101,7 +101,6 @@ export function DataTable<TData>({
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
 
   const shouldIgnoreRowClick = React.useCallback(
     (target: EventTarget | null) => {
@@ -180,7 +179,6 @@ export function DataTable<TData>({
     getSortedRowModel: isBackendSort ? undefined : getSortedRowModel(),
     getFilteredRowModel: isBackendSearch ? undefined : getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     manualPagination: !!pagination,
     manualSorting: isBackendSort,
     manualFiltering: isBackendSearch,
@@ -189,7 +187,6 @@ export function DataTable<TData>({
       sorting: localSorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
       pagination: pagination
         ? {
             pageIndex: pagination.page - 1,
@@ -396,12 +393,7 @@ export function DataTable<TData>({
               )}{" "}
               of {pagination.totalCount} {entityName}
             </>
-          ) : (
-            <>
-              {table.getFilteredSelectedRowModel().rows.length} of{" "}
-              {table.getFilteredRowModel().rows.length} row(s) selected.
-            </>
-          )}
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           {pagination && (
