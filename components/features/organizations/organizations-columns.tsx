@@ -49,6 +49,7 @@ export const createOrganizationsColumns = ({
   {
     accessorKey: "name",
     header: () => <span className="text-secondary-100">Name</span>,
+    enableHiding: false,
     cell: ({ row }) => {
       const org = row.original;
       return (
@@ -130,9 +131,7 @@ export const createOrganizationsColumns = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(organization.id)}
-            >
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(organization.id)}>
               Copy organization ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />

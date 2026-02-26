@@ -3,6 +3,7 @@ export interface OrganizationParent {
   name: string;
   description: string;
   organizationChildren: OrganizationGroup[];
+  orgCount: number;
 }
 
 export interface OrganizationGroup {

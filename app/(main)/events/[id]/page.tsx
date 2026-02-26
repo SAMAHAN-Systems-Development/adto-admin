@@ -278,7 +278,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       showToast({
         variant: "success",
         title: "Success",
-        description: "Event description updated successfully.",
+        description: "Event description updated successfully. ",
       });
     } catch (error) {
       console.error("Failed to save description:", error);
@@ -324,7 +324,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         toast.success("Banner image removed successfully!");
       } catch (error) {
         console.error("Failed to delete banner:", error);
-        toast.error(`Failed to remove banner image: ${error.message || error}`);
+        toast.error(`Failed to remove banner image`);
       }
     }
     setShowBannerDeleteConfirm(false);
@@ -343,7 +343,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         // Remove from database
         await updateEventMutation.mutateAsync({
           id: params.id,
-          data: { thumbnail: undefined },
+          data: { thumbnail: null },
         });
         console.log("Thumbnail removed from database successfully");
 
@@ -352,9 +352,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         toast.success("Thumbnail image removed successfully!");
       } catch (error) {
         console.error("Failed to delete thumbnail:", error);
-        toast.error(
-          `Failed to remove thumbnail image: ${error.message || error}`,
-        );
+        toast.error(`Failed to remove thumbnail image`);
       }
     }
     setShowThumbnailDeleteConfirm(false);
