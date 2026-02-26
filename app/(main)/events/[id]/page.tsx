@@ -315,7 +315,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         // Remove from database
         await updateEventMutation.mutateAsync({
           id: params.id,
-          data: { banner: undefined },
+          data: { banner: "" },
         });
         console.log("Banner removed from database successfully");
 
@@ -343,7 +343,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         // Remove from database
         await updateEventMutation.mutateAsync({
           id: params.id,
-          data: { thumbnail: null },
+          data: { thumbnail: "" },
         });
         console.log("Thumbnail removed from database successfully");
 
