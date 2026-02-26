@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Calendar, MapPin, Archive, ArrowLeft, CirclePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useEventQuery } from "@/lib/api/queries/eventsQueries";
@@ -35,6 +36,10 @@ import { DataTable } from "@/components/shared/data-table";
 import { createRegistrationsColumns } from "@/components/features/registrations/registration-columns";
 import { useUpdateRegistration } from "@/lib/api/mutations/registrationMutation";
 import { useAuthStore } from "@/lib/store/authStore";
+import { UploadBannerModal } from "@/components/features/events/upload-banner-modal";
+import { UploadThumbnailModal } from "@/components/features/events/upload-thumbnail-modal";
+import { UploadData } from "@/components/shared/upload-image";
+import { deleteAsset } from "@/lib/api/services/assetService";
 
 interface EventDetailsPageProps {
   params: {
@@ -59,6 +64,18 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [ticketCategoryFilter, setTicketCategoryFilter] = useState("all");
 
   const { user } = useAuthStore();
+  const [showBannerModal, setShowBannerModal] = useState(false);
+  const [showThumbnailModal, setShowThumbnailModal] = useState(false);
+
+  // Store uploaded banner and thumbnail data
+  const [bannerImageData, setBannerImageData] = useState<UploadData | null>(
+    null,
+  );
+  const [thumbnailImageData, setThumbnailImageData] =
+    useState<UploadData | null>(null);
+  const [showBannerDeleteConfirm, setShowBannerDeleteConfirm] = useState(false);
+  const [showThumbnailDeleteConfirm, setShowThumbnailDeleteConfirm] =
+    useState(false);
 
   const eventId = params.id;
   const [page, setPage] = useState(1);
@@ -100,7 +117,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
   // ADD THESE: Fetch tickets and mutations
   const { data: ticketsData, isLoading: ticketsLoading } = useEventTicketsQuery(
-    { eventId: params.id }
+    { eventId: params.id },
   );
   const createTicketMutation = useCreateEventTicketMutation();
   const updateTicketMutation = useUpdateEventTicketMutation();
@@ -108,14 +125,31 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
   // Local state for switches
   const [registrationOpen, setRegistrationOpen] = useState(
-    event?.isRegistrationOpen ?? false
+    event?.isRegistrationOpen ?? false,
   );
   const [eventVisibility, setEventVisibility] = useState(
-    event?.isPublished ?? false
+    event?.isPublished ?? false,
   );
   const [registrationRequired, setRegistrationRequired] = useState(
-    event?.isRegistrationRequired ?? true
+    event?.isRegistrationRequired ?? true,
   );
+
+  // Helper function to extract S3 key from Supabase URL
+  const extractKeyFromUrl = (url: string): string => {
+    try {
+      // For Supabase URLs like: https://xyz.supabase.co/storage/v1/object/public/bucket/event-banners/file.jpg
+      // We need to extract everything after "/public/bucket-name/"
+      const match = url.match(/\/object\/public\/[^/]+\/(.+)$/);
+      if (match) {
+        return match[1]; // e.g., "event-banners/1640995200000-abc123def456.jpg"
+      }
+      // Fallback: just get the filename
+      return url.split("/").pop() || "";
+    } catch (error) {
+      console.error("Error extracting key from URL:", error);
+      return url.split("/").pop() || "";
+    }
+  };
 
   // Update local state when event data is loaded
   useEffect(() => {
@@ -123,6 +157,28 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       setRegistrationOpen(event.isRegistrationOpen);
       setEventVisibility(event.isPublished);
       setRegistrationRequired(event.isRegistrationRequired);
+
+      // Load existing banner and thumbnail from event data
+      if (event.banner) {
+        setBannerImageData({
+          url: event.banner,
+          key: extractKeyFromUrl(event.banner),
+          bucket: "event-images",
+          fileName: event.banner.split("/").pop() || "",
+          fileSize: 0,
+          fileType: "image/jpeg",
+        });
+      }
+      if (event.thumbnail) {
+        setThumbnailImageData({
+          url: event.thumbnail,
+          key: extractKeyFromUrl(event.thumbnail),
+          bucket: "event-images",
+          fileName: event.thumbnail.split("/").pop() || "",
+          fileSize: 0,
+          fileType: "image/jpeg",
+        });
+      }
     }
   }, [event]);
 
@@ -183,7 +239,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     } catch (error) {
       if (error instanceof z.ZodError) {
         const descriptionErrors = error.errors.filter((err) =>
-          err.path.includes("description")
+          err.path.includes("description"),
         );
         if (descriptionErrors.length > 0) {
           setDescriptionError(descriptionErrors[0].message);
@@ -222,7 +278,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       showToast({
         variant: "success",
         title: "Success",
-        description: "Event description updated successfully.",
+        description: "Event description updated successfully. ",
       });
     } catch (error) {
       console.error("Failed to save description:", error);
@@ -244,6 +300,62 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     setIsEditingDescription(false);
     setEditedDescription(event?.description || "");
     setDescriptionError(null);
+  };
+
+  const handleDeleteBanner = async () => {
+    if (bannerImageData) {
+      try {
+        // Delete from storage if it has a key
+        if (bannerImageData.key) {
+          console.log("Deleting banner with key:", bannerImageData.key);
+          await deleteAsset(bannerImageData.key);
+          console.log("Banner deleted from storage successfully");
+        }
+
+        // Remove from database
+        await updateEventMutation.mutateAsync({
+          id: params.id,
+          data: { banner: "" },
+        });
+        console.log("Banner removed from database successfully");
+
+        // Clear state
+        setBannerImageData(null);
+        toast.success("Banner image removed successfully!");
+      } catch (error) {
+        console.error("Failed to delete banner:", error);
+        toast.error(`Failed to remove banner image`);
+      }
+    }
+    setShowBannerDeleteConfirm(false);
+  };
+
+  const handleDeleteThumbnail = async () => {
+    if (thumbnailImageData) {
+      try {
+        // Delete from storage if it has a key
+        if (thumbnailImageData.key) {
+          console.log("Deleting thumbnail with key:", thumbnailImageData.key);
+          await deleteAsset(thumbnailImageData.key);
+          console.log("Thumbnail deleted from storage successfully");
+        }
+
+        // Remove from database
+        await updateEventMutation.mutateAsync({
+          id: params.id,
+          data: { thumbnail: "" },
+        });
+        console.log("Thumbnail removed from database successfully");
+
+        // Clear state
+        setThumbnailImageData(null);
+        toast.success("Thumbnail image removed successfully!");
+      } catch (error) {
+        console.error("Failed to delete thumbnail:", error);
+        toast.error(`Failed to remove thumbnail image`);
+      }
+    }
+    setShowThumbnailDeleteConfirm(false);
   };
 
   // REPLACE THIS FUNCTION
@@ -372,7 +484,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
   const handleIsAttendedChange = async (
     registrationId: string,
-    isAttended: boolean
+    isAttended: boolean,
   ) => {
     updateRegistration.mutate({
       id: registrationId,
@@ -387,6 +499,23 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   return (
     <div className="min-h-screen">
       <div className="container mx-auto py-10 px-6">
+        {/* <UploadImage
+          onUploadComplete={(imageData) => {
+            // imageData is a JSON object with:
+            // {
+            //   name: "image.png",
+            //   type: "image/png",
+            //   size: 12345,
+            //   data: "data:image/png;base64,...",
+            //   url: "data:image/png;base64,..."
+            // }
+
+            // You can save this to a JSON file:
+            // const jsonString = JSON.stringify(imageData, null, 2);
+            // Or use it directly
+            console.log(imageData);
+          }}
+        /> */}
         <Toaster position="bottom-right" />
 
         {/* Back Button */}
@@ -420,98 +549,205 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             )}
           </div>
         </div>
-
-        {/* Event Details Section */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Event Details
-          </h2>
-          {isEditingDescription ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Textarea
-                  value={editedDescription}
-                  onChange={(e) => {
-                    setEditedDescription(e.target.value);
-                    if (descriptionError) {
-                      setDescriptionError(null);
-                    }
-                  }}
-                  className={`min-h-[200px] text-gray-700 leading-relaxed ${
-                    descriptionError
-                      ? "border-red-500 focus-visible:ring-red-500"
-                      : ""
-                  }`}
-                  placeholder="Enter event description..."
-                  aria-invalid={!!descriptionError}
-                  aria-describedby={
-                    descriptionError ? "description-error" : undefined
-                  }
-                />
-                <div className="flex items-center justify-between">
-                  {descriptionError ? (
-                    <p
-                      id="description-error"
-                      className="text-sm text-red-600 font-medium"
-                    >
-                      {descriptionError}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-500">
-                      Description must be at least 10 characters.
-                    </p>
-                  )}
-                  <p
-                    className={`text-sm ${
-                      editedDescription.length > 5000
-                        ? "text-red-600 font-medium"
-                        : editedDescription.length < 10
-                          ? "text-orange-600"
-                          : "text-gray-500"
+        <div className="flex gap-8 mb-24">
+          {/* Event Details Section */}
+          <div className="flex-1">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Event Details
+            </h2>
+            {isEditingDescription ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Textarea
+                    value={editedDescription}
+                    onChange={(e) => {
+                      setEditedDescription(e.target.value);
+                      if (descriptionError) {
+                        setDescriptionError(null);
+                      }
+                    }}
+                    className={`min-h-[200px] text-gray-700 leading-relaxed ${
+                      descriptionError
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
                     }`}
+                    placeholder="Enter event description..."
+                    aria-invalid={!!descriptionError}
+                    aria-describedby={
+                      descriptionError ? "description-error" : undefined
+                    }
+                  />
+                  <div className="flex items-center justify-between">
+                    {descriptionError ? (
+                      <p
+                        id="description-error"
+                        className="text-sm text-red-600 font-medium"
+                      >
+                        {descriptionError}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        Description must be at least 10 characters.
+                      </p>
+                    )}
+                    <p
+                      className={`text-sm ${
+                        editedDescription.length > 5000
+                          ? "text-red-600 font-medium"
+                          : editedDescription.length < 10
+                            ? "text-orange-600"
+                            : "text-gray-500"
+                      }`}
+                    >
+                      {editedDescription.length} / 5000 characters
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
-                    {editedDescription.length} / 5000 characters
-                  </p>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleSaveDescription}
+                    disabled={updateEventMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {updateEventMutation.isPending
+                      ? "Saving..."
+                      : "Save Changes"}
+                  </Button>
                 </div>
               </div>
-              <div className="flex gap-2 justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancelEdit}
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            ) : (
+              <p
+                className="text-gray-700 leading-relaxed text-justify cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                onDoubleClick={handleDescriptionDoubleClick}
+                title="Double click to edit"
+              >
+                {showFullDescription
+                  ? event.description
+                  : truncateText(event.description, 600)}
+                {event.description.length > 600 && (
+                  <button
+                    onClick={() => setShowFullDescription(!showFullDescription)}
+                    className="ml-1 font-semibold text-gray-900 hover:underline"
+                  >
+                    {showFullDescription ? "See Less..." : "See More..."}
+                  </button>
+                )}
+              </p>
+            )}
+          </div>
+          {/* Event Design Section */}
+          <div className="flex-1">
+            <h2 className="text-xl font-semibold mb-4">Event Design</h2>
+            <p className="text-gray-600 text-sm mb-6">
+              Your uploaded images will be what users see while viewing the
+              event&apos;s details.
+            </p>
+
+            <div className="flex gap-4">
+              {/* Banner Upload */}
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Banner
+                </label>
+                <div
+                  onClick={() => setShowBannerModal(true)}
+                  className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 p-8 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-150 transition-colors relative overflow-hidden group"
                 >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleSaveDescription}
-                  disabled={updateEventMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  {bannerImageData ? (
+                    <>
+                      <Image
+                        src={bannerImageData.url}
+                        alt="Banner preview"
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white font-medium">
+                          Change Image
+                        </span>
+                      </div>
+                      {/* Delete Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowBannerDeleteConfirm(true);
+                        }}
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10"
+                        title="Remove banner"
+                      >
+                        ×
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
+                        <span className="text-gray-400 text-2xl">+</span>
+                      </div>
+                      <span className="text-gray-500 text-sm font-medium">
+                        Upload Image
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Thumbnail Upload */}
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Thumbnail
+                </label>
+                <div
+                  onClick={() => setShowThumbnailModal(true)}
+                  className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 p-8 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-150 transition-colors relative overflow-hidden group"
                 >
-                  {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
-                </Button>
+                  {thumbnailImageData ? (
+                    <>
+                      <Image
+                        src={thumbnailImageData.url}
+                        alt="Thumbnail preview"
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white font-medium">
+                          Change Image
+                        </span>
+                      </div>
+                      {/* Delete Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowThumbnailDeleteConfirm(true);
+                        }}
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10"
+                        title="Remove thumbnail"
+                      >
+                        ×
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-full border-2 border-gray-400 flex items-center justify-center mb-3">
+                        <span className="text-gray-400 text-2xl">+</span>
+                      </div>
+                      <span className="text-gray-500 text-sm font-medium">
+                        Upload Image
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          ) : (
-            <p
-              className="text-gray-700 leading-relaxed text-justify cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
-              onDoubleClick={handleDescriptionDoubleClick}
-              title="Double click to edit"
-            >
-              {showFullDescription
-                ? event.description
-                : truncateText(event.description, 600)}
-              {event.description.length > 600 && (
-                <button
-                  onClick={() => setShowFullDescription(!showFullDescription)}
-                  className="ml-1 font-semibold text-gray-900 hover:underline"
-                >
-                  {showFullDescription ? "See Less..." : "See More..."}
-                </button>
-              )}
-            </p>
-          )}
+          </div>
         </div>
 
         {/* Tabs */}
@@ -776,6 +1012,80 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           isOpen={showCreateAnnouncement}
           onClose={() => setShowCreateAnnouncement(false)}
           eventId={params.id} // no announcement prop = create mode
+        />
+
+        {/* Upload Banner Modal */}
+        <UploadBannerModal
+          isOpen={showBannerModal}
+          onClose={() => setShowBannerModal(false)}
+          existingImageKey={bannerImageData?.key}
+          onSubmit={async (uploadData) => {
+            setBannerImageData(uploadData);
+            console.log("Banner saved to state:", uploadData);
+
+            // Automatically save to database
+            try {
+              await updateEventMutation.mutateAsync({
+                id: params.id,
+                data: { banner: uploadData.url },
+              });
+              toast.success("Banner image uploaded and saved!");
+              setShowBannerModal(false); // Close modal after success
+            } catch (error) {
+              console.error("Failed to save banner:", error);
+              toast.error("Failed to save banner to database");
+            }
+          }}
+        />
+
+        {/* Upload Thumbnail Modal */}
+        <UploadThumbnailModal
+          isOpen={showThumbnailModal}
+          onClose={() => setShowThumbnailModal(false)}
+          existingImageKey={thumbnailImageData?.key}
+          onSubmit={async (uploadData) => {
+            setThumbnailImageData(uploadData);
+            console.log("Thumbnail saved to state:", uploadData);
+
+            // Automatically save to database
+            try {
+              await updateEventMutation.mutateAsync({
+                id: params.id,
+                data: { thumbnail: uploadData.url },
+              });
+              toast.success("Thumbnail image uploaded and saved!");
+              setShowThumbnailModal(false); // Close modal after success
+            } catch (error) {
+              console.error("Failed to save thumbnail:", error);
+              toast.error("Failed to save thumbnail to database");
+            }
+          }}
+        />
+
+        {/* Delete Banner Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showBannerDeleteConfirm}
+          onClose={() => setShowBannerDeleteConfirm(false)}
+          onConfirm={handleDeleteBanner}
+          title="Remove Banner Image"
+          description="Are you sure you want to remove the banner image? This action cannot be undone."
+          confirmText="Yes, Remove"
+          cancelText="Cancel"
+          isLoading={updateEventMutation.isPending}
+          variant="destructive"
+        />
+
+        {/* Delete Thumbnail Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showThumbnailDeleteConfirm}
+          onClose={() => setShowThumbnailDeleteConfirm(false)}
+          onConfirm={handleDeleteThumbnail}
+          title="Remove Thumbnail Image"
+          description="Are you sure you want to remove the thumbnail image? This action cannot be undone."
+          confirmText="Yes, Remove"
+          cancelText="Cancel"
+          isLoading={updateEventMutation.isPending}
+          variant="destructive"
         />
       </div>
     </div>

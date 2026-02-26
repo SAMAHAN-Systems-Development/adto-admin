@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { XIcon, Archive, SquarePen } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { XIcon, Archive, SquarePen, Download } from "lucide-react";
+import { Card, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
 import CreateTicket from "@/components/shared/CreateTicket";
 import { Button } from "@/components/ui/button";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { Tickets } from "@/lib/types/requests/ticketsRequests";
+import { deleteAsset } from "@/lib/api/services/assetService";
 
 function CardModalDetails({
   ticket,
@@ -24,8 +26,46 @@ function CardModalDetails({
   const [updateOpen, setUpdateOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
+  const [showThumbnailDeleteConfirm, setShowThumbnailDeleteConfirm] =
+    useState(false);
 
   if (!isOpen) return null;
+
+  // Helper function to extract S3 key from Supabase URL
+  const extractKeyFromUrl = (url: string): string => {
+    try {
+      const match = url.match(/\/object\/public\/[^/]+\/(.+)$/);
+      if (match) {
+        return match[1];
+      }
+      return url.split("/").pop() || "";
+    } catch (error) {
+      console.error("Error extracting key from URL:", error);
+      return url.split("/").pop() || "";
+    }
+  };
+
+  const handleDeleteThumbnail = async () => {
+    if (ticket.thumbnail) {
+      try {
+        const thumbnailKey = extractKeyFromUrl(ticket.thumbnail);
+        console.log("Deleting ticket thumbnail with key:", thumbnailKey);
+
+        if (thumbnailKey) {
+          await deleteAsset(thumbnailKey);
+          console.log("Ticket thumbnail deleted from storage successfully");
+        }
+
+        // Update the ticket to remove thumbnail
+        const updatedTicket = { ...ticket, thumbnail: "" };
+        onUpdate(updatedTicket);
+        console.log("Ticket thumbnail removed successfully!");
+      } catch (error) {
+        console.error("Failed to delete ticket thumbnail:", error);
+      }
+    }
+    setShowThumbnailDeleteConfirm(false);
+  };
 
   const handleUpdateTicket = (updated: Tickets) => {
     updated.id = ticket.id;
@@ -47,11 +87,27 @@ function CardModalDetails({
     }
   };
 
+  const handleDownloadImage = () => {
+    if (!ticket.thumbnail) return;
+
+    const link = document.createElement("a");
+    link.href = ticket.thumbnail;
+    link.download = `${ticket.name}-ticket-image.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleRequest = () => {
+    // Static for now
+    alert("Request button clicked - functionality coming soon!");
+  };
+
   return (
     <>
       {/* Ticket Details Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-5">
-        <div className="bg-white rounded-xl w-full max-w-3xl p-6 relative">
+        <div className="bg-white rounded-xl w-full max-w-3xl p-6 relative max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-blue-700">{ticket.name}</h2>
             <div className="flex items-center gap-3">
@@ -67,15 +123,67 @@ function CardModalDetails({
               >
                 Update Ticket
               </button>
-              <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-800"
+              >
                 <XIcon className="w-6 h-6" />
               </button>
             </div>
           </div>
 
+          {/* Ticket Thumbnail */}
+          {ticket.thumbnail && (
+            <div className="mb-6">
+              <div className="w-full max-h-96 relative overflow-hidden rounded-lg group">
+                <Image
+                  src={ticket.thumbnail}
+                  alt={ticket.name}
+                  width={800}
+                  height={384}
+                  className="w-full max-h-96 object-cover"
+                />
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowThumbnailDeleteConfirm(true);
+                  }}
+                  className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10"
+                  title="Remove thumbnail"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownloadImage();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Image
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRequest();
+                  }}
+                  className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition-colors"
+                >
+                  Request
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-between mb-6">
             <div>
-              <span className="text-sm font-medium text-gray-500">Capacity</span>
+              <span className="text-sm font-medium text-gray-500">
+                Capacity
+              </span>
               <p className="text-lg font-semibold text-gray-700">
                 {ticket.capacity} Pax
               </p>
@@ -86,18 +194,21 @@ function CardModalDetails({
                 ₱ {ticket.price}
               </p>
             </div>
-            
+
             <div>
               <span className="text-sm font-medium text-gray-500">
                 Registration Deadline
               </span>
               <p className="text-lg font-semibold text-gray-700">
                 {ticket.registrationDeadline
-                  ? new Date(ticket.registrationDeadline).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })
+                  ? new Date(ticket.registrationDeadline).toLocaleDateString(
+                      "en-US",
+                      {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      },
+                    )
                   : "None"}
               </p>
             </div>
@@ -135,6 +246,19 @@ function CardModalDetails({
         isLoading={isArchiving}
         variant="destructive"
       />
+
+      {/* Delete Thumbnail Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showThumbnailDeleteConfirm}
+        onClose={() => setShowThumbnailDeleteConfirm(false)}
+        onConfirm={handleDeleteThumbnail}
+        title="Remove Ticket Thumbnail"
+        description="Are you sure you want to remove the ticket thumbnail? This action cannot be undone."
+        confirmText="Yes, Remove"
+        cancelText="Cancel"
+        isLoading={false}
+        variant="destructive"
+      />
     </>
   );
 }
@@ -152,6 +276,44 @@ export default function CardTicket({
   const [updateOpen, setUpdateOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
+  const [showThumbnailDeleteConfirm, setShowThumbnailDeleteConfirm] =
+    useState(false);
+
+  // Helper function to extract S3 key from Supabase URL
+  const extractKeyFromUrl = (url: string): string => {
+    try {
+      const match = url.match(/\/object\/public\/[^/]+\/(.+)$/);
+      if (match) {
+        return match[1];
+      }
+      return url.split("/").pop() || "";
+    } catch (error) {
+      console.error("Error extracting key from URL:", error);
+      return url.split("/").pop() || "";
+    }
+  };
+
+  const handleDeleteThumbnail = async () => {
+    if (ticket.thumbnail) {
+      try {
+        const thumbnailKey = extractKeyFromUrl(ticket.thumbnail);
+        console.log("Deleting ticket thumbnail with key:", thumbnailKey);
+
+        if (thumbnailKey) {
+          await deleteAsset(thumbnailKey);
+          console.log("Ticket thumbnail deleted from storage successfully");
+        }
+
+        // Update the ticket to remove thumbnail
+        const updatedTicket = { ...ticket, thumbnail: "" };
+        onUpdate(updatedTicket);
+        console.log("Ticket thumbnail removed successfully!");
+      } catch (error) {
+        console.error("Failed to delete ticket thumbnail:", error);
+      }
+    }
+    setShowThumbnailDeleteConfirm(false);
+  };
 
   const handleUpdateTicket = (updated: Tickets) => {
     updated.id = ticket.id;
@@ -174,7 +336,7 @@ export default function CardTicket({
   const ticketDetails = [
     {
       label: "Capacity",
-      value:  ticket.capacity ,
+      value: ticket.capacity,
       hasBorder: false,
     },
     {
@@ -197,58 +359,98 @@ export default function CardTicket({
 
   return (
     <>
-      <Card className="border-[#94A3B8] cursor-pointer" onClick={() => setModalOpen(true)}>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-start">
-            <CardTitle className="lg:text-2xl font-bold text-[#1E293B]">
-              {ticket.name}
-            </CardTitle>
-            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setArchiveOpen(true);
-                }}
-              >
-                <Archive className="w-5 h-5 text-blue-600" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setUpdateOpen(true);
-                }}
-              >
-                <SquarePen className="w-5 h-5 text-blue-600" />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-2">
-          <div className="grid grid-cols-3 gap-6">
-            {ticketDetails.map((detail, index) => (
-              <div
-                key={index}
-                className={`
-                  flex flex-col gap-1
-                  ${detail.hasBorder ? "lg:border-l-2 lg:border-r-2 lg:px-6" : ""}
-                  ${!detail.hasBorder && index > 0 ? "lg:pl-6" : ""}
-                `}
-              >
-                <span className="text-sm lg:text-[0.8vw] font-normal text-[#94A3B8] whitespace-nowrap">
-                  {detail.label}
-                </span>
-                <span className="text-base lg:text-[0.8rem] font-semibold text-[#64748B] break-keep">
-                  {detail.value}
+      <Card
+        className="border-[#94A3B8] cursor-pointer"
+        onClick={() => setModalOpen(true)}
+      >
+        <div className="flex gap-4 p-4">
+          {/* Ticket Thumbnail - Full Left Side */}
+          <div className="flex-shrink-0">
+            {ticket.thumbnail ? (
+              <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200 relative group">
+                <Image
+                  src={ticket.thumbnail}
+                  alt={ticket.name}
+                  fill
+                  className="object-cover"
+                />
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowThumbnailDeleteConfirm(true);
+                  }}
+                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10 text-xs"
+                  title="Remove thumbnail"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+                <span className="text-xs text-gray-500 text-center">
+                  No Image
                 </span>
               </div>
-            ))}
+            )}
           </div>
-        </CardContent>
+
+          {/* Content Area */}
+          <div className="flex-1 flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-4">
+              <CardTitle className="lg:text-2xl font-bold text-[#1E293B] flex-1 pr-4">
+                {ticket.name}
+              </CardTitle>
+              <div
+                className="flex gap-2 flex-shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setArchiveOpen(true);
+                  }}
+                >
+                  <Archive className="w-5 h-5 text-blue-600" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setUpdateOpen(true);
+                  }}
+                >
+                  <SquarePen className="w-5 h-5 text-blue-600" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Ticket Details */}
+            <div className="grid grid-cols-3 gap-4">
+              {ticketDetails.map((detail, index) => (
+                <div
+                  key={index}
+                  className={`
+                    flex flex-col gap-1
+                    ${detail.hasBorder ? "lg:border-l-2 lg:border-r-2 lg:px-3" : ""}
+                    ${!detail.hasBorder && index > 0 ? "lg:pl-3" : ""}
+                  `}
+                >
+                  <span className="text-xs lg:text-sm font-normal text-[#94A3B8] whitespace-nowrap">
+                    {detail.label}
+                  </span>
+                  <span className="text-sm lg:text-base font-semibold text-[#64748B] break-keep">
+                    {detail.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </Card>
 
       {/* Detail Modal */}
@@ -283,6 +485,19 @@ export default function CardTicket({
         confirmText="Archive Ticket"
         cancelText="Cancel"
         isLoading={isArchiving}
+        variant="destructive"
+      />
+
+      {/* Delete Thumbnail Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showThumbnailDeleteConfirm}
+        onClose={() => setShowThumbnailDeleteConfirm(false)}
+        onConfirm={handleDeleteThumbnail}
+        title="Remove Ticket Thumbnail"
+        description="Are you sure you want to remove the ticket thumbnail? This action cannot be undone."
+        confirmText="Yes, Remove"
+        cancelText="Cancel"
+        isLoading={false}
         variant="destructive"
       />
     </>

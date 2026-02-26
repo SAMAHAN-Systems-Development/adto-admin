@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import Image from "next/image";
 import { TicketSchema } from "@/lib/zod/ticket.schema";
 import {
   Form,
@@ -27,13 +28,15 @@ import { Label } from "@/components/ui/label";
 import DatePicker from "./registration-deadline";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { Tickets } from "@/lib/types/requests/ticketsRequests";
+import UploadImage, { type UploadData } from "@/components/shared/upload-image";
+import { deleteAsset } from "@/lib/api/services/assetService";
 
 interface CreateTicketProps {
   setModal: (value: boolean) => void;
   title: string;
   titleName: string;
   titleDesc: string;
-  onCreate?: (data: Omit<Tickets, 'id'>) => void;
+  onCreate?: (data: Omit<Tickets, "id">) => void;
   onUpdate?: (data: Tickets) => void;
   initialData?: Tickets;
   isUpdate?: boolean;
@@ -56,11 +59,11 @@ export default function CreateTicket({
       description: initialData?.description || "",
       capacity: initialData?.capacity || 0,
       price: initialData?.price || 0,
-      registrationDeadline: initialData?.registrationDeadline 
-    ? (typeof initialData.registrationDeadline === "string"
-        ? new Date(initialData.registrationDeadline)
-        : initialData.registrationDeadline)
-    : undefined,
+      registrationDeadline: initialData?.registrationDeadline
+        ? typeof initialData.registrationDeadline === "string"
+          ? new Date(initialData.registrationDeadline)
+          : initialData.registrationDeadline
+        : undefined,
     },
   });
 
@@ -69,6 +72,90 @@ export default function CreateTicket({
     typeof TicketSchema
   > | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [ticketThumbnailData, setTicketThumbnailData] =
+    useState<UploadData | null>(null);
+  const [selectedThumbnailFile, setSelectedThumbnailFile] =
+    useState<File | null>(null);
+  const [ticketLink, setTicketLink] = useState("");
+  const [isEditingTicketLink, setIsEditingTicketLink] = useState(false);
+  const [tempTicketLink, setTempTicketLink] = useState("");
+
+  // Load existing thumbnail if in update mode
+  useEffect(() => {
+    if (initialData?.thumbnail && isUpdate) {
+      // Helper function to extract S3 key from Supabase URL
+      const extractKeyFromUrl = (url: string): string => {
+        try {
+          const match = url.match(/\/object\/public\/[^/]+\/(.+)$/);
+          if (match) {
+            return match[1]; // e.g., "ticket-thumbnails/1640995200000-abc123def456.jpg"
+          }
+          return url.split("/").pop() || "";
+        } catch (error) {
+          console.error("Error extracting key from URL:", error);
+          return url.split("/").pop() || "";
+        }
+      };
+
+      setTicketThumbnailData({
+        url: initialData.thumbnail,
+        key: extractKeyFromUrl(initialData.thumbnail),
+        bucket: "event-images",
+        fileName: initialData.thumbnail.split("/").pop() || "",
+        fileSize: 0,
+        fileType: "image/jpeg",
+      });
+    }
+  }, [initialData, isUpdate]);
+
+  const handleSaveTicketLink = () => {
+    setTicketLink(tempTicketLink);
+    setIsEditingTicketLink(false);
+    // TODO: Save to database when API is ready
+    console.log("Ticket link saved:", tempTicketLink);
+  };
+
+  const handleCancelTicketLink = () => {
+    setTempTicketLink(ticketLink);
+    setIsEditingTicketLink(false);
+  };
+
+  const handleEditTicketLink = () => {
+    setTempTicketLink(ticketLink);
+    setIsEditingTicketLink(true);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleThumbnailFileSelect = (file: File, _previewUrl: string) => {
+    console.log("Ticket thumbnail file selected:", file.name);
+    setSelectedThumbnailFile(file);
+  };
+
+  const handleThumbnailError = (error: string) => {
+    console.error("Ticket thumbnail error:", error);
+    setSelectedThumbnailFile(null);
+  };
+
+  const handleDeleteThumbnail = async () => {
+    if (ticketThumbnailData) {
+      try {
+        // Delete from storage if it has a key
+        if (ticketThumbnailData.key) {
+          console.log(
+            "Deleting ticket thumbnail with key:",
+            ticketThumbnailData.key,
+          );
+          await deleteAsset(ticketThumbnailData.key);
+          console.log("Ticket thumbnail deleted from storage successfully");
+        }
+        setTicketThumbnailData(null);
+        setSelectedThumbnailFile(null);
+        console.log("Ticket thumbnail removed successfully!");
+      } catch (error) {
+        console.error("Failed to delete ticket thumbnail:", error);
+      }
+    }
+  };
 
   const handleFormSubmit = (data: z.infer<typeof TicketSchema>) => {
     setPendingData(data);
@@ -80,12 +167,55 @@ export default function CreateTicket({
     setIsLoading(true);
 
     try {
+      let thumbnailUrl = ticketThumbnailData?.url;
+
+      // If there's a selected file, upload it first
+      if (selectedThumbnailFile) {
+        console.log("Uploading ticket thumbnail...");
+
+        // Delete old thumbnail if replacing
+        if (ticketThumbnailData?.key) {
+          try {
+            await deleteAsset(ticketThumbnailData.key);
+            console.log(
+              "Old ticket thumbnail deleted:",
+              ticketThumbnailData.key,
+            );
+          } catch (error) {
+            console.error("Failed to delete old ticket thumbnail:", error);
+          }
+        }
+
+        // Upload new thumbnail
+        const { uploadAsset } = await import("@/lib/api/services/assetService");
+        const uploadResult = await uploadAsset(
+          selectedThumbnailFile,
+          "ticket-thumbnails",
+        );
+
+        const uploadData = {
+          url: uploadResult.url,
+          key: uploadResult.key,
+          bucket: uploadResult.bucket,
+          fileName: selectedThumbnailFile.name,
+          fileSize: selectedThumbnailFile.size,
+          fileType: selectedThumbnailFile.type,
+        };
+
+        setTicketThumbnailData(uploadData);
+        thumbnailUrl = uploadData.url;
+        console.log("Ticket thumbnail uploaded successfully:", thumbnailUrl);
+      }
+
       // Format the data properly for API
       const formattedData = {
         ...pendingData,
         // Convert date to ISO string if it exists
         registrationDeadline: pendingData.registrationDeadline
-          ? new Date(pendingData.registrationDeadline).toISOString() : "",
+          ? new Date(pendingData.registrationDeadline).toISOString()
+          : "",
+        // Include thumbnail URL if uploaded
+        thumbnail: thumbnailUrl || undefined,
       };
 
       if (isUpdate && onUpdate) {
@@ -113,6 +243,57 @@ export default function CreateTicket({
           <CardTitle>
             <h1 className="text-3xl text-blue-800 font-[700] mb-4">{title}</h1>
           </CardTitle>
+
+          {/* Ticket Link Field - Only in Update Mode */}
+          {isUpdate && (
+            <div className="border-b pb-4 mb-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Ticket Link
+                </label>
+                {!isEditingTicketLink && (
+                  <button
+                    onClick={handleEditTicketLink}
+                    className="text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={isEditingTicketLink ? tempTicketLink : ticketLink}
+                  onChange={(e) => setTempTicketLink(e.target.value)}
+                  placeholder="Enter ticket link URL"
+                  className="flex-1"
+                  disabled={!isEditingTicketLink}
+                />
+                {isEditingTicketLink && (
+                  <>
+                    <Button
+                      type="button"
+                      onClick={handleSaveTicketLink}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleCancelTicketLink}
+                      variant="outline"
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                )}
+              </div>
+              {ticketLink && !isEditingTicketLink && (
+                <p className="text-xs text-gray-500 mt-1 truncate">
+                  {ticketLink}
+                </p>
+              )}
+            </div>
+          )}
         </CardHeader>
 
         <Form {...form}>
@@ -231,6 +412,68 @@ export default function CreateTicket({
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Upload Ticket Thumbnail */}
+              <div className="w-full flex flex-col gap-3">
+                <h3 className="font-[700] !text-slate-700 text-lg">
+                  Upload Ticket Thumbnail
+                </h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  Your uploaded image will be what users see while viewing the
+                  ticket&apos;s details.
+                </p>
+                <div className="text-sm text-gray-500 space-y-1 mb-4">
+                  <p>Maximum file size: 10 MB</p>
+                  <p>Accepted File type: png, jpg, jpeg</p>
+                  <p>
+                    Note: For optimal display, your image should have a 1:1
+                    ratio
+                  </p>
+                </div>
+
+                {/* Show existing thumbnail with delete option */}
+                {ticketThumbnailData && !selectedThumbnailFile && (
+                  <div className="mb-4 relative group">
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-gray-300">
+                      <Image
+                        src={ticketThumbnailData.url}
+                        alt="Ticket thumbnail"
+                        width={400}
+                        height={192}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white font-medium">
+                          Current Thumbnail
+                        </span>
+                      </div>
+                      {/* Delete Button */}
+                      <button
+                        onClick={handleDeleteThumbnail}
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 z-10"
+                        title="Remove thumbnail"
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {ticketThumbnailData.fileName}
+                    </p>
+                  </div>
+                )}
+
+                {/* Upload component - only show if no existing thumbnail or user deleted it */}
+                {(!ticketThumbnailData || selectedThumbnailFile) && (
+                  <UploadImage
+                    uploadType="asset"
+                    folder="ticket-thumbnails"
+                    immediateUpload={false}
+                    onFileSelect={handleThumbnailFileSelect}
+                    onUploadError={handleThumbnailError}
+                  />
+                )}
               </div>
 
               {/* Buttons */}
