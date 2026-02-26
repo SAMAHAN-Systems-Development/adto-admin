@@ -57,7 +57,7 @@ function CardModalDetails({
         }
 
         // Update the ticket to remove thumbnail
-        const updatedTicket = { ...ticket, thumbnail: null };
+        const updatedTicket = { ...ticket, thumbnail: undefined };
         onUpdate(updatedTicket);
         console.log("Ticket thumbnail removed successfully!");
       } catch (error) {
@@ -305,7 +305,7 @@ export default function CardTicket({
         }
 
         // Update the ticket to remove thumbnail
-        const updatedTicket = { ...ticket, thumbnail: null };
+        const updatedTicket = { ...ticket, thumbnail: undefined };
         onUpdate(updatedTicket);
         console.log("Ticket thumbnail removed successfully!");
       } catch (error) {
