@@ -20,7 +20,7 @@ export const mainRoutes: RouteConfig[] = [
     path: "/organizations",
     name: "Organizations",
     icon: FileLineChart,
-    allowedRoles: [UserType.ADMIN, UserType.ORGANIZATION], // Admin and Organization only can only see this route
+    allowedRoles: [UserType.ADMIN], // Only Admin can see this route
   },
   {
     path: "/events",

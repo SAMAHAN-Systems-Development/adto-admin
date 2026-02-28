@@ -11,6 +11,7 @@ import { useOrganizationQuery } from "@/lib/api/queries/organizationsQueries";
 import { 
   useUpdateOrganizationMutation,
 } from "@/lib/api/mutations/organizationsMutations";
+import { UpdateOrganizationRequest } from "@/lib/types/requests/OrganizationRequests";
 
 export default function EditOrganizationPage() {
   const router = useRouter();
@@ -25,6 +26,13 @@ export default function EditOrganizationPage() {
   const { data: organization, isLoading } = useOrganizationQuery(id);
   const updateOrganizationMutation = useUpdateOrganizationMutation();
 
+  // Transform organization data to match the form structure
+  const transformedOrganization = organization ? {
+    ...organization,
+    email: organization.user?.email || "",
+    organizationParentId: organization.organizationParents?.[0]?.organizationParentId || "",
+  } : null;
+
   // Log organization data when it's fetched
   console.log("📊 Queried Organization Data:", organization);
 
@@ -38,14 +46,23 @@ export default function EditOrganizationPage() {
   const confirmSubmit = async () => {
     if (!formData || !id) return;
 
+    const updateData: UpdateOrganizationRequest = {
+      ...formData,
+    };
+
+    // Remove password if empty (don't update password if not provided)
+    if (!updateData.password) {
+      delete updateData.password;
+    }
+
     console.log("📤 Sending Update Data No Icon:", {
       id,
-      formData,
+      data: updateData,
     });
 
     await updateOrganizationMutation.mutateAsync({
       id,
-      data: formData,
+      data: updateData,
     });
 
     setShowSubmitDialog(false);
@@ -98,7 +115,7 @@ export default function EditOrganizationPage() {
         <OrganizationsForm
           onSubmit={handleSubmit}
           onCancel={handleCancel}
-          defaultValues={organization}
+          defaultValues={transformedOrganization}
           isSubmitting={updateOrganizationMutation.isPending}
           isEditMode={true}
         />

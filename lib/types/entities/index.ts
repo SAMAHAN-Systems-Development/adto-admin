@@ -3,6 +3,7 @@ export interface OrganizationParent {
   name: string;
   description: string;
   organizationChildren: OrganizationGroup[];
+  orgCount: number;
 }
 
 export interface OrganizationGroup {
@@ -73,6 +74,8 @@ export interface Event {
   id: string;
   name: string;
   description: string;
+  banner?: string;
+  thumbnail?: string;
   dateStart: Date;
   dateEnd: Date;
   isRegistrationOpen: boolean;
@@ -133,4 +136,3 @@ export interface EventAnnouncement {
   createdAt: Date;
   updatedAt: Date;
 }
-
