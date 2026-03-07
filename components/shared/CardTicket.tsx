@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { XIcon, Archive, SquarePen, Download } from "lucide-react";
+import { XIcon, Archive, SquarePen, Download, Copy, Check, Clock, CheckCircle2, XCircle, Send } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import CreateTicket from "@/components/shared/CreateTicket";
@@ -9,6 +9,198 @@ import { Button } from "@/components/ui/button";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { Tickets } from "@/lib/types/requests/ticketsRequests";
 import { deleteAsset } from "@/lib/api/services/assetService";
+import { useCreateTicketRequestMutation, useCancelTicketRequestMutation } from "@/lib/api/mutations/ticketRequestMutation";
+import toast from "react-hot-toast";
+
+function TicketRequestStatus({ ticket }: { ticket: Tickets }) {
+  const [isCopied, setIsCopied] = useState(false);
+  const [showRequestConfirm, setShowRequestConfirm] = useState(false);
+  const createRequestMutation = useCreateTicketRequestMutation();
+  const cancelRequestMutation = useCancelTicketRequestMutation();
+  const latestRequest = ticket.latestRequest;
+
+  const handleCopyLink = () => {
+    if (latestRequest?.ticketLink) {
+      navigator.clipboard.writeText(latestRequest.ticketLink);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+
+  const handleRequestLink = async () => {
+    try {
+      await createRequestMutation.mutateAsync(ticket.id);
+      toast.success("Ticket request sent successfully!", {
+        duration: 3000,
+        position: "bottom-right",
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to send request";
+      toast.error(errorMessage, {
+        duration: 3000,
+        position: "bottom-right",
+      });
+    }
+  };
+
+  const handleCancelRequest = async (requestId: string) => {
+    try {
+      await cancelRequestMutation.mutateAsync(requestId);
+      toast.success("Ticket request cancelled successfully", {
+        duration: 3000,
+        position: "bottom-right",
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to cancel request";
+      toast.error(errorMessage, {
+        duration: 3000,
+        position: "bottom-right",
+      });
+      console.error(error);
+    }
+  };
+
+  const renderContent = () => {
+    // No request exists
+    if (!latestRequest) {
+      return (
+        <div className="mt-4 pt-4 border-t">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-900 mb-1 flex items-center gap-2">
+                Ticket Link Request
+              </p>
+              <p className="text-xs text-gray-500 max-w-[250px]">
+                Paid tickets require a verified link from the superadmin.
+              </p>
+            </div>
+            <button 
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium text-sm"
+              onClick={() => setShowRequestConfirm(true)}
+              disabled={createRequestMutation.isPending}
+            >
+              {createRequestMutation.isPending ? "Requesting..." : "Request Ticket Link"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Pending
+    if (latestRequest.status === "PENDING") {
+      return (
+        <div className="mt-4 pt-4 border-t">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-yellow-600" />
+              <div>
+                <p className="text-sm font-medium text-yellow-700">Request Pending</p>
+                <p className="text-xs text-gray-500">
+                  Waiting for Superadmin approval
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => handleCancelRequest(latestRequest.id)}
+              disabled={cancelRequestMutation.isPending}
+              variant="outline"
+              size="sm"
+              className="border-red-600 text-red-600 hover:bg-red-50 flex items-center gap-2"
+            >
+              {cancelRequestMutation.isPending ? "Cancelling..." : "Cancel Request"}
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Approved
+    if (latestRequest.status === "APPROVED" && latestRequest.ticketLink) {
+      return (
+        <div className="mt-4 pt-4 border-t">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle2 className="w-4 h-4 text-green-600" />
+            <p className="text-sm font-medium text-green-700">Request Approved</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 p-2 bg-gray-50 border rounded-md text-sm text-gray-600 truncate">
+              <a
+                href={latestRequest.ticketLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {latestRequest.ticketLink}
+              </a>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyLink}
+              className="flex items-center gap-1 shrink-0"
+            >
+              {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              {isCopied ? "Copied" : "Copy"}
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Declined
+    if (latestRequest.status === "DECLINED") {
+      return (
+        <div className="mt-4 pt-4 border-t">
+          <div className="flex items-center gap-2 mb-2">
+            <XCircle className="w-4 h-4 text-red-500" />
+            <p className="text-sm font-medium text-red-600">Request Declined</p>
+          </div>
+          {latestRequest.declineReason && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md mb-3">
+              <p className="text-sm text-red-700">
+                <span className="font-medium">Reason: </span>
+                {latestRequest.declineReason}
+              </p>
+            </div>
+          )}
+          <Button
+            onClick={() => setShowRequestConfirm(true)}
+            disabled={createRequestMutation.isPending}
+            variant="outline"
+            size="sm"
+            className="border-blue-600 text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+          >
+            <Send className="w-4 h-4" />
+            {createRequestMutation.isPending ? "Sending..." : "Request Again"}
+          </Button>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <>
+      {renderContent()}
+
+      {/* Confirmation Modal for Request */}
+      <ConfirmationModal
+        isOpen={showRequestConfirm}
+        onClose={() => setShowRequestConfirm(false)}
+        onConfirm={() => {
+          setShowRequestConfirm(false);
+          handleRequestLink();
+        }}
+        title="Confirm Ticket Details"
+        description="Please ensure all ticket information is correct. Once requested, the ticket details cannot be edited until the request is processed by a superadmin."
+        confirmText="Yes, Request Link"
+        cancelText="Cancel"
+        isLoading={createRequestMutation.isPending}
+      />
+    </>
+  );
+}
 
 function CardModalDetails({
   ticket,
@@ -28,6 +220,10 @@ function CardModalDetails({
   const [isArchiving, setIsArchiving] = useState(false);
   const [showThumbnailDeleteConfirm, setShowThumbnailDeleteConfirm] =
     useState(false);
+
+  const isPending = ticket.latestRequest?.status === "PENDING";
+  const isApproved = ticket.latestRequest?.status === "APPROVED";
+  const isRequestActive = isPending || isApproved;
 
   if (!isOpen) return null;
 
@@ -98,11 +294,6 @@ function CardModalDetails({
     document.body.removeChild(link);
   };
 
-  const handleRequest = () => {
-    // Static for now
-    alert("Request button clicked - functionality coming soon!");
-  };
-
   return (
     <>
       {/* Ticket Details Modal */}
@@ -111,15 +302,26 @@ function CardModalDetails({
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-blue-700">{ticket.name}</h2>
             <div className="flex items-center gap-3">
+              {isRequestActive ? (
+                <div className="hidden sm:block">
+                  <span className="text-xs text-gray-500 italic mr-2 border border-yellow-200 bg-yellow-50 px-2 py-1 rounded">
+                    Modification locked during active request
+                  </span>
+                </div>
+              ) : null}
               <button
                 onClick={() => setArchiveOpen(true)}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                disabled={isRequestActive}
+                className={`px-4 py-2 border border-gray-300 rounded ${isRequestActive ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400" : "hover:bg-gray-50"}`}
+                title={isRequestActive ? "Cancel request to archive" : "Archive Ticket"}
               >
                 Archive
               </button>
               <button
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                disabled={isRequestActive}
+                className={`px-4 py-2 text-white rounded ${isRequestActive ? "opacity-50 cursor-not-allowed bg-blue-400" : "bg-blue-600 hover:bg-blue-700"}`}
                 onClick={() => setUpdateOpen(true)}
+                title={isRequestActive ? "Cancel request to edit" : "Update Ticket"}
               >
                 Update Ticket
               </button>
@@ -166,15 +368,6 @@ function CardModalDetails({
                   <Download className="w-4 h-4" />
                   Download Image
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRequest();
-                  }}
-                  className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition-colors"
-                >
-                  Request
-                </button>
               </div>
             </div>
           )}
@@ -218,6 +411,21 @@ function CardModalDetails({
             <h3 className="font-semibold my-2">Ticket Details</h3>
             <p className="text-gray-700">{ticket.description}</p>
           </div>
+
+          {/* Ticket Request Status Section */}
+          {ticket.price > 0 ? (
+            <TicketRequestStatus ticket={ticket} />
+          ) : (
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                <p className="text-sm font-medium text-green-700">Free Ticket</p>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                No ticket link request needed for free events.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -333,6 +541,41 @@ export default function CardTicket({
     }
   };
 
+  // Get status badge for the card
+  const isPending = ticket.latestRequest?.status === "PENDING";
+  const isApproved = ticket.latestRequest?.status === "APPROVED";
+  const isRequestActive = isPending || isApproved;
+
+  const getStatusBadge = () => {
+    if (ticket.price === 0) return null;
+
+    const req = ticket.latestRequest;
+    if (!req) return null;
+
+    if (req.status === "PENDING") {
+      return (
+        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full flex items-center gap-1">
+          <Clock className="w-3 h-3" /> Pending
+        </span>
+      );
+    }
+    if (req.status === "APPROVED") {
+      return (
+        <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full flex items-center gap-1">
+          <CheckCircle2 className="w-3 h-3" /> Approved
+        </span>
+      );
+    }
+    if (req.status === "DECLINED") {
+      return (
+        <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs font-medium rounded-full flex items-center gap-1">
+          <XCircle className="w-3 h-3" /> Declined
+        </span>
+      );
+    }
+    return null;
+  };
+
   const ticketDetails = [
     {
       label: "Capacity",
@@ -399,9 +642,12 @@ export default function CardTicket({
           <div className="flex-1 flex flex-col">
             {/* Header */}
             <div className="flex justify-between items-start mb-4">
-              <CardTitle className="lg:text-2xl font-bold text-[#1E293B] flex-1 pr-4">
-                {ticket.name}
-              </CardTitle>
+              <div className="flex items-center gap-2 flex-1 pr-4">
+                <CardTitle className="lg:text-2xl font-bold text-[#1E293B]">
+                  {ticket.name}
+                </CardTitle>
+                {getStatusBadge()}
+              </div>
               <div
                 className="flex gap-2 flex-shrink-0"
                 onClick={(e) => e.stopPropagation()}
@@ -409,22 +655,26 @@ export default function CardTicket({
                 <Button
                   variant="ghost"
                   size="icon"
+                  disabled={isRequestActive}
                   onClick={(e) => {
                     e.stopPropagation();
                     setArchiveOpen(true);
                   }}
+                  title={isRequestActive ? "Cannot archive while request is active" : "Archive Ticket"}
                 >
-                  <Archive className="w-5 h-5 text-blue-600" />
+                  <Archive className={`w-5 h-5 ${isRequestActive ? "text-gray-400" : "text-blue-600"}`} />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
+                  disabled={isRequestActive}
                   onClick={(e) => {
                     e.stopPropagation();
                     setUpdateOpen(true);
                   }}
+                  title={isRequestActive ? "Cannot edit while request is active" : "Update Ticket"}
                 >
-                  <SquarePen className="w-5 h-5 text-blue-600" />
+                  <SquarePen className={`w-5 h-5 ${isRequestActive ? "text-gray-400" : "text-blue-600"}`} />
                 </Button>
               </div>
             </div>

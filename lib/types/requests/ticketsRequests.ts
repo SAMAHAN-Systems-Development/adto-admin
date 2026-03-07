@@ -1,3 +1,5 @@
+import { TicketLatestRequest } from "./TicketRequestRequests";
+
 export type CreateEventTicketRequest = {
   name: string;
   description: string;
@@ -15,4 +17,5 @@ export interface Tickets {
   price: number;
   capacity: number;
   registrationDeadline: string;
+  latestRequest?: TicketLatestRequest;
 }

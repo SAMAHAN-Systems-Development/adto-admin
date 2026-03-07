@@ -30,9 +30,7 @@ import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { Tickets } from "@/lib/types/requests/ticketsRequests";
 import UploadImage, { type UploadData } from "@/components/shared/upload-image";
 import { deleteAsset } from "@/lib/api/services/assetService";
-import { useAuthStore } from "@/lib/store/authStore";
-import { UserType } from "@/lib/types/user-type";
-import { Copy, Check } from "lucide-react";
+
 interface CreateTicketProps {
   setModal: (value: boolean) => void;
   title: string;
@@ -78,22 +76,6 @@ export default function CreateTicket({
     useState<UploadData | null>(null);
   const [selectedThumbnailFile, setSelectedThumbnailFile] =
     useState<File | null>(null);
-  const [ticketLink, setTicketLink] = useState("");
-  const [isEditingTicketLink, setIsEditingTicketLink] = useState(false);
-  const [tempTicketLink, setTempTicketLink] = useState("");
-  const [isCopied, setIsCopied] = useState(false);
-
-  const { user } = useAuthStore();
-  const isSuperadmin = user?.role === UserType.ADMIN;
-
-  const handleCopyLink = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (ticketLink) {
-      navigator.clipboard.writeText(ticketLink);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    }
-  };
 
   // Load existing thumbnail if in update mode
   useEffect(() => {
@@ -122,23 +104,6 @@ export default function CreateTicket({
       });
     }
   }, [initialData, isUpdate]);
-
-  const handleSaveTicketLink = () => {
-    setTicketLink(tempTicketLink);
-    setIsEditingTicketLink(false);
-    // TODO: Save to database when API is ready
-    console.log("Ticket link saved:", tempTicketLink);
-  };
-
-  const handleCancelTicketLink = () => {
-    setTempTicketLink(ticketLink);
-    setIsEditingTicketLink(false);
-  };
-
-  const handleEditTicketLink = () => {
-    setTempTicketLink(ticketLink);
-    setIsEditingTicketLink(true);
-  };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleThumbnailFileSelect = (file: File, _previewUrl: string) => {
@@ -258,85 +223,6 @@ export default function CreateTicket({
           <CardTitle>
             <h1 className="text-3xl text-blue-800 font-[700] mb-4">{title}</h1>
           </CardTitle>
-
-          {/* Ticket Link Field - Only in Update Mode */}
-          {isUpdate && (
-            <div className="border-b pb-4 mb-2">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-semibold text-gray-700">
-                  Ticket Link
-                </label>
-                {isSuperadmin ? (
-                  !isEditingTicketLink && (
-                    <button
-                      type="button"
-                      onClick={handleEditTicketLink}
-                      className="text-xs text-blue-600 hover:text-blue-800"
-                    >
-                      Edit
-                    </button>
-                  )
-                ) : (
-                  ticketLink && (
-                    <button
-                      type="button"
-                      onClick={handleCopyLink}
-                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                    >
-                      {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                      {isCopied ? "Copied" : "Copy"}
-                    </button>
-                  )
-                )}
-              </div>
-              <div className="flex gap-2">
-                {isSuperadmin ? (
-                  <>
-                    <Input
-                      value={isEditingTicketLink ? tempTicketLink : ticketLink}
-                      onChange={(e) => setTempTicketLink(e.target.value)}
-                      placeholder="Enter ticket link URL"
-                      className="flex-1"
-                      disabled={!isEditingTicketLink}
-                    />
-                    {isEditingTicketLink && (
-                      <>
-                        <Button
-                          type="button"
-                          onClick={handleSaveTicketLink}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          Save
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={handleCancelTicketLink}
-                          variant="outline"
-                        >
-                          Cancel
-                        </Button>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <div className="flex-1 p-2 bg-gray-50 border rounded-md text-sm text-gray-600 truncate">
-                    {ticketLink ? (
-                      <a href={ticketLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        {ticketLink}
-                      </a>
-                    ) : (
-                      "No ticket link available"
-                    )}
-                  </div>
-                )}
-              </div>
-              {ticketLink && !isEditingTicketLink && isSuperadmin && (
-                <p className="text-xs text-gray-500 mt-1 truncate">
-                  {ticketLink}
-                </p>
-              )}
-            </div>
-          )}
         </CardHeader>
 
         <Form {...form}>
