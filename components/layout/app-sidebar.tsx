@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { LogOut, PanelLeft } from "lucide-react";
-import { IoMdSettings } from "react-icons/io";
 import { HiUser } from "react-icons/hi";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
