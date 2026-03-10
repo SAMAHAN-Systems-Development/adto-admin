@@ -155,41 +155,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
           {/* Account and Settings buttons */}
           <SidebarMenu className="gap-3 mb-5">
-            <SidebarMenuItem>
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <SidebarMenuButton asChild className="text-white hover:bg-white/10 p-5">
-                    <Link href="/account" className="flex items-center gap-3">
-                      <HiUser className="text-white w-6 h-6 flex-shrink-0" />
-                      {!isCollapsed && <span className="text-white text-base">Account</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                {isCollapsed && (
-                  <TooltipContent side="right" className="bg-gray-900 text-white">
-                    Account
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <SidebarMenuButton asChild className="text-white hover:bg-white/10 p-5">
-                    <Link href="/settings" className="flex items-center gap-3">
-                      <IoMdSettings className="text-white w-6 h-6 flex-shrink-0" />
-                      {!isCollapsed && <span className="text-white text-base">Settings</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                {isCollapsed && (
-                  <TooltipContent side="right" className="bg-gray-900 text-white">
-                    Settings
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </SidebarMenuItem>
+            {user?.role !== "ADMIN" && (
+              <SidebarMenuItem>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton asChild className="text-white hover:bg-white/10 p-5">
+                      <Link href="/account" className="flex items-center gap-3">
+                        <HiUser className="text-white w-6 h-6 flex-shrink-0" />
+                        {!isCollapsed && <span className="text-white text-base">Account</span>}
+                      </Link>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  {isCollapsed && (
+                    <TooltipContent side="right" className="bg-gray-900 text-white">
+                      Account
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </SidebarMenuItem>
+            )}
           </SidebarMenu>
 
           <div className="mt-10">
