@@ -76,9 +76,6 @@ export default function CreateTicket({
     useState<UploadData | null>(null);
   const [selectedThumbnailFile, setSelectedThumbnailFile] =
     useState<File | null>(null);
-  const [ticketLink, setTicketLink] = useState("");
-  const [isEditingTicketLink, setIsEditingTicketLink] = useState(false);
-  const [tempTicketLink, setTempTicketLink] = useState("");
 
   // Load existing thumbnail if in update mode
   useEffect(() => {
@@ -107,23 +104,6 @@ export default function CreateTicket({
       });
     }
   }, [initialData, isUpdate]);
-
-  const handleSaveTicketLink = () => {
-    setTicketLink(tempTicketLink);
-    setIsEditingTicketLink(false);
-    // TODO: Save to database when API is ready
-    console.log("Ticket link saved:", tempTicketLink);
-  };
-
-  const handleCancelTicketLink = () => {
-    setTempTicketLink(ticketLink);
-    setIsEditingTicketLink(false);
-  };
-
-  const handleEditTicketLink = () => {
-    setTempTicketLink(ticketLink);
-    setIsEditingTicketLink(true);
-  };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleThumbnailFileSelect = (file: File, _previewUrl: string) => {
@@ -243,57 +223,6 @@ export default function CreateTicket({
           <CardTitle>
             <h1 className="text-3xl text-blue-800 font-[700] mb-4">{title}</h1>
           </CardTitle>
-
-          {/* Ticket Link Field - Only in Update Mode */}
-          {isUpdate && (
-            <div className="border-b pb-4 mb-2">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-semibold text-gray-700">
-                  Ticket Link
-                </label>
-                {!isEditingTicketLink && (
-                  <button
-                    onClick={handleEditTicketLink}
-                    className="text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    Edit
-                  </button>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  value={isEditingTicketLink ? tempTicketLink : ticketLink}
-                  onChange={(e) => setTempTicketLink(e.target.value)}
-                  placeholder="Enter ticket link URL"
-                  className="flex-1"
-                  disabled={!isEditingTicketLink}
-                />
-                {isEditingTicketLink && (
-                  <>
-                    <Button
-                      type="button"
-                      onClick={handleSaveTicketLink}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={handleCancelTicketLink}
-                      variant="outline"
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                )}
-              </div>
-              {ticketLink && !isEditingTicketLink && (
-                <p className="text-xs text-gray-500 mt-1 truncate">
-                  {ticketLink}
-                </p>
-              )}
-            </div>
-          )}
         </CardHeader>
 
         <Form {...form}>
