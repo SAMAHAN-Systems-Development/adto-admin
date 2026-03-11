@@ -898,48 +898,48 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         )}
 
         {activeTab === "tickets" && (
-          <div className="py-4 text-gray-500">
-            <div className="">
-              <div className="flex justify-end w-full">
-                <button
-                  onClick={() => setModal(true)}
-                  className="border-2 border-blue-600 text-blue-600 px-4 py-2 rounded flex gap-4 hover:bg-blue-50 transition-colors"
-                >
-                  <CirclePlus /> Add Ticket
-                </button>
-              </div>
-
-              {modal && (
-                <CreateTicket
-                  setModal={setModal}
-                  title="Create Ticket"
-                  titleName="Title Name"
-                  titleDesc="Description"
-                  onCreate={handleCreateTicket}
-                />
-              )}
-
-              {ticketsLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-              ) : tickets.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">{`No tickets created yet. Click "Add Ticket" to create one.`}</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-                  {tickets.map((ticket: Tickets) => (
-                    <CardTicket
-                      key={ticket.id}
-                      ticket={ticket}
-                      onUpdate={handleUpdateTicket}
-                      onDelete={handleDeleteTicket}
-                    />
-                  ))}
-                </div>
-              )}
+          <div className="space-y-8">
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 border-blue-600 text-blue-600 hover:text-blue-600 hover:bg-gray-50 bg-transparent rounded-sm font-semibold shadow-sm"
+                onClick={() => setModal(true)}
+              >
+                <CirclePlus className="h-5 w-5 text-blue-600" />
+                Add Ticket
+              </Button>
             </div>
+
+            {modal && (
+              <CreateTicket
+                setModal={setModal}
+                title="Create Ticket"
+                titleName="Title Name"
+                titleDesc="Description"
+                onCreate={handleCreateTicket}
+              />
+            )}
+
+            {ticketsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : tickets.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">{`No tickets created yet. Click "Add Ticket" to create one.`}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+                {tickets.map((ticket: Tickets) => (
+                  <CardTicket
+                    key={ticket.id}
+                    ticket={ticket}
+                    onUpdate={handleUpdateTicket}
+                    onDelete={handleDeleteTicket}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
