@@ -10,6 +10,7 @@ import { useEventQuery } from "@/lib/api/queries/eventsQueries";
 import {
   useUpdateEventMutation,
   useArchiveEventMutation,
+  useUnarchiveEventMutation,
   usePublishEventMutation,
 } from "@/lib/api/mutations/eventsMutations";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
@@ -56,6 +57,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [editedDescription, setEditedDescription] = useState("");
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showUnarchiveModal, setShowUnarchiveModal] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [showCreateAnnouncement, setShowCreateAnnouncement] = useState(false);
   const [modal, setModal] = useState(false);
@@ -101,6 +103,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const { data: event, isLoading, error } = useEventQuery(params.id);
   const updateEventMutation = useUpdateEventMutation();
   const archiveEventMutation = useArchiveEventMutation();
+  const unarchiveEventMutation = useUnarchiveEventMutation();
   const publishEventMutation = usePublishEventMutation();
 
   useEffect(() => {
@@ -209,14 +212,32 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   };
 
   const handleArchiveEvent = async () => {
-    await archiveEventMutation.mutateAsync(params.id);
-    setShowArchiveModal(false);
-    router.push("/events");
+    try {
+      await archiveEventMutation.mutateAsync(params.id);
+      setShowArchiveModal(false);
+      router.push("/events");
+    } catch {
+      setShowArchiveModal(false);
+    }
+  };
+
+  const handleUnarchiveEvent = async () => {
+    try {
+      await unarchiveEventMutation.mutateAsync(params.id);
+      setShowUnarchiveModal(false);
+      router.push("/events");
+    } catch {
+      setShowUnarchiveModal(false);
+    }
   };
 
   const handlePublishEvent = async () => {
-    await publishEventMutation.mutateAsync(params.id);
-    setShowPublishModal(false);
+    try {
+      await publishEventMutation.mutateAsync(params.id);
+      setShowPublishModal(false);
+    } catch {
+      setShowPublishModal(false);
+    }
   };
 
   const handleDescriptionDoubleClick = () => {
@@ -970,15 +991,27 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           >
             {event.isPublished ? "Published" : "Publish Event"}
           </Button> */}
-          <Button
-            variant="outline"
-            className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent"
-            onClick={() => setShowArchiveModal(true)}
-            disabled={archiveEventMutation.isPending}
-          >
-            <Archive className="h-4 w-4 text-blue-600" />
-            Archive Event
-          </Button>
+          {event.isArchived ? (
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 border-green-600 text-green-700 hover:bg-green-50 bg-transparent"
+              onClick={() => setShowUnarchiveModal(true)}
+              disabled={unarchiveEventMutation.isPending}
+            >
+              <Archive className="h-4 w-4 text-green-600" />
+              Unarchive Event
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 bg-transparent"
+              onClick={() => setShowArchiveModal(true)}
+              disabled={archiveEventMutation.isPending}
+            >
+              <Archive className="h-4 w-4 text-blue-600" />
+              Archive Event
+            </Button>
+          )}
         </div>
 
         {/* Modals */}
@@ -1003,6 +1036,18 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           confirmText="Archive Event"
           cancelText="Cancel"
           isLoading={archiveEventMutation.isPending}
+          variant="default"
+        />
+
+        <ConfirmationModal
+          isOpen={showUnarchiveModal}
+          onClose={() => setShowUnarchiveModal(false)}
+          onConfirm={handleUnarchiveEvent}
+          title="Unarchive Event"
+          description="Are you sure you want to unarchive this event? This action will move the event back to the Drafts tab."
+          confirmText="Unarchive Event"
+          cancelText="Cancel"
+          isLoading={unarchiveEventMutation.isPending}
           variant="default"
         />
 

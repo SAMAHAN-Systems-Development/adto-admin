@@ -9,6 +9,7 @@ export const findAllPublishedEvents = async (params?: {
   limit?: number;
   searchFilter?: string;
   orderBy?: "asc" | "desc";
+  eventStatus?: "DRAFT" | "UPCOMING" | "FINISHED" | "ARCHIVED";
 }) => {
   const queryParams = new URLSearchParams({
     page: (params?.page || 1).toString(),
@@ -20,6 +21,9 @@ export const findAllPublishedEvents = async (params?: {
   }
   if (params?.orderBy) {
     queryParams.append("orderBy", params.orderBy);
+  }
+  if (params?.eventStatus) {
+    queryParams.append("eventStatus", params.eventStatus);
   }
   
   const response = await fetch(`${BASE_URL}/events/published?${queryParams}`, {
@@ -110,7 +114,22 @@ export const archiveEvent = async (id: string) => {
   });
 
   if (!response.ok) {
-    throw new Error("Event archive failed");
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Event archive failed");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const unarchiveEvent = async (id: string) => {
+  const response = await fetch(`${BASE_URL}/events/${id}/unarchive`, {
+    method: "PATCH",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Event unarchive failed");
   }
 
   const data = await response.json();

@@ -9,6 +9,7 @@ export const useEventsQuery = (params?: {
   limit?: number;
   searchFilter?: string;
   orderBy?: "asc" | "desc";
+  eventStatus?: "DRAFT" | "UPCOMING" | "FINISHED" | "ARCHIVED";
 }) => {
   return useQuery({
     queryKey: [
@@ -17,6 +18,7 @@ export const useEventsQuery = (params?: {
       params?.limit,
       params?.searchFilter,
       params?.orderBy,
+      params?.eventStatus,
     ],
     queryFn: () => findAllPublishedEvents(params),
     staleTime: 5 * 60 * 1000,

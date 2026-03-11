@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { DataTable } from "@/components/shared/data-table";
-import { createEventsColumns } from "@/components/features/events/events-columns";
+import {
+  createEventsColumns,
+  EventTab,
+} from "@/components/features/events/events-columns";
 import { CreateEventModal } from "@/components/features/events/create-event-modal";
 import { ViewEventModal } from "@/components/features/events/view-event-modal";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
@@ -10,10 +13,16 @@ import { useEventsQuery } from "@/lib/api/queries/eventsQueries";
 import { useArchiveEventMutation } from "@/lib/api/mutations/eventsMutations";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Event } from "@/lib/types/entities";
-import { toast } from "sonner";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useQueryClient } from "@tanstack/react-query";
+
+const EVENT_TABS: { label: string; value: EventTab }[] = [
+  { label: "Upcoming", value: "UPCOMING" },
+  { label: "Drafts", value: "DRAFT" },
+  { label: "Finished", value: "FINISHED" },
+  { label: "Archived", value: "ARCHIVED" },
+];
 
 export default function EventsPage() {
   const router = useRouter();
@@ -30,6 +39,8 @@ export default function EventsPage() {
   const [limit, setLimit] = useState(20);
   const [searchFilter, setSearchFilter] = useState("");
   const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
+  const [eventStatusFilter, setEventStatusFilter] =
+    useState<EventTab>("UPCOMING");
 
   // Track if this is the initial load
   const isInitialLoad = useRef(true);
@@ -56,6 +67,7 @@ export default function EventsPage() {
     limit,
     searchFilter: debouncedSearch,
     orderBy,
+    eventStatus: eventStatusFilter,
   });
 
   const events = data?.data || [];
@@ -68,10 +80,10 @@ export default function EventsPage() {
     }
   }, [data]);
 
-  // Reset to page 1 when search changes
+  // Reset to page 1 when search or tab changes
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, eventStatusFilter]);
 
   const archiveEventMutation = useArchiveEventMutation();
 
@@ -93,17 +105,11 @@ export default function EventsPage() {
     if (eventToArchive) {
       try {
         await archiveEventMutation.mutateAsync(eventToArchive);
-        toast.success("Event archived successfully", {
-          description:
-            "The event has been removed from the active events list.",
-        });
         setShowArchiveDialog(false);
         setEventToArchive(null);
       } catch {
-        toast.error("Failed to archive event", {
-          description:
-            "An error occurred while archiving the event. Please try again.",
-        });
+        setShowArchiveDialog(false);
+        setEventToArchive(null);
       }
     }
   };
@@ -117,6 +123,7 @@ export default function EventsPage() {
     const allColumns = createEventsColumns({
       onArchiveEvent: handleArchiveEvent,
       onViewEvent: handleViewEvent,
+      tab: eventStatusFilter,
     });
 
     if (user?.role === "ORGANIZATION") {
@@ -129,7 +136,7 @@ export default function EventsPage() {
     }
 
     return allColumns;
-  }, [user?.role, handleArchiveEvent, handleViewEvent]);
+  }, [user?.role, handleArchiveEvent, handleViewEvent, eventStatusFilter]);
 
   // Only show full page loading skeleton on initial load
   if (isLoading && isInitialLoad.current) {
@@ -160,8 +167,32 @@ export default function EventsPage() {
 
   return (
     <div className="container mx-auto py-10">
+      <h1 className="text-4xl font-bold text-gray-900 mb-2">My Events</h1>
+      <p className="text-gray-600 mb-8">
+        Manage and track your organization&apos;s events.
+      </p>
+
+      {/* Status Filter Tabs */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="flex gap-6">
+          {EVENT_TABS.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setEventStatusFilter(tab.value)}
+              className={`pb-3 px-1 text-sm font-medium transition-colors ${
+                eventStatusFilter === tab.value
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
       <DataTable
-        title="My Events"
+        title=""
         columns={columns}
         data={events}
         searchColumn="name"
@@ -178,7 +209,7 @@ export default function EventsPage() {
           order: orderBy,
           onSortChange: (field, order) => {
             setOrderBy(order);
-            setPage(1); // Reset to first page when sorting changes
+            setPage(1);
           },
         }}
         pagination={{
@@ -189,7 +220,7 @@ export default function EventsPage() {
           onPageChange: setPage,
           onLimitChange: (newLimit) => {
             setLimit(newLimit);
-            setPage(1); // Reset to first page when limit changes
+            setPage(1);
           },
         }}
         onRowClick={(event) => handleViewEvent(event)}

@@ -89,6 +89,7 @@ export interface Event {
   ticketCategories: TicketCategory[];
   formQuestions: FormQuestions[];
   totalRegistrants?: number;
+  createdAt?: Date;
 }
 
 export interface FormAnswers {
