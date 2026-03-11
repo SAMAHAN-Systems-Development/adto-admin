@@ -8,7 +8,7 @@ import { ViewEventModal } from "@/components/features/events/view-event-modal";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useEventsQuery } from "@/lib/api/queries/eventsQueries";
 import { useArchiveEventMutation } from "@/lib/api/mutations/eventsMutations";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Event } from "@/lib/types/entities";
 import { toast } from "sonner";
 import { useDebounce } from "@/lib/hooks/use-debounce";
@@ -19,6 +19,7 @@ export default function EventsPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -41,6 +42,14 @@ export default function EventsPage() {
       queryClient.invalidateQueries({ queryKey: ["events"] });
     }
   }, [user, queryClient]);
+
+  useEffect(() => {
+    if (searchParams.get("create") === "true") {
+      setIsCreateModalOpen(true);
+      // Clean up the URL to prevent reopening on refresh
+      window.history.replaceState({}, "", "/events");
+    }
+  }, [searchParams]);
 
   const { data, isLoading, error, isFetching } = useEventsQuery({
     page,

@@ -5,7 +5,7 @@ import { DataTable } from "@/components/shared/data-table";
 import { createOrganizationsColumns } from "@/components/features/organizations/organizations-columns";
 import { createOrganizationParentsColumns } from "@/components/features/organizations/organizationParents-columns";
 import { ViewOrganizationModal } from "@/components/features/organizations/view-organization-modal";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useOrganizationsQuery } from "@/lib/api/queries/organizationsQueries";
 import { useArchiveOrganizationMutation } from "@/lib/api/mutations/organizationsMutations";
@@ -31,6 +31,7 @@ import { UserType } from "@/lib/types/user-type";
 export default function OrganizationsPage() {
   const router = useRouter();
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const searchParams = useSearchParams();
   const [selectedOrganization, setSelectedOrganization] =
     useState<OrganizationChild | null>(null);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
@@ -64,6 +65,13 @@ export default function OrganizationsPage() {
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (searchParams.get("createParent") === "true") {
+      setIsAddParentModalOpen(true);
+      window.history.replaceState({}, "", "/organizations");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     setParentPage(1);
