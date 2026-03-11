@@ -216,7 +216,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       await archiveEventMutation.mutateAsync(params.id);
       setShowArchiveModal(false);
       router.push("/events");
-    } catch (error) {
+    } catch {
       setShowArchiveModal(false);
     }
   };
@@ -226,7 +226,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       await unarchiveEventMutation.mutateAsync(params.id);
       setShowUnarchiveModal(false);
       router.push("/events");
-    } catch (error) {
+    } catch {
       setShowUnarchiveModal(false);
     }
   };
@@ -235,7 +235,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     try {
       await publishEventMutation.mutateAsync(params.id);
       setShowPublishModal(false);
-    } catch (error) {
+    } catch {
       setShowPublishModal(false);
     }
   };

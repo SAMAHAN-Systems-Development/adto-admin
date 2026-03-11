@@ -13,7 +13,6 @@ import { useEventsQuery } from "@/lib/api/queries/eventsQueries";
 import { useArchiveEventMutation } from "@/lib/api/mutations/eventsMutations";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Event } from "@/lib/types/entities";
-import { toast } from "sonner";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useQueryClient } from "@tanstack/react-query";
@@ -108,7 +107,7 @@ export default function EventsPage() {
         await archiveEventMutation.mutateAsync(eventToArchive);
         setShowArchiveDialog(false);
         setEventToArchive(null);
-      } catch (error) {
+      } catch {
         setShowArchiveDialog(false);
         setEventToArchive(null);
       }
