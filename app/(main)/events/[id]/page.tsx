@@ -797,58 +797,57 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         </div>
 
         {activeTab === "additional-details" && (
-          <div className="space-y-6 mb-16">
-            <div className="flex items-start justify-between py-4">
-              <div>
-                <h3 className="text-base font-semibold text-gray-900 mb-1">
-                  Registration Open
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Enable this if the event registration is currently open for
-                  participants.
-                </p>
-              </div>
-              <Switch
-                checked={registrationOpen}
-                onCheckedChange={handleRegistrationOpenChange}
-                className="data-[state=checked]:bg-blue-600"
-              />
+        <div className="space-y-6 mb-16">
+          <div className="flex items-start justify-between py-4">
+            <div>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">
+                Registration Open
+              </h3>
+              <p className="text-sm text-gray-600">
+                Controls whether users can request or purchase tickets right
+                now. If turned off, the registration button will show as closed.
+              </p>
             </div>
+            <Switch
+              checked={registrationOpen}
+              onCheckedChange={handleRegistrationOpenChange}
+              className="data-[state=checked]:bg-blue-600"
+            />
+          </div>
 
-            <div className="flex items-start justify-between py-4">
-              <div>
-                <h3 className="text-base font-semibold text-gray-900 mb-1">
-                  Event Visibility
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Enable this to make the event visible to participants. When
-                  turned off, the event will be hidden and inaccessible to the
-                  public.
-                </p>
-              </div>
-              <Switch
-                checked={eventVisibility}
-                onCheckedChange={handleEventVisibilityChange}
-                className="data-[state=checked]:bg-blue-600"
-              />
+          <div className="flex items-start justify-between py-4">
+            <div>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">
+                Event Visibility
+              </h3>
+              <p className="text-sm text-gray-600">
+                Controls whether this event is published and visible on the
+                platform. When turned off, it acts as a hidden draft.
+              </p>
             </div>
+            <Switch
+              checked={eventVisibility}
+              onCheckedChange={handleEventVisibilityChange}
+              className="data-[state=checked]:bg-blue-600"
+            />
+          </div>
 
-            <div className="flex items-start justify-between py-4">
-              <div>
-                <h3 className="text-base font-semibold text-gray-900 mb-1">
-                  Registration Required
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Enable this if participants must register before attending the
-                  event.
-                </p>
-              </div>
-              <Switch
-                checked={registrationRequired}
-                onCheckedChange={handleRegistrationRequiredChange}
-                className="data-[state=checked]:bg-blue-600"
-              />
+          <div className="flex items-start justify-between py-4">
+            <div>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">
+                Registration Required
+              </h3>
+              <p className="text-sm text-gray-600">
+                Determines if a ticket is mandatory. If turned off, this becomes
+                a walk-in event, and ticketing sections are hidden from users.
+              </p>
             </div>
+            <Switch
+              checked={registrationRequired}
+              onCheckedChange={handleRegistrationRequiredChange}
+              className="data-[state=checked]:bg-blue-600"
+            />
+          </div>
           </div>
         )}
 
