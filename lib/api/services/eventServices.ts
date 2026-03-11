@@ -9,6 +9,7 @@ export const findAllPublishedEvents = async (params?: {
   limit?: number;
   searchFilter?: string;
   orderBy?: "asc" | "desc";
+  eventStatus?: "DRAFT" | "UPCOMING" | "FINISHED" | "ARCHIVED";
 }) => {
   const queryParams = new URLSearchParams({
     page: (params?.page || 1).toString(),
@@ -20,6 +21,9 @@ export const findAllPublishedEvents = async (params?: {
   }
   if (params?.orderBy) {
     queryParams.append("orderBy", params.orderBy);
+  }
+  if (params?.eventStatus) {
+    queryParams.append("eventStatus", params.eventStatus);
   }
   
   const response = await fetch(`${BASE_URL}/events/published?${queryParams}`, {
