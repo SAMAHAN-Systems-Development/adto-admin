@@ -1,175 +1,203 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { Eye, EyeOff } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { useAuthStore } from '@/lib/store/authStore'
-import { loginSchema } from '@/lib/zod/login.schema'
-import type { AdminLoginRequest } from '@/lib/types/requests/AdminLoginRequest'
+import React, { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useAuthStore } from "@/lib/store/authStore";
+import { loginSchema } from "@/lib/zod/login.schema";
+import type { AdminLoginRequest } from "@/lib/types/requests/AdminLoginRequest";
 
 function AdminLoginContent() {
-    const router = useRouter()
-    const searchParams = useSearchParams()
-    const [showLoginModal, setShowLoginModal] = useState(false)
-    const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-    const {
-        login,
-        isLoggingIn,
-        error: authError,
-        isAuthenticated,
-        clearError
-    } = useAuthStore()
+  const {
+    login,
+    isLoggingIn,
+    error: authError,
+    isAuthenticated,
+    clearError,
+  } = useAuthStore();
 
-    useEffect(() => {
-        if (searchParams.get('reason') === 'auth') {
-            setShowLoginModal(true)
-        }
-    }, [searchParams])
-
-    useEffect(() => {
-        if (isAuthenticated) {
-            const redirectUrl = searchParams.get('redirect') || '/dashboard'
-            router.push(redirectUrl)
-        }
-    }, [isAuthenticated, router, searchParams])
-
-    const form = useForm<AdminLoginRequest>({
-        resolver: zodResolver(loginSchema),
-        defaultValues: {
-            email: "",
-            password: "",
-        },
-    })
-
-    async function onSubmit(values: AdminLoginRequest) {
-        clearError()
-        try {
-            await login(values)
-        } catch (error) {
-            console.error('Login error:', error)
-        }
+  useEffect(() => {
+    if (searchParams.get("reason") === "auth") {
+      setShowLoginModal(true);
     }
+  }, [searchParams]);
 
-    return (
-        <div className="flex items-center justify-center min-h-screen px-4 py-6 bg-gradient-to-br from-blue-600 to-blue-900">
-            <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Please log in to continue</DialogTitle>
-                    </DialogHeader>
-                </DialogContent>
-            </Dialog>
-            <Card className="w-full max-w-md mx-auto rounded-2xl md:rounded-[34px] shadow-lg">
-                <CardHeader className="flex flex-col items-center space-y-3 md:space-y-2 p-6 md:pb-2">
-                    <div className="flex flex-col items-center">
-                        <div className="w-12 h-12 md:w-16 md:h-16 mb-3 md:mb-4">
-                            <div className="w-full h-full bg-primary rounded-full flex items-center justify-center">
-                                <span className="text-black text-lg md:text-xl font-bold">LOGO</span>
-                            </div>
-                        </div>
-                        <CardTitle className="text-2xl md:text-3xl font-extrabold text-center bg-gradient-to-r from-blue-600 to-blue-900 bg-clip-text text-transparent">Admin Login</CardTitle>
-                    </div>
-                    <div className="text-center">
-                        <CardDescription className="text-sm md:text-base">
-                            Enter your credentials to access the admin dashboard
-                        </CardDescription>
-                    </div>
-                </CardHeader>
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirectUrl = searchParams.get("redirect") || "/dashboard";
+      router.push(redirectUrl);
+    }
+  }, [isAuthenticated, router, searchParams]);
 
-                <CardContent className="p-6 pt-2">
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            {authError && (
-                                <div className="p-3 rounded-md bg-destructive/15 text-destructive text-sm">
-                                    {authError}
-                                </div>
-                            )}
+  const form = useForm<AdminLoginRequest>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Email</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="your.email@here.com" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+  async function onSubmit(values: AdminLoginRequest) {
+    clearError();
+    try {
+      await login(values);
+    } catch (error) {
+      console.error("Login error:", error);
+    }
+  }
 
-                            <FormField
-                                control={form.control}
-                                name="password"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Password</FormLabel>
-                                        <FormControl>
-                                            <div className="relative">
-                                                <Input 
-                                                    type={showPassword ? "text" : "password"} 
-                                                    placeholder="••••••••" 
-                                                    {...field} 
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                                    aria-label={showPassword ? "Hide password" : "Show password"}
-                                                >
-                                                    {showPassword ? (
-                                                        <EyeOff className="h-4 w-4" />
-                                                    ) : (
-                                                        <Eye className="h-4 w-4" />
-                                                    )}
-                                                </button>
-                                            </div>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+  return (
+    <div className="flex items-center justify-center min-h-screen px-4 py-6 bg-gradient-to-br from-blue-600 to-blue-900">
+      <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Please log in to continue</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+      <Card className="w-full max-w-md mx-auto rounded-2xl md:rounded-[34px] shadow-lg">
+        <CardHeader className="flex flex-col items-center space-y-3 md:space-y-2 p-6 md:pb-2">
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 md:w-16 md:h-16 mb-3 md:mb-4">
+              <div className="w-full h-full bg-primary rounded-full flex items-center justify-center">
+                <img
+                  src="/images/ADTO2_Blue.svg"
+                  alt="ADTO Logo"
+                  className="w-6 h-6 md:w-8 md:h-8"
+                />
+              </div>
+            </div>
+            <CardTitle className="text-2xl md:text-3xl font-extrabold text-center bg-gradient-to-r from-blue-600 to-blue-900 bg-clip-text text-transparent">
+              Admin Login
+            </CardTitle>
+          </div>
+          <div className="text-center">
+            <CardDescription className="text-sm md:text-base">
+              Enter your credentials to access the admin dashboard
+            </CardDescription>
+          </div>
+        </CardHeader>
 
-                            <div className="pt-2">
-                                <Button
-                                    variant="secondary"
-                                    size="lg"
-                                    type="submit"
-                                    disabled={isLoggingIn}
-                                    className="w-full bg-gradient-to-r from-blue-500 to-blue-800 hover:from-blue-600 hover:to-blue-900 text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg font-medium"
-                                >
-                                    {isLoggingIn ? 'Logging in...' : 'Login'}
-                                </Button>
-                            </div>
-                        </form>
-                    </Form>
-                </CardContent>
-            </Card>
-        </div>
-    )
+        <CardContent className="p-6 pt-2">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {authError && (
+                <div className="p-3 rounded-md bg-destructive/15 text-destructive text-sm">
+                  {authError}
+                </div>
+              )}
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="your.email@here.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="pt-2">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-800 hover:from-blue-600 hover:to-blue-900 text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg font-medium"
+                >
+                  {isLoggingIn ? "Logging in..." : "Login"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
 export default function AdminLogin() {
-    return (
-        <Suspense fallback={
-            <div className="flex items-center justify-center min-h-screen px-4 py-6 bg-gradient-to-br from-blue-600 to-blue-900">
-                <Card className="w-full max-w-md mx-auto rounded-2xl md:rounded-[34px] shadow-lg">
-                    <CardContent className="p-6 flex items-center justify-center h-64">
-                        <div className="text-center">Loading...</div>
-                    </CardContent>
-                </Card>
-            </div>
-        }>
-            <AdminLoginContent />
-        </Suspense>
-    )
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen px-4 py-6 bg-gradient-to-br from-blue-600 to-blue-900">
+          <Card className="w-full max-w-md mx-auto rounded-2xl md:rounded-[34px] shadow-lg">
+            <CardContent className="p-6 flex items-center justify-center h-64">
+              <div className="text-center">Loading...</div>
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <AdminLoginContent />
+    </Suspense>
+  );
 }
