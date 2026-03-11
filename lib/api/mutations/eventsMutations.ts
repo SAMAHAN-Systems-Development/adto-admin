@@ -79,10 +79,10 @@ export const useArchiveEventMutation = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["events"] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to archive event. Please try again.",
+        description: error.message || "Failed to archive event. Please try again.",
         variant: "destructive",
       });
       console.error("Failed to archive event:", error);

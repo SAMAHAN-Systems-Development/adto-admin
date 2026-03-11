@@ -114,7 +114,8 @@ export const archiveEvent = async (id: string) => {
   });
 
   if (!response.ok) {
-    throw new Error("Event archive failed");
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Event archive failed");
   }
 
   const data = await response.json();
