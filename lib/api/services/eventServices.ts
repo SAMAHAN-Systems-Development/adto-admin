@@ -121,6 +121,20 @@ export const archiveEvent = async (id: string) => {
   return data;
 };
 
+export const unarchiveEvent = async (id: string) => {
+  const response = await fetch(`${BASE_URL}/events/${id}/unarchive`, {
+    method: "PATCH",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Event unarchive failed");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
 export const createEvent = async (eventData: CreateEventRequest) => {
   const response = await fetch(`${BASE_URL}/events`, {
     method: "POST",

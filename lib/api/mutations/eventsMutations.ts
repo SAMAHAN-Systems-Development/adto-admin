@@ -4,6 +4,7 @@ import {
   createEvent,
   updateEvent,
   archiveEvent,
+  unarchiveEvent,
   publishEvent,
 } from "../services/eventServices";
 import type {
@@ -85,6 +86,32 @@ export const useArchiveEventMutation = () => {
         variant: "destructive",
       });
       console.error("Failed to archive event:", error);
+    },
+  });
+};
+
+export const useUnarchiveEventMutation = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: unarchiveEvent,
+    onSuccess: (_, eventId) => {
+      toast({
+        title: "Success",
+        description: "Event unarchived successfully!",
+        variant: "success",
+      });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to unarchive event. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Failed to unarchive event:", error);
     },
   });
 };
