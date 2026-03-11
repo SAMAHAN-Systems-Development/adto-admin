@@ -110,6 +110,7 @@ export const createRegistrationsColumns = ({
             onCheckedChange={(checked) =>
               onIsAttendedChange?.(registration.id, checked)
             }
+            className="data-[state=checked]:bg-blue-600"
           />
         </div>
       );
