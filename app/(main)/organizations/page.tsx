@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useOrganizationParentsQuery } from "@/lib/api/queries/organizationParentQueries";
 import { AddParentOrganizationModal } from "@/components/features/organizations/parent-organization-modal-form";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { UserType } from "@/lib/types/user-type";
 
 export default function OrganizationsPage() {
   const router = useRouter();
@@ -252,143 +254,145 @@ export default function OrganizationsPage() {
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <Tabs defaultValue="organizations" className="w-full">
-        <TabsList>
-          <TabsTrigger value="organizations">Organizations</TabsTrigger>
-          <TabsTrigger value="parent-organizations">Parent Organizations</TabsTrigger>
-        </TabsList>
+    <ProtectedRoute requiredRole={UserType.ADMIN}>
+      <div className="container mx-auto py-10">
+        <Tabs defaultValue="organizations" className="w-full">
+          <TabsList>
+            <TabsTrigger value="organizations">Organizations</TabsTrigger>
+            <TabsTrigger value="parent-organizations">Parent Organizations</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="organizations" className="mt-6">
-          <DataTable
-            title="Organizations"
-            columns={columns}
-            data={organizations}
-            searchColumn="name"
-            searchPlaceholder="Search organizations by name or acronym..."
-            addButtonLabel="Add Organization"
-            onCreateItem={handleCreateOrganization}
-            entityName="organizations"
-            search={{
-              value: searchFilter,
-              onSearchChange: setSearchFilter,
-            }}
-            sorting={{
-              field: "name",
-              order: orderBy,
-              onSortChange: (field, order) => {
-                setOrderBy(order);
-                setPage(1); // Reset to first page when sorting changes
-              },
-            }}
-            pagination={{
-              page,
-              limit,
-              totalCount: meta?.totalCount || 0,
-              totalPages: meta?.totalPages || 0,
-              onPageChange: setPage,
-              onLimitChange: (newLimit) => {
-                setLimit(newLimit);
-                setPage(1); // Reset to first page when limit changes
-              },
-            }}
-            onRowClick={(organization) => handleViewOrganization(organization)}
-            isTableLoading={isFetching && !isInitialLoad.current}
-          />
-        </TabsContent>
+          <TabsContent value="organizations" className="mt-6">
+            <DataTable
+              title="Organizations"
+              columns={columns}
+              data={organizations}
+              searchColumn="name"
+              searchPlaceholder="Search organizations by name or acronym..."
+              addButtonLabel="Add Organization"
+              onCreateItem={handleCreateOrganization}
+              entityName="organizations"
+              search={{
+                value: searchFilter,
+                onSearchChange: setSearchFilter,
+              }}
+              sorting={{
+                field: "name",
+                order: orderBy,
+                onSortChange: (field, order) => {
+                  setOrderBy(order);
+                  setPage(1); // Reset to first page when sorting changes
+                },
+              }}
+              pagination={{
+                page,
+                limit,
+                totalCount: meta?.totalCount || 0,
+                totalPages: meta?.totalPages || 0,
+                onPageChange: setPage,
+                onLimitChange: (newLimit) => {
+                  setLimit(newLimit);
+                  setPage(1); // Reset to first page when limit changes
+                },
+              }}
+              onRowClick={(organization) => handleViewOrganization(organization)}
+              isTableLoading={isFetching && !isInitialLoad.current}
+            />
+          </TabsContent>
 
-        <TabsContent value="parent-organizations" className="mt-6">
-          <DataTable
-            title="Parent Organizations"
-            columns={parentColumns}
-            data={paginatedParentOrgs.data}
-            searchColumn="name"
-            searchPlaceholder="Search parent organizations..."
-            addButtonLabel="Add Parent Organization"
-            onCreateItem={handleCreateParentOrganization}
-            entityName="parent-organizations"
-            search={{
-              value: parentSearchFilter,
-              onSearchChange: setParentSearchFilter,
-            }}
-            sorting={{
-              field: "name",
-              order: parentOrderBy,
-              onSortChange: (field, order) => {
-                setParentOrderBy(order);
-                setParentPage(1);
-              },
-            }}
-            pagination={{
-              page: parentPage,
-              limit: parentLimit,
-              totalCount: paginatedParentOrgs.totalCount,
-              totalPages: paginatedParentOrgs.totalPages,
-              onPageChange: setParentPage,
-              onLimitChange: (newLimit) => {
-                setParentLimit(newLimit);
-                setParentPage(1);
-              },
-            }}
-            onRowClick={(parentOrg) => handleViewParentOrganization(parentOrg)}
-            isTableLoading={isParentsLoading}
-          />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="parent-organizations" className="mt-6">
+            <DataTable
+              title="Parent Organizations"
+              columns={parentColumns}
+              data={paginatedParentOrgs.data}
+              searchColumn="name"
+              searchPlaceholder="Search parent organizations..."
+              addButtonLabel="Add Parent Organization"
+              onCreateItem={handleCreateParentOrganization}
+              entityName="parent-organizations"
+              search={{
+                value: parentSearchFilter,
+                onSearchChange: setParentSearchFilter,
+              }}
+              sorting={{
+                field: "name",
+                order: parentOrderBy,
+                onSortChange: (field, order) => {
+                  setParentOrderBy(order);
+                  setParentPage(1);
+                },
+              }}
+              pagination={{
+                page: parentPage,
+                limit: parentLimit,
+                totalCount: paginatedParentOrgs.totalCount,
+                totalPages: paginatedParentOrgs.totalPages,
+                onPageChange: setParentPage,
+                onLimitChange: (newLimit) => {
+                  setParentLimit(newLimit);
+                  setParentPage(1);
+                },
+              }}
+              onRowClick={(parentOrg) => handleViewParentOrganization(parentOrg)}
+              isTableLoading={isParentsLoading}
+            />
+          </TabsContent>
+        </Tabs>
 
-      <ViewOrganizationModal
-        isOpen={isViewModalOpen}
-        onClose={() => setIsViewModalOpen(false)}
-        organization={selectedOrganization}
-        onEdit={() =>
-          selectedOrganization && handleEditOrganization(selectedOrganization.id)
-        }
-      />
-      <ConfirmationModal
-        isOpen={showArchiveDialog}
-        onClose={handleArchiveCancel}
-        onConfirm={handleArchiveConfirm}
-        title="Archive Organization?"
-        description="Are you sure you want to archive this organization? This action will remove it from the active organizations list."
-        confirmText="Yes, archive organization"
-        cancelText="No, keep organization"
-        isLoading={archiveOrganizationMutation.isPending}
-        variant="destructive"
-      />
-      <AddParentOrganizationModal
-        isOpen={isAddParentModalOpen}
-        onClose={handleCloseParentModal}
-        parentOrganization={selectedParentOrganization}
-      />
-      <ConfirmationModal
-        isOpen={showRemoveParentDialog}
-        onClose={handleRemoveParentCancel}
-        onConfirm={handleRemoveParentConfirm}
-        title="Remove Parent Organization?"
-        description="Are you sure you want to remove this parent organization? This action cannot be undone if there are no associated organizations."
-        confirmText="Yes, remove"
-        cancelText="No, keep it"
-        isLoading={deleteParentOrganizationMutation.isPending}
-        variant="destructive"
-      />
-      <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
-        <AlertDialogContent className="bg-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-red-600">Cannot Remove Parent Organization</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-700">
-              {errorDialogMessage}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction
-              onClick={() => setShowErrorDialog(false)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              OK
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        <ViewOrganizationModal
+          isOpen={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+          organization={selectedOrganization}
+          onEdit={() =>
+            selectedOrganization && handleEditOrganization(selectedOrganization.id)
+          }
+        />
+        <ConfirmationModal
+          isOpen={showArchiveDialog}
+          onClose={handleArchiveCancel}
+          onConfirm={handleArchiveConfirm}
+          title="Archive Organization?"
+          description="Are you sure you want to archive this organization? This action will remove it from the active organizations list."
+          confirmText="Yes, archive organization"
+          cancelText="No, keep organization"
+          isLoading={archiveOrganizationMutation.isPending}
+          variant="destructive"
+        />
+        <AddParentOrganizationModal
+          isOpen={isAddParentModalOpen}
+          onClose={handleCloseParentModal}
+          parentOrganization={selectedParentOrganization}
+        />
+        <ConfirmationModal
+          isOpen={showRemoveParentDialog}
+          onClose={handleRemoveParentCancel}
+          onConfirm={handleRemoveParentConfirm}
+          title="Remove Parent Organization?"
+          description="Are you sure you want to remove this parent organization? This action cannot be undone if there are no associated organizations."
+          confirmText="Yes, remove"
+          cancelText="No, keep it"
+          isLoading={deleteParentOrganizationMutation.isPending}
+          variant="destructive"
+        />
+        <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+          <AlertDialogContent className="bg-white">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-red-600">Cannot Remove Parent Organization</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-700">
+                {errorDialogMessage}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction
+                onClick={() => setShowErrorDialog(false)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                OK
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </ProtectedRoute>
   );
 }

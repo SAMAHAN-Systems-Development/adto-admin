@@ -12,6 +12,8 @@ import {
   useUpdateOrganizationMutation,
 } from "@/lib/api/mutations/organizationsMutations";
 import { UpdateOrganizationRequest } from "@/lib/types/requests/OrganizationRequests";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { UserType } from "@/lib/types/user-type";
 
 export default function EditOrganizationPage() {
   const router = useRouter();
@@ -98,7 +100,7 @@ export default function EditOrganizationPage() {
   }
 
   return (
-    <>
+    <ProtectedRoute requiredRole={UserType.ADMIN}>
       <div className="container w-full mt-14 ml-3">
         {/* Back Button */}
         <Button
@@ -145,6 +147,6 @@ export default function EditOrganizationPage() {
         cancelText="No, Keep Editing"
         variant="destructive"
       />
-    </>
+    </ProtectedRoute>
   );
 }
