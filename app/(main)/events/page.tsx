@@ -106,17 +106,11 @@ export default function EventsPage() {
     if (eventToArchive) {
       try {
         await archiveEventMutation.mutateAsync(eventToArchive);
-        toast.success("Event archived successfully", {
-          description:
-            "The event has been removed from the active events list.",
-        });
         setShowArchiveDialog(false);
         setEventToArchive(null);
-      } catch {
-        toast.error("Failed to archive event", {
-          description:
-            "An error occurred while archiving the event. Please try again.",
-        });
+      } catch (error) {
+        setShowArchiveDialog(false);
+        setEventToArchive(null);
       }
     }
   };

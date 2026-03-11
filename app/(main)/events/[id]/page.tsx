@@ -212,20 +212,32 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   };
 
   const handleArchiveEvent = async () => {
-    await archiveEventMutation.mutateAsync(params.id);
-    setShowArchiveModal(false);
-    router.push("/events");
+    try {
+      await archiveEventMutation.mutateAsync(params.id);
+      setShowArchiveModal(false);
+      router.push("/events");
+    } catch (error) {
+      setShowArchiveModal(false);
+    }
   };
 
   const handleUnarchiveEvent = async () => {
-    await unarchiveEventMutation.mutateAsync(params.id);
-    setShowUnarchiveModal(false);
-    router.push("/events");
+    try {
+      await unarchiveEventMutation.mutateAsync(params.id);
+      setShowUnarchiveModal(false);
+      router.push("/events");
+    } catch (error) {
+      setShowUnarchiveModal(false);
+    }
   };
 
   const handlePublishEvent = async () => {
-    await publishEventMutation.mutateAsync(params.id);
-    setShowPublishModal(false);
+    try {
+      await publishEventMutation.mutateAsync(params.id);
+      setShowPublishModal(false);
+    } catch (error) {
+      setShowPublishModal(false);
+    }
   };
 
   const handleDescriptionDoubleClick = () => {
