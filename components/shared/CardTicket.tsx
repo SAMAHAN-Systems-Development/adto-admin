@@ -606,9 +606,9 @@ export default function CardTicket({
         className="border-[#94A3B8] cursor-pointer"
         onClick={() => setModalOpen(true)}
       >
-        <div className="flex gap-4 p-4">
-          {/* Ticket Thumbnail - Full Left Side */}
-          <div className="flex-shrink-0">
+        <div className="flex flex-col sm:flex-row gap-4 p-4">
+          {/* Ticket Thumbnail */}
+          <div className="flex-shrink-0 self-center sm:self-start">
             {ticket.thumbnail ? (
               <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200 relative group">
                 <Image
@@ -639,11 +639,11 @@ export default function CardTicket({
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-w-0">
             {/* Header */}
             <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-2 flex-1 pr-4">
-                <CardTitle className="lg:text-2xl font-bold text-[#1E293B]">
+              <div className="flex items-center gap-2 flex-1 min-w-0 pr-4">
+                <CardTitle className="lg:text-2xl font-bold text-[#1E293B] truncate">
                   {ticket.name}
                 </CardTitle>
                 {getStatusBadge()}
@@ -680,20 +680,21 @@ export default function CardTicket({
             </div>
 
             {/* Ticket Details */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="flex flex-wrap sm:flex-nowrap gap-4">
               {ticketDetails.map((detail, index) => (
                 <div
                   key={index}
                   className={`
                     flex flex-col gap-1
-                    ${detail.hasBorder ? "lg:border-l-2 lg:border-r-2 lg:px-3" : ""}
-                    ${!detail.hasBorder && index > 0 ? "lg:pl-3" : ""}
+                    ${index === 2 ? "flex-1 min-w-0" : "min-w-[5rem]"}
+                    ${detail.hasBorder ? "sm:border-l-2 sm:border-r-2 sm:px-3" : ""}
+                    ${!detail.hasBorder && index > 0 ? "sm:pl-3" : ""}
                   `}
                 >
                   <span className="text-xs lg:text-sm font-normal text-[#94A3B8] whitespace-nowrap">
                     {detail.label}
                   </span>
-                  <span className="text-sm lg:text-base font-semibold text-[#64748B] break-keep">
+                  <span className="text-sm lg:text-base font-semibold text-[#64748B]">
                     {detail.value}
                   </span>
                 </div>
