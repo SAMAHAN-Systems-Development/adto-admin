@@ -3,6 +3,7 @@ import { BASE_URL } from "../../config/api";
 // ─── Response Types ───────────────────────────────────────────────
 
 export interface AdminOverviewResponse {
+  orgName?: string;
   totalEvents: number;
   upcomingEvents: number;
   ongoingEvents: number;

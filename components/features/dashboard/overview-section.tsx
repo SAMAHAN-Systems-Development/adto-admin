@@ -1,37 +1,25 @@
 "use client";
 
-import {
-  useAdminOverviewQuery,
-  useSuperadminOverviewQuery,
-} from "@/lib/api/queries/dashboardQueries";
 import { StatCard } from "./stat-card";
 import { UserType } from "@/lib/types/user-type";
+import type { AdminOverviewResponse, SuperadminOverviewResponse } from "@/lib/api/services/dashboardServices";
 
 interface OverviewSectionProps {
   role: UserType;
+  data?: AdminOverviewResponse | SuperadminOverviewResponse | null;
+  isLoading: boolean;
 }
 
-export function OverviewSection({ role }: OverviewSectionProps) {
+export function OverviewSection({ role, data, isLoading }: OverviewSectionProps) {
   const isAdmin = role === UserType.ADMIN;
 
-  const adminQuery = useAdminOverviewQuery();
-  const superadminQuery = useSuperadminOverviewQuery();
-
-  const { data, isLoading } = isAdmin ? superadminQuery : adminQuery;
-
   if (isAdmin) {
-    const superadminData = data as {
-      totalOrganizations: number;
-      totalEvents: number;
-      upcomingEvents: number;
-      ongoingEvents: number;
-      draftEvents: number;
-    } | undefined;
+    const superadminData = data as SuperadminOverviewResponse | undefined;
 
     return (
       <section>
-        <h2 className="text-2xl font-semibold mb-4">Platform Overview</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+        <h2 className="text-xl font-semibold mb-3">Platform Overview</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-5">
           <StatCard
             title="Total Organizations"
             value={superadminData?.totalOrganizations ?? 0}
@@ -62,17 +50,12 @@ export function OverviewSection({ role }: OverviewSectionProps) {
     );
   }
 
-  const adminData = data as {
-    totalEvents: number;
-    upcomingEvents: number;
-    ongoingEvents: number;
-    draftEvents: number;
-  } | undefined;
+  const adminData = data as AdminOverviewResponse | undefined;
 
   return (
     <section>
-      <h2 className="text-2xl font-semibold mb-4">Events Overview</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <h2 className="text-xl font-semibold mb-3">Events Overview</h2>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
         <StatCard
           title="Total Events"
           value={adminData?.totalEvents ?? 0}

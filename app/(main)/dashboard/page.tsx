@@ -11,13 +11,14 @@ const DashboardPage = () => {
   if (isLoading || !user) {
     return (
       <div className="container mx-auto py-6">
-        <div className="space-y-6">
+        <div className="space-y-8">
           <div className="h-10 w-64 bg-gray-200 rounded animate-pulse" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="h-24 w-full bg-gray-200 rounded-xl animate-pulse" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="h-32 bg-gray-200 rounded-[20px] animate-pulse"
+                className="h-24 bg-gray-200 rounded-xl animate-pulse"
               />
             ))}
           </div>
@@ -27,17 +28,8 @@ const DashboardPage = () => {
     );
   }
 
-  const greeting =
-    user.role === UserType.ADMIN
-      ? "Welcome, Superadmin"
-      : "Welcome back";
-
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-blue-900 to-blue-600 bg-clip-text text-transparent">
-        {greeting}
-      </h1>
-
+    <div className="container mx-auto py-6 mb-10">
       {user.role === UserType.ADMIN ? (
         <SuperadminDashboard />
       ) : (
