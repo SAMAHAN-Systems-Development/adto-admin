@@ -18,11 +18,19 @@ export const createEventSchema: z.ZodSchema<CreateEventRequest> = z
     isOpenToOutsiders: z.boolean().optional(),
   })
   .superRefine((arg, ctx) => {
+    if (new Date(arg.dateStart) < new Date()) {
+      ctx.addIssue({
+        path: ["dateStart"],
+        code: "custom",
+        message: "Start date/time cannot be in the past.",
+      });
+    }
+
     if (new Date(arg.dateStart) >= new Date(arg.dateEnd)) {
       ctx.addIssue({
         path: ["dateEnd"],
         code: "custom",
-        message: "End date must be after the start date.",
+        message: "End date/time must be after start date/time.",
       });
     }
   });
@@ -53,7 +61,7 @@ export const updateEventSchema: z.ZodSchema<UpdateEventRequest> = z
       ctx.addIssue({
         path: ["dateEnd"],
         code: "custom",
-        message: "End date must be after the start date.",
+        message: "End date/time must be after start date/time.",
       });
     }
   });
