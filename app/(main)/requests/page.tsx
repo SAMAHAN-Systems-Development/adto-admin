@@ -53,7 +53,7 @@ export default function RequestsPage() {
 
         {/* Status Filter Tabs */}
         <div className="border-b border-gray-200 mb-6">
-          <nav className="flex gap-6">
+          <nav className="flex overflow-x-auto gap-4 md:gap-6 whitespace-nowrap scrollbar-hide">
             {(["PENDING", "APPROVED", "DECLINED"] as TicketRequestStatus[]).map(
               (status) => (
                 <button

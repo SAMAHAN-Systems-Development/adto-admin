@@ -174,7 +174,7 @@ export default function EventsPage() {
 
       {/* Status Filter Tabs */}
       <div className="border-b border-gray-200 mb-6">
-        <nav className="flex gap-6">
+        <nav className="flex overflow-x-auto gap-6 whitespace-nowrap scrollbar-hide">
           {EVENT_TABS.map((tab) => (
             <button
               key={tab.value}

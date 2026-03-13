@@ -57,7 +57,7 @@ export default function CreateOrganizationPage() {
 
   return (
     <>
-      <div className="font-figtree container w-full mt-14 ml-3">
+      <div className="font-figtree container mx-auto px-4 sm:px-6 w-full mt-14">
         {/* Back Button */}
         <Button
           variant="ghost"
