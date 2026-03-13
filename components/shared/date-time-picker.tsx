@@ -19,6 +19,13 @@ import type {
   FieldValues,
 } from "react-hook-form";
 
+type DateTimePickerProps<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+> = Omit<ControllerRenderProps<TFieldValues, TName>, "ref"> & {
+  disabledDate?: (date: Date) => boolean;
+};
+
 /**
  * Note: `forwardRef` is used here because of error. The error disappeared, but it may not be the best fix.
  * Error: hook.js:608 Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?
@@ -28,7 +35,7 @@ const DateTimePicker = React.forwardRef(
     TFieldValues extends FieldValues = FieldValues,
     TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
   >(
-    props?: Omit<ControllerRenderProps<TFieldValues, TName>, "ref">,
+    props?: DateTimePickerProps<TFieldValues, TName>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ref?: unknown,
   ) => {
@@ -36,6 +43,19 @@ const DateTimePicker = React.forwardRef(
     const [isOpen, setIsOpen] = React.useState(false);
 
     const hours = Array.from({ length: 12 }, (_, i) => i + 1);
+
+    React.useEffect(() => {
+      if (!props?.value) {
+        setDate(undefined);
+        return;
+      }
+
+      const parsedDate = new Date(props.value);
+      if (!Number.isNaN(parsedDate.getTime())) {
+        setDate(parsedDate);
+      }
+    }, [props?.value]);
+
     const handleDateSelect = (selectedDate: Date | undefined) => {
       if (selectedDate) {
         setDate(selectedDate);
@@ -51,16 +71,17 @@ const DateTimePicker = React.forwardRef(
         const newDate = new Date(date);
         if (type === "hour") {
           newDate.setHours(
-            (parseInt(value) % 12) + (newDate.getHours() >= 12 ? 12 : 0),
+            (Number.parseInt(value) % 12) + (newDate.getHours() >= 12 ? 12 : 0),
           );
         } else if (type === "minute") {
-          newDate.setMinutes(parseInt(value));
+          newDate.setMinutes(Number.parseInt(value));
         } else if (type === "ampm") {
           const currentHours = newDate.getHours();
           newDate.setHours(
             value === "PM" ? currentHours + 12 : currentHours - 12,
           );
         }
+
         setDate(newDate);
         props?.onChange(newDate.toISOString());
       }
@@ -90,12 +111,13 @@ const DateTimePicker = React.forwardRef(
               mode="single"
               selected={date}
               onSelect={handleDateSelect}
+              disabled={props?.disabledDate}
               initialFocus
             />
             <div className="flex flex-col sm:flex-row sm:h-[300px] divide-y sm:divide-y-0 sm:divide-x">
               <ScrollArea className="w-64 sm:w-auto">
                 <div className="flex sm:flex-col p-2">
-                  {hours.reverse().map((hour) =>
+                  {hours.toReversed().map((hour) =>
                     (() => {
                       const isSelected =
                         !!date && date.getHours() % 12 === hour % 12;
@@ -156,6 +178,7 @@ const DateTimePicker = React.forwardRef(
                         !!date &&
                         ((ampm === "AM" && date.getHours() < 12) ||
                           (ampm === "PM" && date.getHours() >= 12));
+
                       return (
                         <Button
                           key={ampm}

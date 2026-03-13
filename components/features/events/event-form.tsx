@@ -39,6 +39,32 @@ export function EventForm({
     resolver: zodResolver(createEventSchema),
   });
 
+  const selectedStartDate = form.watch("dateStart");
+
+  const disablePastDates = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+
+    return targetDate < today;
+  };
+
+  const disableEndDatesBeforeStart = (date: Date) => {
+    if (!selectedStartDate) return false;
+
+    const startDate = new Date(selectedStartDate);
+    if (Number.isNaN(startDate.getTime())) return false;
+
+    startDate.setHours(0, 0, 0, 0);
+
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+
+    return targetDate < startDate;
+  };
+
   async function handleSubmit(data: CreateEventRequest) {
     try {
       await onSubmit(data);
@@ -111,6 +137,7 @@ export function EventForm({
                   <FormControl>
                     <DateTimePicker
                       {...field}
+                      disabledDate={disablePastDates}
                       onChange={(value) => {
                         field.onChange(value);
                         handleFieldChange();
@@ -131,6 +158,7 @@ export function EventForm({
                   <FormControl>
                     <DateTimePicker
                       {...field}
+                      disabledDate={disableEndDatesBeforeStart}
                       onChange={(value) => {
                         field.onChange(value);
                         handleFieldChange();
