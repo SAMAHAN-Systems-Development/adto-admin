@@ -13,7 +13,6 @@ import { useDeleteOrganizationParentMutation } from "@/lib/api/mutations/organiz
 import type { OrganizationChild, OrganizationParent } from "@/lib/types/entities";
 import { toast } from "sonner";
 import { useDebounce } from "@/lib/hooks/use-debounce";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +54,13 @@ export default function OrganizationsPage() {
   const [parentLimit, setParentLimit] = useState(20);
   const [parentSearchFilter, setParentSearchFilter] = useState("");
   const [parentOrderBy, setParentOrderBy] = useState<"asc" | "desc">("asc");
+
+  const [activeTab, setActiveTab] = useState<"organizations" | "parent-organizations">("organizations");
+
+  const ORGANIZATION_TABS = [
+    { label: "Organizations", value: "organizations" },
+    { label: "Parent Organizations", value: "parent-organizations" },
+  ] as const;
 
   // Track if this is the initial load
   const isInitialLoad = useRef(true);
@@ -264,15 +270,33 @@ export default function OrganizationsPage() {
   return (
     <ProtectedRoute requiredRole={UserType.ADMIN}>
       <div className="container mx-auto py-10">
-        <Tabs defaultValue="organizations" className="w-full">
-          <TabsList>
-            <TabsTrigger value="organizations">Organizations</TabsTrigger>
-            <TabsTrigger value="parent-organizations">Parent Organizations</TabsTrigger>
-          </TabsList>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">Organizations</h1>
+        <p className="text-gray-600 mb-8">
+          Manage system organizations and parent organizations.
+        </p>
 
-          <TabsContent value="organizations" className="mt-6">
+        <div className="border-b border-gray-200 mb-6">
+          <nav className="flex gap-6">
+            {ORGANIZATION_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`pb-3 px-1 text-sm font-medium transition-colors ${
+                  activeTab === tab.value
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {activeTab === "organizations" ? (
+          <div className="mt-6">
             <DataTable
-              title="Organizations"
+              title=""
               columns={columns}
               data={organizations}
               searchColumn="name"
@@ -306,11 +330,11 @@ export default function OrganizationsPage() {
               onRowClick={(organization) => handleViewOrganization(organization)}
               isTableLoading={isFetching && !isInitialLoad.current}
             />
-          </TabsContent>
-
-          <TabsContent value="parent-organizations" className="mt-6">
+          </div>
+        ) : (
+          <div className="mt-6">
             <DataTable
-              title="Parent Organizations"
+              title=""
               columns={parentColumns}
               data={paginatedParentOrgs.data}
               searchColumn="name"
@@ -344,8 +368,8 @@ export default function OrganizationsPage() {
               onRowClick={(parentOrg) => handleViewParentOrganization(parentOrg)}
               isTableLoading={isParentsLoading}
             />
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
 
         <ViewOrganizationModal
           isOpen={isViewModalOpen}
