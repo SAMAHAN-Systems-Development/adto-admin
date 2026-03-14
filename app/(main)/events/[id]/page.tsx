@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Calendar, MapPin, Archive, ArrowLeft, CirclePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { DateTimePicker } from "@/components/shared/date-time-picker";
 import { useEventQuery } from "@/lib/api/queries/eventsQueries";
 import {
   useUpdateEventMutation,
@@ -17,7 +19,6 @@ import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/lib/hooks/use-toast";
 import { updateEventSchema } from "@/lib/zod/event.schema";
-import { z } from "zod";
 import toast, { Toaster } from "react-hot-toast";
 import CreateTicket from "@/components/shared/CreateTicket";
 import CardTicket from "@/components/shared/CardTicket";
@@ -53,9 +54,14 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const { toast: showToast } = useToast();
   const [activeTab, setActiveTab] = useState("additional-details");
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [isEditingEventDetails, setIsEditingEventDetails] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [editedDateStart, setEditedDateStart] = useState("");
+  const [editedDateEnd, setEditedDateEnd] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
-  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [eventDetailsErrors, setEventDetailsErrors] = useState<
+    Partial<Record<"name" | "description" | "dateStart" | "dateEnd", string>>
+  >({});
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [showUnarchiveModal, setShowUnarchiveModal] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -126,6 +132,41 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const updateTicketMutation = useUpdateEventTicketMutation();
   const deleteTicketMutation = useDeleteEventTicketMutation();
 
+  const formatDateToIso = useCallback(
+    (dateValue: string | Date | null | undefined) => {
+      if (!dateValue) return "";
+
+      const parsedDate = new Date(dateValue);
+      if (Number.isNaN(parsedDate.getTime())) {
+        return "";
+      }
+
+      return parsedDate.toISOString();
+    },
+    [],
+  );
+
+  const initializeEditFields = useCallback(
+    (
+      eventData:
+        | {
+            name: string;
+            description: string;
+            dateStart: string | Date;
+            dateEnd: string | Date;
+          }
+        | undefined,
+    ) => {
+      if (!eventData) return;
+
+      setEditedName(eventData.name || "");
+      setEditedDescription(eventData.description || "");
+      setEditedDateStart(formatDateToIso(eventData.dateStart));
+      setEditedDateEnd(formatDateToIso(eventData.dateEnd));
+    },
+    [formatDateToIso],
+  );
+
   // Local state for switches
   const [registrationOpen, setRegistrationOpen] = useState(
     event?.isRegistrationOpen ?? false,
@@ -160,6 +201,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       setRegistrationOpen(event.isRegistrationOpen);
       setEventVisibility(event.isPublished);
       setRegistrationRequired(event.isRegistrationRequired);
+      initializeEditFields(event);
 
       // Load existing banner and thumbnail from event data
       if (event.banner) {
@@ -183,7 +225,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         });
       }
     }
-  }, [event]);
+  }, [event, initializeEditFields]);
 
   const tickets = ticketsData?.data || [];
 
@@ -240,87 +282,129 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     }
   };
 
-  const handleDescriptionDoubleClick = () => {
-    setIsEditingDescription(true);
-    setEditedDescription(event?.description || "");
-    setDescriptionError(null);
+  const clearFieldError = (field: "name" | "description" | "dateStart" | "dateEnd") => {
+    setEventDetailsErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  const validateDescription = (description: string): boolean => {
-    setDescriptionError(null);
+  const handleStartEventDetailsEdit = () => {
+    initializeEditFields(event);
+    setEventDetailsErrors({});
+    setIsEditingEventDetails(true);
+  };
 
-    if (!description.trim()) {
-      setDescriptionError("Description cannot be empty");
-      return false;
-    }
+  const handleCancelEventDetailsEdit = () => {
+    initializeEditFields(event);
+    setEventDetailsErrors({});
+    setIsEditingEventDetails(false);
+  };
 
-    try {
-      updateEventSchema.parse({ description });
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const descriptionErrors = error.errors.filter((err) =>
-          err.path.includes("description"),
-        );
-        if (descriptionErrors.length > 0) {
-          setDescriptionError(descriptionErrors[0].message);
-          return false;
+  const disableEndDatesBeforeStart = (date: Date) => {
+    if (!editedDateStart) return false;
+
+    const startDate = new Date(editedDateStart);
+    if (Number.isNaN(startDate.getTime())) return false;
+
+    startDate.setHours(0, 0, 0, 0);
+
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+
+    return targetDate < startDate;
+  };
+
+  const handleSaveEventDetails = async () => {
+    if (!event) return;
+
+    const payloadToValidate = {
+      name: editedName.trim(),
+      description: editedDescription.trim(),
+      dateStart: editedDateStart,
+      dateEnd: editedDateEnd,
+    };
+
+    const validationResult = updateEventSchema.safeParse(payloadToValidate);
+
+    if (!validationResult.success) {
+      const nextErrors: Partial<
+        Record<"name" | "description" | "dateStart" | "dateEnd", string>
+      > = {};
+
+      validationResult.error.issues.forEach((issue) => {
+        const field = issue.path[0];
+        if (
+          typeof field === "string" &&
+          ["name", "description", "dateStart", "dateEnd"].includes(field) &&
+          !nextErrors[field as "name" | "description" | "dateStart" | "dateEnd"]
+        ) {
+          nextErrors[field as "name" | "description" | "dateStart" | "dateEnd"] =
+            issue.message;
         }
-      }
-      return true;
-    }
-  };
+      });
 
-  const handleSaveDescription = async () => {
-    if (!validateDescription(editedDescription)) {
+      setEventDetailsErrors(nextErrors);
       showToast({
         variant: "destructive",
         title: "Validation Error",
-        description: descriptionError || "Please fix any errors before saving.",
+        description: "Please fix any errors before saving.",
       });
       return;
     }
 
-    if (editedDescription.trim() === event?.description) {
-      setIsEditingDescription(false);
-      setDescriptionError(null);
+    const currentStartDate = formatDateToIso(event.dateStart);
+    const currentEndDate = formatDateToIso(event.dateEnd);
+
+    const changedPayload: {
+      name?: string;
+      description?: string;
+      dateStart?: string;
+      dateEnd?: string;
+    } = {};
+
+    if (payloadToValidate.name !== event.name) {
+      changedPayload.name = payloadToValidate.name;
+    }
+
+    if (payloadToValidate.description !== event.description) {
+      changedPayload.description = payloadToValidate.description;
+    }
+
+    if (payloadToValidate.dateStart !== currentStartDate) {
+      changedPayload.dateStart = payloadToValidate.dateStart;
+    }
+
+    if (payloadToValidate.dateEnd !== currentEndDate) {
+      changedPayload.dateEnd = payloadToValidate.dateEnd;
+    }
+
+    if (Object.keys(changedPayload).length === 0) {
+      setIsEditingEventDetails(false);
+      setEventDetailsErrors({});
       return;
     }
 
     try {
       await updateEventMutation.mutateAsync({
         id: params.id,
-        data: { description: editedDescription },
+        data: changedPayload,
       });
 
-      setIsEditingDescription(false);
-      setDescriptionError(null);
+      setIsEditingEventDetails(false);
+      setEventDetailsErrors({});
 
       showToast({
         variant: "success",
         title: "Success",
-        description: "Event description updated successfully. ",
+        description: "Event details updated successfully.",
       });
     } catch (error) {
-      console.error("Failed to save description:", error);
-
-      const errorMessage =
-        error instanceof Error ? error.message : "An unexpected error occurred";
-
-      setDescriptionError(errorMessage);
+      console.error("Failed to save event details:", error);
 
       showToast({
         variant: "destructive",
         title: "Error",
-        description: `Failed to save description: ${errorMessage}`,
+        description: "Failed to save event details. Please try again.",
       });
     }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingDescription(false);
-    setEditedDescription(event?.description || "");
-    setDescriptionError(null);
   };
 
   const handleDeleteBanner = async () => {
@@ -551,24 +635,116 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {event.name}
-          </h1>
-          <div className="flex items-center gap-6 text-blue-600">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              <span className="text-base">
-                {formatDate(event.dateStart.toString())} |{" "}
-                {formatTime(event.dateStart.toString())}
-              </span>
-            </div>
-            {event.org && (
-              <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                <span className="text-base">{event.org.name}</span>
+          {isEditingEventDetails ? (
+            <div className="space-y-4">
+              <div className="space-y-2 max-w-3xl">
+                <label className="text-sm font-medium text-gray-900">Event Name</label>
+                <Input
+                  value={editedName}
+                  onChange={(e) => {
+                    setEditedName(e.target.value);
+                    clearFieldError("name");
+                  }}
+                  placeholder="Enter event name"
+                  className={eventDetailsErrors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
+                  aria-invalid={!!eventDetailsErrors.name}
+                />
+                {eventDetailsErrors.name && (
+                  <p className="text-sm text-red-600">{eventDetailsErrors.name}</p>
+                )}
               </div>
-            )}
-          </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-900">Start Date & Time</label>
+                  <DateTimePicker
+                    name="dateStart"
+                    value={editedDateStart}
+                    onBlur={() => undefined}
+                    onChange={(value) => {
+                      setEditedDateStart(value);
+                      clearFieldError("dateStart");
+                    }}
+                  />
+                  {eventDetailsErrors.dateStart && (
+                    <p className="text-sm text-red-600">{eventDetailsErrors.dateStart}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-900">End Date & Time</label>
+                  <DateTimePicker
+                    name="dateEnd"
+                    value={editedDateEnd}
+                    onBlur={() => undefined}
+                    onChange={(value) => {
+                      setEditedDateEnd(value);
+                      clearFieldError("dateEnd");
+                    }}
+                    disabledDate={disableEndDatesBeforeStart}
+                  />
+                  {eventDetailsErrors.dateEnd && (
+                    <p className="text-sm text-red-600">{eventDetailsErrors.dateEnd}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-6 text-blue-600">
+                {event.org && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    <span className="text-base">{event.org.name}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 justify-end max-w-3xl">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancelEventDetailsEdit}
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSaveEventDetails}
+                  disabled={updateEventMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">{event.name}</h1>
+                <div className="flex items-center gap-6 text-blue-600">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    <span className="text-base">
+                      {formatDate(event.dateStart.toString())} | {formatTime(event.dateStart.toString())}
+                    </span>
+                  </div>
+                  {event.org && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      <span className="text-base">{event.org.name}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:text-blue-600 hover:bg-gray-50 bg-transparent rounded-sm font-semibold shadow-sm"
+                onClick={handleStartEventDetailsEdit}
+              >
+                Edit Event Details
+              </Button>
+            </div>
+          )}
         </div>
         <div className="flex flex-col lg:flex-row gap-8 mb-24">
           {/* Event Details Section */}
@@ -576,35 +752,35 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Event Details
             </h2>
-            {isEditingDescription ? (
+            {isEditingEventDetails ? (
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Textarea
                     value={editedDescription}
                     onChange={(e) => {
                       setEditedDescription(e.target.value);
-                      if (descriptionError) {
-                        setDescriptionError(null);
-                      }
+                      clearFieldError("description");
                     }}
                     className={`min-h-[200px] text-gray-700 leading-relaxed ${
-                      descriptionError
+                      eventDetailsErrors.description
                         ? "border-red-500 focus-visible:ring-red-500"
                         : ""
                     }`}
                     placeholder="Enter event description..."
-                    aria-invalid={!!descriptionError}
+                    aria-invalid={!!eventDetailsErrors.description}
                     aria-describedby={
-                      descriptionError ? "description-error" : undefined
+                      eventDetailsErrors.description
+                        ? "description-error"
+                        : undefined
                     }
                   />
                   <div className="flex items-center justify-between">
-                    {descriptionError ? (
+                    {eventDetailsErrors.description ? (
                       <p
                         id="description-error"
                         className="text-sm text-red-600 font-medium"
                       >
-                        {descriptionError}
+                        {eventDetailsErrors.description}
                       </p>
                     ) : (
                       <p className="text-sm text-gray-500">
@@ -624,32 +800,10 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancelEdit}
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleSaveDescription}
-                    disabled={updateEventMutation.isPending}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    {updateEventMutation.isPending
-                      ? "Saving..."
-                      : "Save Changes"}
-                  </Button>
-                </div>
               </div>
             ) : (
               <p
-                className="text-gray-700 leading-relaxed text-justify cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
-                onDoubleClick={handleDescriptionDoubleClick}
-                title="Double click to edit"
+                    className="text-gray-700 leading-relaxed text-justify p-2"
               >
                 {showFullDescription
                   ? event.description
