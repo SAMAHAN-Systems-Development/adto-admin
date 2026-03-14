@@ -382,7 +382,7 @@ export function DataTable<TData>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between py-4">
+      <div className="flex flex-col lg:flex-row items-center justify-between py-4 gap-4">
         <div className="text-sm text-gray-600">
           {pagination ? (
             <>
@@ -395,7 +395,7 @@ export function DataTable<TData>({
             </>
           ) : null}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {pagination && (
             <>
               <span className="text-sm text-gray-600">

@@ -570,7 +570,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             )}
           </div>
         </div>
-        <div className="flex gap-8 mb-24">
+        <div className="flex flex-col lg:flex-row gap-8 mb-24">
           {/* Event Details Section */}
           <div className="flex-1">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -673,7 +673,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               event&apos;s details.
             </p>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               {/* Banner Upload */}
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -773,7 +773,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
         {/* Tabs */}
         <div className="border-b border-gray-200 mb-8">
-          <nav className="flex gap-8">
+          <nav className="flex overflow-x-auto gap-8 whitespace-nowrap scrollbar-hide">
             <button
               onClick={() => setActiveTab("registration")}
               className={`pb-4 px-1 text-base font-medium transition-colors ${
