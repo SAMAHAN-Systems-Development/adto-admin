@@ -1,4 +1,4 @@
-import { LayoutDashboard, CalendarIcon, FileLineChart, Inbox } from "lucide-react";
+import { LayoutDashboard, CalendarIcon, FileLineChart, Inbox, CircleHelp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { UserType } from "./user-type";
 
@@ -26,6 +26,11 @@ export const mainRoutes: RouteConfig[] = [
     path: "/events",
     name: "My Events",
     icon: CalendarIcon,
+  },
+  {
+    path: "/help",
+    name: "Help",
+    icon: CircleHelp,
   },
   {
     path: "/requests",
