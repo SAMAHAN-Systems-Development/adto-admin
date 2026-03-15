@@ -77,6 +77,7 @@ interface DataTableProps<TData> {
   onRowClick?: (row: TData) => void;
   filters?: FilterConfig[];
   isTableLoading?: boolean;
+  headerActions?: React.ReactNode;
 }
 
 export function DataTable<TData>({
@@ -94,6 +95,7 @@ export function DataTable<TData>({
   onRowClick,
   filters,
   isTableLoading = false,
+  headerActions,
 }: DataTableProps<TData>) {
   const [localSorting, setLocalSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -198,17 +200,20 @@ export function DataTable<TData>({
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold">{title}</h1>
-        {onCreateItem && (
-          <Button
-            onClick={onCreateItem}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {addButtonLabel}
-          </Button>
-        )}
+        <div className="flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
+          {headerActions}
+          {onCreateItem && (
+            <Button
+              onClick={onCreateItem}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {addButtonLabel}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Filters on left, Search and Column Visibility on right */}
