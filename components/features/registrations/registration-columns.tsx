@@ -4,13 +4,17 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Registration } from "@/lib/types/entities";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
 
 interface RegistrationsColumnsProps {
   onIsAttendedChange?: (registrationId: string, isAttended: boolean) => void;
+  onEdit?: (registration: Registration) => void;
 }
 
 export const createRegistrationsColumns = ({
   onIsAttendedChange,
+  onEdit,
 }: RegistrationsColumnsProps): ColumnDef<Registration>[] => [
   {
     id: "select",
@@ -115,6 +119,25 @@ export const createRegistrationsColumns = ({
         </div>
       );
     },
+  },
+  {
+    id: "actions",
+    header: () => <span className="text-secondary-100">Actions</span>,
+    cell: ({ row }) => {
+      const registration = row.original;
+      return (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onEdit?.(registration)}
+          title="Edit registration"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
   },
 ];
 
