@@ -5,16 +5,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Registration } from "@/lib/types/entities";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface RegistrationsColumnsProps {
   onIsAttendedChange?: (registrationId: string, isAttended: boolean) => void;
   onEdit?: (registration: Registration) => void;
+  onDelete?: (registration: Registration) => void;
 }
 
 export const createRegistrationsColumns = ({
   onIsAttendedChange,
   onEdit,
+  onDelete,
 }: RegistrationsColumnsProps): ColumnDef<Registration>[] => [
   {
     id: "select",
@@ -126,14 +128,24 @@ export const createRegistrationsColumns = ({
     cell: ({ row }) => {
       const registration = row.original;
       return (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onEdit?.(registration)}
-          title="Edit registration"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onEdit?.(registration)}
+            title="Edit registration"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete?.(registration)}
+            title="Delete registration"
+          >
+            <Trash2 className="h-4 w-4 text-red-500" />
+          </Button>
+        </div>
       );
     },
     enableSorting: false,

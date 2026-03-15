@@ -36,7 +36,7 @@ import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useRegistrationsQuery } from "@/lib/api/queries/registrationQueries";
 import { DataTable } from "@/components/shared/data-table";
 import { createRegistrationsColumns } from "@/components/features/registrations/registration-columns";
-import { useUpdateRegistration } from "@/lib/api/mutations/registrationMutation";
+import { useUpdateRegistration, useDeleteRegistration } from "@/lib/api/mutations/registrationMutation";
 import { EditRegistrationDialog } from "@/components/features/registrations/edit-registration-dialog";
 import type { Registration } from "@/lib/types/entities";
 import type { UpdateRegistrationRequest } from "@/lib/types/requests/RegistrationRequest";
@@ -74,6 +74,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [courseFilter, setCourseFilter] = useState("all");
   const [ticketCategoryFilter, setTicketCategoryFilter] = useState("all");
   const [editingRegistration, setEditingRegistration] = useState<Registration | null>(null);
+  const [deletingRegistration, setDeletingRegistration] = useState<Registration | null>(null);
 
   const { user } = useAuthStore();
   const [showBannerModal, setShowBannerModal] = useState(false);
@@ -108,6 +109,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   });
 
   const updateRegistration = useUpdateRegistration();
+  const deleteRegistrationMutation = useDeleteRegistration();
 
   // Fetch event data
   const { data: event, isLoading, error } = useEventQuery(params.id);
@@ -612,9 +614,21 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     );
   };
 
+  const handleDeleteRegistration = (registration: Registration) => {
+    setDeletingRegistration(registration);
+  };
+
+  const confirmDeleteRegistration = () => {
+    if (!deletingRegistration) return;
+    deleteRegistrationMutation.mutate(deletingRegistration.id, {
+      onSuccess: () => setDeletingRegistration(null),
+    });
+  };
+
   const columns = createRegistrationsColumns({
     onIsAttendedChange: handleIsAttendedChange,
     onEdit: handleEditRegistration,
+    onDelete: handleDeleteRegistration,
   });
 
   return (
@@ -1309,6 +1323,19 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           onClose={() => setEditingRegistration(null)}
           onSave={handleSaveRegistration}
           isLoading={updateRegistration.isPending}
+        />
+
+        {/* Delete Registration Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={!!deletingRegistration}
+          onClose={() => setDeletingRegistration(null)}
+          onConfirm={confirmDeleteRegistration}
+          title="Delete Registration"
+          description={`Are you sure you want to delete the registration for "${deletingRegistration?.fullName}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          isLoading={deleteRegistrationMutation.isPending}
+          variant="destructive"
         />
       </div>
     </div>
