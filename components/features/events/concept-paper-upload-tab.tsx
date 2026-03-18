@@ -6,11 +6,21 @@ import { FileText, UploadCloud, Trash2, ExternalLink } from "lucide-react";
 import { useUploadConceptPaperMutation, useDeleteConceptPaperMutation } from "@/lib/api/mutations/eventsMutations";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 import { useAuthStore } from "@/lib/store/authStore";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function ConceptPaperUploadTab({ event }: { event: any }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   
   const uploadMutation = useUploadConceptPaperMutation();
   const deleteMutation = useDeleteConceptPaperMutation();
@@ -22,11 +32,13 @@ export function ConceptPaperUploadTab({ event }: { event: any }) {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       if (file.type !== "application/pdf") {
-        alert("Only PDF files are allowed.");
+        setValidationError("Only PDF files are allowed.");
+        e.target.value = "";
         return;
       }
       if (file.size > 15 * 1024 * 1024) {
-        alert("File size must be less than 15MB.");
+        setValidationError("File size must be less than 15MB.");
+        e.target.value = "";
         return;
       }
       setSelectedFile(file);
@@ -151,6 +163,30 @@ export function ConceptPaperUploadTab({ event }: { event: any }) {
         isLoading={deleteMutation.isPending}
         variant="destructive"
       />
+
+      <AlertDialog
+        open={Boolean(validationError)}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setValidationError(null);
+        }}
+      >
+        <AlertDialogContent className="bg-white sm:max-w-[500px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 text-xl font-semibold">Invalid File</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-base pt-2">
+              {validationError}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setValidationError(null)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
