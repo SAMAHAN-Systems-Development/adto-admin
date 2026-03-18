@@ -43,6 +43,7 @@ import { UploadThumbnailModal } from "@/components/features/events/upload-thumbn
 import { UploadData } from "@/components/shared/upload-image";
 import { deleteAsset } from "@/lib/api/services/assetService";
 import { ConceptPaperUploadTab } from "@/components/features/events/concept-paper-upload-tab";
+import { useEventRequestsQuery } from "@/lib/api/queries/eventRequestQueries";
 
 interface EventDetailsPageProps {
   params: {
@@ -132,6 +133,10 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const createTicketMutation = useCreateEventTicketMutation();
   const updateTicketMutation = useUpdateEventTicketMutation();
   const deleteTicketMutation = useDeleteEventTicketMutation();
+
+  const { data: requestsData } = useEventRequestsQuery({ eventId: params.id, limit: 1 });
+  const eventRequest = requestsData?.data?.[0];
+  const isApproved = eventRequest?.status === "APPROVED";
 
   const formatDateToIso = useCallback(
     (dateValue: string | Date | null | undefined) => {
@@ -1002,7 +1007,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           </div>
 
           <div className="flex items-start justify-between py-4">
-            <div>
+            <div className="pr-4">
               <h3 className="text-base font-semibold text-gray-900 mb-1">
                 Event Visibility
               </h3>
@@ -1010,12 +1015,20 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 Controls whether this event is published and visible on the
                 platform. When turned off, it acts as a hidden draft.
               </p>
+              {!isApproved && !eventVisibility && (
+                <p className="text-sm text-red-500 mt-1 font-medium">
+                  Your event concept paper must be approved by the Superadmin before you can publish.
+                </p>
+              )}
             </div>
-            <Switch
-              checked={eventVisibility}
-              onCheckedChange={handleEventVisibilityChange}
-              className="data-[state=checked]:bg-blue-600"
-            />
+            <div className="shrink-0 mt-2">
+              <Switch
+                checked={eventVisibility}
+                onCheckedChange={handleEventVisibilityChange}
+                disabled={!isApproved && !eventVisibility}
+                className="data-[state=checked]:bg-blue-600"
+              />
+            </div>
           </div>
 
           <div className="flex items-start justify-between py-4">

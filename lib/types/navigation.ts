@@ -1,4 +1,4 @@
-import { LayoutDashboard, CalendarIcon, FileLineChart, CircleHelp, Ticket } from "lucide-react";
+import { LayoutDashboard, CalendarIcon, FileLineChart, CircleHelp, Ticket, Inbox } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { UserType } from "./user-type";
 
@@ -28,11 +28,6 @@ export const mainRoutes: RouteConfig[] = [
     icon: CalendarIcon,
   },
   {
-    path: "/help",
-    name: "Help",
-    icon: CircleHelp,
-  },
-  {
     path: "/requests",
     name: "Tickets Requests",
     icon: Ticket,
@@ -41,7 +36,12 @@ export const mainRoutes: RouteConfig[] = [
   {
     path: "/events-requests",
     name: "Events Requests",
-    icon: CalendarIcon,
+    icon: Inbox,
     allowedRoles: [UserType.ADMIN], // Only Admin can see this route
+  },
+  {
+    path: "/help",
+    name: "Help",
+    icon: CircleHelp,
   },
 ];
