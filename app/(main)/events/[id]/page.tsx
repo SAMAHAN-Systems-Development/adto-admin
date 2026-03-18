@@ -42,6 +42,7 @@ import { UploadBannerModal } from "@/components/features/events/upload-banner-mo
 import { UploadThumbnailModal } from "@/components/features/events/upload-thumbnail-modal";
 import { UploadData } from "@/components/shared/upload-image";
 import { deleteAsset } from "@/lib/api/services/assetService";
+import { ConceptPaperUploadTab } from "@/components/features/events/concept-paper-upload-tab";
 
 interface EventDetailsPageProps {
   params: {
@@ -959,6 +960,16 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               Announcements
             </button>
             <button
+              onClick={() => setActiveTab("concept-paper")}
+              className={`pb-4 px-1 text-base font-medium transition-colors ${
+                activeTab === "concept-paper"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Concept Paper
+            </button>
+            <button
               onClick={() => setActiveTab("additional-details")}
               className={`pb-4 px-1 text-base font-medium transition-colors ${
                 activeTab === "additional-details"
@@ -1131,6 +1142,12 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             </div>
 
             <AnnouncementList eventId={params.id} />
+          </div>
+        )}
+
+        {activeTab === "concept-paper" && (
+          <div className="mb-16">
+            <ConceptPaperUploadTab event={event} />
           </div>
         )}
 

@@ -153,3 +153,35 @@ export const createEvent = async (eventData: CreateEventRequest) => {
   const data = await response.json();
   return data;
 };
+
+export const uploadConceptPaper = async (id: string, file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${BASE_URL}/events/${id}/concept-paper`, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to upload concept paper");
+  }
+
+  return response.json();
+};
+
+export const deleteConceptPaper = async (id: string) => {
+  const response = await fetch(`${BASE_URL}/events/${id}/concept-paper`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to delete concept paper");
+  }
+
+  return response.json();
+};
