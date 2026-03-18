@@ -6,6 +6,8 @@ import { useEventRequestsQuery } from "@/lib/api/queries/eventRequestQueries";
 import { createEventRequestColumns } from "@/components/features/events-requests/event-request-columns";
 import { EventRequestDetailModal } from "@/components/features/events-requests/event-request-detail-modal";
 import { EventRequestItem } from "@/lib/types/requests/EventRequestRequests";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { UserType } from "@/lib/types/user-type";
 
 export default function EventsRequestsPage() {
   const [activeTab, setActiveTab] = useState<"ALL" | "PENDING" | "APPROVED" | "DENIED">("PENDING");
@@ -32,6 +34,7 @@ export default function EventsRequestsPage() {
   };
 
   return (
+    <ProtectedRoute requiredRole={UserType.ADMIN}>
     <div className="min-h-screen">
       <div className="container mx-auto py-10 px-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Event Requests</h1>
@@ -93,5 +96,6 @@ export default function EventsRequestsPage() {
         )}
       </div>
     </div>
+    </ProtectedRoute>
   );
 }
