@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -90,9 +91,11 @@ function AdminLoginContent() {
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 md:w-16 md:h-16 mb-3 md:mb-4">
               <div className="w-full h-full bg-primary rounded-full flex items-center justify-center">
-                <img
+                <Image
                   src="/images/ADTO2_Blue.svg"
                   alt="ADTO Logo"
+                  width={32}
+                  height={32}
                   className="w-6 h-6 md:w-8 md:h-8"
                 />
               </div>

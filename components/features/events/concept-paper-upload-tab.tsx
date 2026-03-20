@@ -19,7 +19,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export function ConceptPaperUploadTab({ event }: { event: any }) {
+interface ConceptPaperUploadTabProps {
+  event: {
+    id: string;
+    conceptPaperUrl: string | null;
+  };
+}
+
+export function ConceptPaperUploadTab({ event }: ConceptPaperUploadTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
