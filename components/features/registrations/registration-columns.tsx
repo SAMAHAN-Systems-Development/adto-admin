@@ -5,7 +5,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Registration } from "@/lib/types/entities";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 
 interface RegistrationsColumnsProps {
   onIsAttendedChange?: (registrationId: string, isAttended: boolean) => void;
@@ -124,32 +131,35 @@ export const createRegistrationsColumns = ({
   },
   {
     id: "actions",
-    header: () => <span className="text-secondary-100">Actions</span>,
+    enableHiding: false,
     cell: ({ row }) => {
       const registration = row.original;
       return (
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onEdit?.(registration)}
-            title="Edit registration"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete?.(registration)}
-            title="Delete registration"
-          >
-            <Trash2 className="h-4 w-4 text-red-500" />
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => onEdit?.(registration)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onDelete?.(registration)}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     },
     enableSorting: false,
-    enableHiding: false,
   },
 ];
 
