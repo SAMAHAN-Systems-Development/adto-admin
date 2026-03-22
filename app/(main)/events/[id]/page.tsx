@@ -8,7 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { DateTimePicker } from "@/components/shared/date-time-picker";
-import { useEventQuery } from "@/lib/api/queries/eventsQueries";
+import {
+  useEventQuery,
+  useEventStatsQuery,
+} from "@/lib/api/queries/eventsQueries";
 import {
   useUpdateEventMutation,
   useArchiveEventMutation,
@@ -131,6 +134,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const createTicketMutation = useCreateEventTicketMutation();
   const updateTicketMutation = useUpdateEventTicketMutation();
   const deleteTicketMutation = useDeleteEventTicketMutation();
+
+  // Fetch event stats for tab badges
+  const { data: eventStats } = useEventStatsQuery(params.id);
 
   const formatDateToIso = useCallback(
     (dateValue: string | Date | null | undefined) => {
@@ -282,7 +288,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     }
   };
 
-  const clearFieldError = (field: "name" | "description" | "dateStart" | "dateEnd") => {
+  const clearFieldError = (
+    field: "name" | "description" | "dateStart" | "dateEnd",
+  ) => {
     setEventDetailsErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
@@ -336,8 +344,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           ["name", "description", "dateStart", "dateEnd"].includes(field) &&
           !nextErrors[field as "name" | "description" | "dateStart" | "dateEnd"]
         ) {
-          nextErrors[field as "name" | "description" | "dateStart" | "dateEnd"] =
-            issue.message;
+          nextErrors[
+            field as "name" | "description" | "dateStart" | "dateEnd"
+          ] = issue.message;
         }
       });
 
@@ -587,6 +596,15 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     return text.slice(0, maxLength) + "...";
   };
 
+  const TabBadge = ({ count }: { count?: number }) => {
+    if (!count || count === 0) return null;
+    return (
+      <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-medium text-white bg-red-500 rounded-full">
+        {count > 99 ? "99+" : count}
+      </span>
+    );
+  };
+
   const handleIsAttendedChange = async (
     registrationId: string,
     isAttended: boolean,
@@ -638,7 +656,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           {isEditingEventDetails ? (
             <div className="space-y-4">
               <div className="space-y-2 max-w-3xl">
-                <label className="text-sm font-medium text-gray-900">Event Name</label>
+                <label className="text-sm font-medium text-gray-900">
+                  Event Name
+                </label>
                 <Input
                   value={editedName}
                   onChange={(e) => {
@@ -646,17 +666,25 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                     clearFieldError("name");
                   }}
                   placeholder="Enter event name"
-                  className={eventDetailsErrors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
+                  className={
+                    eventDetailsErrors.name
+                      ? "border-red-500 focus-visible:ring-red-500"
+                      : ""
+                  }
                   aria-invalid={!!eventDetailsErrors.name}
                 />
                 {eventDetailsErrors.name && (
-                  <p className="text-sm text-red-600">{eventDetailsErrors.name}</p>
+                  <p className="text-sm text-red-600">
+                    {eventDetailsErrors.name}
+                  </p>
                 )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-900">Start Date & Time</label>
+                  <label className="text-sm font-medium text-gray-900">
+                    Start Date & Time
+                  </label>
                   <DateTimePicker
                     name="dateStart"
                     value={editedDateStart}
@@ -667,12 +695,16 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                     }}
                   />
                   {eventDetailsErrors.dateStart && (
-                    <p className="text-sm text-red-600">{eventDetailsErrors.dateStart}</p>
+                    <p className="text-sm text-red-600">
+                      {eventDetailsErrors.dateStart}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-900">End Date & Time</label>
+                  <label className="text-sm font-medium text-gray-900">
+                    End Date & Time
+                  </label>
                   <DateTimePicker
                     name="dateEnd"
                     value={editedDateEnd}
@@ -684,7 +716,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                     disabledDate={disableEndDatesBeforeStart}
                   />
                   {eventDetailsErrors.dateEnd && (
-                    <p className="text-sm text-red-600">{eventDetailsErrors.dateEnd}</p>
+                    <p className="text-sm text-red-600">
+                      {eventDetailsErrors.dateEnd}
+                    </p>
                   )}
                 </div>
               </div>
@@ -720,12 +754,15 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           ) : (
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">{event.name}</h1>
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                  {event.name}
+                </h1>
                 <div className="flex items-center gap-6 text-blue-600">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
                     <span className="text-base">
-                      {formatDate(event.dateStart.toString())} | {formatTime(event.dateStart.toString())}
+                      {formatDate(event.dateStart.toString())} |{" "}
+                      {formatTime(event.dateStart.toString())}
                     </span>
                   </div>
                   {event.org && (
@@ -802,9 +839,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 </div>
               </div>
             ) : (
-              <p
-                    className="text-gray-700 leading-relaxed text-justify p-2"
-              >
+              <p className="text-gray-700 leading-relaxed text-justify p-2">
                 {showFullDescription
                   ? event.description
                   : truncateText(event.description, 600)}
@@ -930,33 +965,36 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           <nav className="flex overflow-x-auto gap-8 whitespace-nowrap scrollbar-hide">
             <button
               onClick={() => setActiveTab("registration")}
-              className={`pb-4 px-1 text-base font-medium transition-colors ${
+              className={`pb-4 px-1 text-base font-medium transition-colors flex items-center ${
                 activeTab === "registration"
                   ? "text-blue-600 border-b-2 border-blue-600"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Registration
+              <TabBadge count={eventStats?.registrationsCount} />
             </button>
             <button
               onClick={() => setActiveTab("tickets")}
-              className={`pb-4 px-1 text-base font-medium transition-colors ${
+              className={`pb-4 px-1 text-base font-medium transition-colors flex items-center ${
                 activeTab === "tickets"
                   ? "text-blue-600 border-b-2 border-blue-600"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Tickets
+              <TabBadge count={eventStats?.ticketsCount} />
             </button>
             <button
               onClick={() => setActiveTab("announcements")}
-              className={`pb-4 px-1 text-base font-medium transition-colors ${
+              className={`pb-4 px-1 text-base font-medium transition-colors flex items-center ${
                 activeTab === "announcements"
                   ? "text-blue-600 border-b-2 border-blue-600"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Announcements
+              <TabBadge count={eventStats?.announcementsCount} />
             </button>
             <button
               onClick={() => setActiveTab("additional-details")}
@@ -972,57 +1010,59 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         </div>
 
         {activeTab === "additional-details" && (
-        <div className="space-y-6 mb-16">
-          <div className="flex items-start justify-between py-4">
-            <div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">
-                Registration Open
-              </h3>
-              <p className="text-sm text-gray-600">
-                Controls whether users can request or purchase tickets right
-                now. If turned off, the registration button will show as closed.
-              </p>
+          <div className="space-y-6 mb-16">
+            <div className="flex items-start justify-between py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 mb-1">
+                  Registration Open
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Controls whether users can request or purchase tickets right
+                  now. If turned off, the registration button will show as
+                  closed.
+                </p>
+              </div>
+              <Switch
+                checked={registrationOpen}
+                onCheckedChange={handleRegistrationOpenChange}
+                className="data-[state=checked]:bg-blue-600"
+              />
             </div>
-            <Switch
-              checked={registrationOpen}
-              onCheckedChange={handleRegistrationOpenChange}
-              className="data-[state=checked]:bg-blue-600"
-            />
-          </div>
 
-          <div className="flex items-start justify-between py-4">
-            <div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">
-                Event Visibility
-              </h3>
-              <p className="text-sm text-gray-600">
-                Controls whether this event is published and visible on the
-                platform. When turned off, it acts as a hidden draft.
-              </p>
+            <div className="flex items-start justify-between py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 mb-1">
+                  Event Visibility
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Controls whether this event is published and visible on the
+                  platform. When turned off, it acts as a hidden draft.
+                </p>
+              </div>
+              <Switch
+                checked={eventVisibility}
+                onCheckedChange={handleEventVisibilityChange}
+                className="data-[state=checked]:bg-blue-600"
+              />
             </div>
-            <Switch
-              checked={eventVisibility}
-              onCheckedChange={handleEventVisibilityChange}
-              className="data-[state=checked]:bg-blue-600"
-            />
-          </div>
 
-          <div className="flex items-start justify-between py-4">
-            <div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">
-                Registration Required
-              </h3>
-              <p className="text-sm text-gray-600">
-                Determines if a ticket is mandatory. If turned off, this becomes
-                a walk-in event, and ticketing sections are hidden from users.
-              </p>
+            <div className="flex items-start justify-between py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 mb-1">
+                  Registration Required
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Determines if a ticket is mandatory. If turned off, this
+                  becomes a walk-in event, and ticketing sections are hidden
+                  from users.
+                </p>
+              </div>
+              <Switch
+                checked={registrationRequired}
+                onCheckedChange={handleRegistrationRequiredChange}
+                className="data-[state=checked]:bg-blue-600"
+              />
             </div>
-            <Switch
-              checked={registrationRequired}
-              onCheckedChange={handleRegistrationRequiredChange}
-              className="data-[state=checked]:bg-blue-600"
-            />
-          </div>
           </div>
         )}
 
