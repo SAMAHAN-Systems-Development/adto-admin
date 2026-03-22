@@ -36,11 +36,13 @@ export const useUpdateRegistration = () => {
         RegistrationsQueryData | undefined,
       ][] = [];
 
-      queryClient.getQueriesData<RegistrationsQueryData>({
-        queryKey: ["registrations"],
-      }).forEach(([queryKey, data]) => {
-        previousQueries.push([queryKey, data]);
-      });
+      queryClient
+        .getQueriesData<RegistrationsQueryData>({
+          queryKey: ["registrations"],
+        })
+        .forEach(([queryKey, data]) => {
+          previousQueries.push([queryKey, data]);
+        });
 
       // Optimistically update the registration in all matching queries
       queryClient.setQueriesData<RegistrationsQueryData>(
@@ -87,6 +89,7 @@ export const useUpdateRegistration = () => {
       queryClient.invalidateQueries({
         queryKey: ["registration", variables.id],
       });
+      queryClient.invalidateQueries({ queryKey: ["event-stats"] });
     },
   });
 };
