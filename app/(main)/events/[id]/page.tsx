@@ -43,6 +43,7 @@ import { useUpdateRegistration } from "@/lib/api/mutations/registrationMutation"
 import { useAuthStore } from "@/lib/store/authStore";
 import { UploadBannerModal } from "@/components/features/events/upload-banner-modal";
 import { UploadThumbnailModal } from "@/components/features/events/upload-thumbnail-modal";
+import { EventTabBadge } from "@/components/features/events/event-tab-badge";
 import { UploadData } from "@/components/shared/upload-image";
 import { deleteAsset } from "@/lib/api/services/assetService";
 
@@ -596,15 +597,6 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     return text.slice(0, maxLength) + "...";
   };
 
-  const TabBadge = ({ count }: { count?: number }) => {
-    if (!count || count === 0) return null;
-    return (
-      <span className="ml-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-medium text-white bg-red-500 rounded-full">
-        {count}
-      </span>
-    );
-  };
-
   const handleIsAttendedChange = async (
     registrationId: string,
     isAttended: boolean,
@@ -972,7 +964,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               }`}
             >
               Registration
-              <TabBadge count={eventStats?.registrationsCount} />
+              <EventTabBadge count={eventStats?.registrationsCount} />
             </button>
             <button
               onClick={() => setActiveTab("tickets")}
@@ -983,7 +975,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               }`}
             >
               Tickets
-              <TabBadge count={eventStats?.ticketsCount} />
+              <EventTabBadge count={eventStats?.ticketsCount} />
             </button>
             <button
               onClick={() => setActiveTab("announcements")}
@@ -994,7 +986,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               }`}
             >
               Announcements
-              <TabBadge count={eventStats?.announcementsCount} />
+              <EventTabBadge count={eventStats?.announcementsCount} />
             </button>
             <button
               onClick={() => setActiveTab("additional-details")}
