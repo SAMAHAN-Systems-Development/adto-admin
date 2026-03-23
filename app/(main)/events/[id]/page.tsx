@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Calendar, MapPin, Archive, ArrowLeft, CirclePlus } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Archive,
+  ArrowLeft,
+  CirclePlus,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
@@ -106,7 +113,11 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     setPage(1);
   }, [debouncedSearch]);
 
-  const { data: registrationsData } = useRegistrationsQuery(eventId || "", {
+  const {
+    data: registrationsData,
+    isFetching: isRegistrationsFetching,
+    refetch: refetchRegistrations,
+  } = useRegistrationsQuery(eventId || "", {
     page,
     limit,
     searchFilter: debouncedSearch,
@@ -1129,6 +1140,25 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                   onChange: setTicketCategoryFilter,
                 },
               ]}
+              isTableLoading={isRegistrationsFetching}
+              headerActions={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchRegistrations()}
+                  disabled={isRegistrationsFetching}
+                  className="w-full sm:w-auto"
+                  aria-label="Refresh registrations"
+                >
+                  <RefreshCw
+                    className={`mr-2 h-4 w-4 ${
+                      isRegistrationsFetching ? "animate-spin" : ""
+                    }`}
+                  />
+                  Refresh
+                </Button>
+              }
             />
           </div>
         )}
