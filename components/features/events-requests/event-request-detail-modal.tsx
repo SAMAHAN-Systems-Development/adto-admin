@@ -81,11 +81,6 @@ export function EventRequestDetailModal({
     }
   };
 
-  const openConceptPaper = () => {
-    if (!request.event.conceptPaperUrl) return;
-    window.open(request.event.conceptPaperUrl, "_blank", "noopener,noreferrer");
-  };
-
   const isPending = request.status === "PENDING";
 
   const statusBadge = () => {
@@ -312,7 +307,7 @@ export function EventRequestDetailModal({
               <div className="mt-4 flex justify-end">
                  <Button
                   variant="outline"
-                  onClick={openConceptPaper}
+                  onClick={() => window.open(request.event.conceptPaperUrl!, '_blank')}
                   className="flex items-center gap-2 text-blue-600 border-blue-200"
                  >
                    <ExternalLink className="w-4 h-4" /> Open PDF in new tab
