@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { XIcon, Archive, SquarePen, Download, Copy, Check, Clock, CheckCircle2, XCircle, Send } from "lucide-react";
+import { XIcon, Archive, SquarePen, Download, Copy, Check, Clock, CheckCircle2, XCircle, Send, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import CreateTicket from "@/components/shared/CreateTicket";
@@ -13,18 +13,17 @@ import { useCreateTicketRequestMutation, useCancelTicketRequestMutation } from "
 import toast from "react-hot-toast";
 
 function TicketRequestStatus({ ticket }: { ticket: Tickets }) {
-  const [isCopied, setIsCopied] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [showRequestConfirm, setShowRequestConfirm] = useState(false);
   const createRequestMutation = useCreateTicketRequestMutation();
   const cancelRequestMutation = useCancelTicketRequestMutation();
   const latestRequest = ticket.latestRequest;
 
-  const handleCopyLink = () => {
-    if (latestRequest?.ticketLink) {
-      navigator.clipboard.writeText(latestRequest.ticketLink);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    }
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
   };
 
   const handleRequestLink = async () => {
@@ -117,32 +116,116 @@ function TicketRequestStatus({ ticket }: { ticket: Tickets }) {
     // Approved
     if (latestRequest.status === "APPROVED" && latestRequest.ticketLink) {
       return (
-        <div className="mt-4 pt-4 border-t">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="mt-4 pt-4 border-t space-y-3">
+          <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-green-600" />
             <p className="text-sm font-medium text-green-700">Request Approved</p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 p-2 bg-gray-50 border rounded-md text-sm text-gray-600 truncate">
-              <a
-                href={latestRequest.ticketLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
+
+          {/* Ticket Link */}
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-1">Ticket Link</p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 p-2 bg-gray-50 border rounded-md text-sm text-gray-600 truncate">
+                <a
+                  href={latestRequest.ticketLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  {latestRequest.ticketLink}
+                </a>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleCopy(latestRequest.ticketLink!, "ticketLink")}
+                className="flex items-center gap-1 shrink-0"
               >
-                {latestRequest.ticketLink}
-              </a>
+                {copiedField === "ticketLink" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                {copiedField === "ticketLink" ? "Copied" : "Copy"}
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyLink}
-              className="flex items-center gap-1 shrink-0"
-            >
-              {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-              {isCopied ? "Copied" : "Copy"}
-            </Button>
           </div>
+
+          {/* HelixPay Credentials */}
+          {(latestRequest.helixpayUsername || latestRequest.helixpayPassword) && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md space-y-2">
+              <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">HelixPay Credentials</p>
+              {latestRequest.helixpayUsername && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Username</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-gray-800 flex-1">{latestRequest.helixpayUsername}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCopy(latestRequest.helixpayUsername!, "username")}
+                      className="flex items-center gap-1 shrink-0"
+                    >
+                      {copiedField === "username" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      {copiedField === "username" ? "Copied" : "Copy"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {latestRequest.helixpayPassword && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Password</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 flex-1">
+                      <p className="text-sm font-medium text-gray-800">
+                        {showPassword ? latestRequest.helixpayPassword : "••••••••"}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCopy(latestRequest.helixpayPassword!, "password")}
+                      className="flex items-center gap-1 shrink-0"
+                    >
+                      {copiedField === "password" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      {copiedField === "password" ? "Copied" : "Copy"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Messenger Link */}
+          {latestRequest.messengerLink && (
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">Messenger Link</p>
+              <div className="flex items-center gap-2">
+                <a
+                  href={latestRequest.messengerLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline flex items-center gap-1 text-sm flex-1 truncate"
+                >
+                  {latestRequest.messengerLink}
+                  <ExternalLink className="w-3 h-3 shrink-0" />
+                </a>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopy(latestRequest.messengerLink!, "messengerLink")}
+                  className="flex items-center gap-1 shrink-0"
+                >
+                  {copiedField === "messengerLink" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                  {copiedField === "messengerLink" ? "Copied" : "Copy"}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       );
     }

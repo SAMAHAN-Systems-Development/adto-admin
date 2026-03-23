@@ -65,7 +65,10 @@ export const findOneTicketRequest = async (id: string) => {
 
 export const approveTicketRequest = async (
   id: string,
-  ticketLink: string
+  ticketLink: string,
+  helixpayUsername?: string,
+  helixpayPassword?: string,
+  messengerLink?: string
 ) => {
   const response = await fetch(`${BASE_URL}/ticket-requests/approve/${id}`, {
     method: "PATCH",
@@ -73,7 +76,7 @@ export const approveTicketRequest = async (
       "Content-Type": "application/json",
     },
     credentials: "include",
-    body: JSON.stringify({ ticketLink }),
+    body: JSON.stringify({ ticketLink, helixpayUsername, helixpayPassword, messengerLink }),
   });
 
   if (!response.ok) {
