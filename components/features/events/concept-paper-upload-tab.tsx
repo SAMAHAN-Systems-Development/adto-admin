@@ -103,7 +103,11 @@ export function ConceptPaperUploadTab({ event }: ConceptPaperUploadTabProps) {
             <Button
               variant="outline"
               className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
-              onClick={() => window.open(event.conceptPaperUrl, '_blank')}
+              onClick={() => {
+                if (event.conceptPaperUrl) {
+                  window.open(event.conceptPaperUrl, "_blank");
+                }
+              }}
             >
               <ExternalLink className="h-4 w-4" />
               View / Download
