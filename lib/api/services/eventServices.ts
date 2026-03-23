@@ -25,7 +25,7 @@ export const findAllPublishedEvents = async (params?: {
   if (params?.eventStatus) {
     queryParams.append("eventStatus", params.eventStatus);
   }
-  
+
   const response = await fetch(`${BASE_URL}/events/published?${queryParams}`, {
     method: "GET",
     headers: {
@@ -75,7 +75,7 @@ export const publishEvent = async (id: string) => {
 
 export const updateEvent = async (
   id: string,
-  eventData: UpdateEventRequest
+  eventData: UpdateEventRequest,
 ) => {
   const response = await fetch(`${BASE_URL}/events/${id}`, {
     method: "PATCH",
