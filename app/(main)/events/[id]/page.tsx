@@ -56,6 +56,8 @@ import { UploadThumbnailModal } from "@/components/features/events/upload-thumbn
 import { EventTabBadge } from "@/components/features/events/event-tab-badge";
 import { UploadData } from "@/components/shared/upload-image";
 import { deleteAsset } from "@/lib/api/services/assetService";
+import { ConceptPaperUploadTab } from "@/components/features/events/concept-paper-upload-tab";
+import { useEventRequestsQuery } from "@/lib/api/queries/eventRequestQueries";
 
 interface EventDetailsPageProps {
   params: {
@@ -155,6 +157,10 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
   // Fetch event stats for tab badges
   const { data: eventStats } = useEventStatsQuery(params.id);
+
+  const { data: requestsData } = useEventRequestsQuery({ eventId: params.id, limit: 1 });
+  const eventRequest = requestsData?.data?.[0];
+  const isApproved = eventRequest?.status === "APPROVED";
 
   const formatDateToIso = useCallback(
     (dateValue: string | Date | null | undefined) => {
@@ -1030,6 +1036,26 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               <EventTabBadge count={eventStats?.announcementsCount} />
             </button>
             <button
+              onClick={() => setActiveTab("concept-paper")}
+              className={`pb-4 px-1 text-base font-medium transition-colors ${
+                activeTab === "concept-paper"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Concept Paper
+            </button>
+            <button
+              onClick={() => setActiveTab("concept-paper")}
+              className={`pb-4 px-1 text-base font-medium transition-colors ${
+                activeTab === "concept-paper"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Concept Paper
+            </button>
+            <button
               onClick={() => setActiveTab("additional-details")}
               className={`pb-4 px-1 text-base font-medium transition-colors ${
                 activeTab === "additional-details"
@@ -1062,22 +1088,30 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               />
             </div>
 
-            <div className="flex items-start justify-between py-4">
-              <div>
-                <h3 className="text-base font-semibold text-gray-900 mb-1">
-                  Event Visibility
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Controls whether this event is published and visible on the
-                  platform. When turned off, it acts as a hidden draft.
+          <div className="flex items-start justify-between py-4">
+            <div className="pr-4">
+              <h3 className="text-base font-semibold text-gray-900 mb-1">
+                Event Visibility
+              </h3>
+              <p className="text-sm text-gray-600">
+                Controls whether this event is published and visible on the
+                platform. When turned off, it acts as a hidden draft.
+              </p>
+              {!isApproved && !eventVisibility && (
+                <p className="text-sm text-red-500 mt-1 font-medium">
+                  Your event concept paper must be approved by the Superadmin before you can publish.
                 </p>
-              </div>
+              )}
+            </div>
+            <div className="shrink-0 mt-2">
               <Switch
                 checked={eventVisibility}
                 onCheckedChange={handleEventVisibilityChange}
+                disabled={!isApproved && !eventVisibility}
                 className="data-[state=checked]:bg-blue-600"
               />
             </div>
+          </div>
 
             <div className="flex items-start justify-between py-4">
               <div>
@@ -1223,6 +1257,12 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             </div>
 
             <AnnouncementList eventId={params.id} />
+          </div>
+        )}
+
+        {activeTab === "concept-paper" && (
+          <div className="mb-16">
+            <ConceptPaperUploadTab event={event} />
           </div>
         )}
 

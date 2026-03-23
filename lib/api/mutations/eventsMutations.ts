@@ -6,6 +6,8 @@ import {
   archiveEvent,
   unarchiveEvent,
   publishEvent,
+  uploadConceptPaper,
+  deleteConceptPaper,
 } from "../services/eventServices";
 import type {
   CreateEventRequest,
@@ -138,6 +140,59 @@ export const usePublishEventMutation = () => {
         variant: "destructive",
       });
       console.error("Failed to publish event:", error);
+    },
+  });
+};
+
+export const useUploadConceptPaperMutation = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) =>
+      uploadConceptPaper(id, file),
+    onSuccess: (_, variables) => {
+      toast({
+        title: "Success",
+        description: "Concept paper uploaded successfully!",
+        variant: "success",
+      });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["event", variables.id] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload concept paper.",
+        variant: "destructive",
+      });
+      console.error("Failed to upload concept paper:", error);
+    },
+  });
+};
+
+export const useDeleteConceptPaperMutation = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteConceptPaper(id),
+    onSuccess: (_, variables) => {
+      toast({
+        title: "Success",
+        description: "Concept paper deleted successfully!",
+        variant: "success",
+      });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["event", variables] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete concept paper.",
+        variant: "destructive",
+      });
+      console.error("Failed to delete concept paper:", error);
     },
   });
 };
