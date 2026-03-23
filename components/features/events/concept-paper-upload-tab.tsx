@@ -84,6 +84,11 @@ export function ConceptPaperUploadTab({ event }: ConceptPaperUploadTabProps) {
     setShowDeleteModal(false);
   };
 
+  const openConceptPaper = () => {
+    if (!event.conceptPaperUrl) return;
+    window.open(event.conceptPaperUrl, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-4">
@@ -103,7 +108,7 @@ export function ConceptPaperUploadTab({ event }: ConceptPaperUploadTabProps) {
             <Button
               variant="outline"
               className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
-              onClick={() => window.open(event.conceptPaperUrl, '_blank')}
+              onClick={openConceptPaper}
             >
               <ExternalLink className="h-4 w-4" />
               View / Download
