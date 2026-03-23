@@ -36,7 +36,10 @@ import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useRegistrationsQuery } from "@/lib/api/queries/registrationQueries";
 import { DataTable } from "@/components/shared/data-table";
 import { createRegistrationsColumns } from "@/components/features/registrations/registration-columns";
-import { useUpdateRegistration } from "@/lib/api/mutations/registrationMutation";
+import { useUpdateRegistration, useDeleteRegistration } from "@/lib/api/mutations/registrationMutation";
+import { EditRegistrationDialog } from "@/components/features/registrations/edit-registration-dialog";
+import type { Registration } from "@/lib/types/entities";
+import type { UpdateRegistrationRequest } from "@/lib/types/requests/RegistrationRequest";
 import { useAuthStore } from "@/lib/store/authStore";
 import { UploadBannerModal } from "@/components/features/events/upload-banner-modal";
 import { UploadThumbnailModal } from "@/components/features/events/upload-thumbnail-modal";
@@ -70,6 +73,8 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [clusterFilter, setClusterFilter] = useState("all");
   const [courseFilter, setCourseFilter] = useState("all");
   const [ticketCategoryFilter, setTicketCategoryFilter] = useState("all");
+  const [editingRegistration, setEditingRegistration] = useState<Registration | null>(null);
+  const [deletingRegistration, setDeletingRegistration] = useState<Registration | null>(null);
 
   const { user } = useAuthStore();
   const [showBannerModal, setShowBannerModal] = useState(false);
@@ -104,6 +109,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   });
 
   const updateRegistration = useUpdateRegistration();
+  const deleteRegistrationMutation = useDeleteRegistration();
 
   // Fetch event data
   const { data: event, isLoading, error } = useEventQuery(params.id);
@@ -597,8 +603,32 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     });
   };
 
+  const handleEditRegistration = (registration: Registration) => {
+    setEditingRegistration(registration);
+  };
+
+  const handleSaveRegistration = (id: string, data: UpdateRegistrationRequest) => {
+    updateRegistration.mutate(
+      { id, data },
+      { onSuccess: () => setEditingRegistration(null) },
+    );
+  };
+
+  const handleDeleteRegistration = (registration: Registration) => {
+    setDeletingRegistration(registration);
+  };
+
+  const confirmDeleteRegistration = () => {
+    if (!deletingRegistration) return;
+    deleteRegistrationMutation.mutate(deletingRegistration.id, {
+      onSuccess: () => setDeletingRegistration(null),
+    });
+  };
+
   const columns = createRegistrationsColumns({
     onIsAttendedChange: handleIsAttendedChange,
+    onEdit: handleEditRegistration,
+    onDelete: handleDeleteRegistration,
   });
 
   return (
@@ -1283,6 +1313,28 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           confirmText="Yes, Remove"
           cancelText="Cancel"
           isLoading={updateEventMutation.isPending}
+          variant="destructive"
+        />
+
+        {/* Edit Registration Dialog */}
+        <EditRegistrationDialog
+          registration={editingRegistration}
+          isOpen={!!editingRegistration}
+          onClose={() => setEditingRegistration(null)}
+          onSave={handleSaveRegistration}
+          isLoading={updateRegistration.isPending}
+        />
+
+        {/* Delete Registration Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={!!deletingRegistration}
+          onClose={() => setDeletingRegistration(null)}
+          onConfirm={confirmDeleteRegistration}
+          title="Delete Registration"
+          description={`Are you sure you want to delete the registration for "${deletingRegistration?.fullName}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          isLoading={deleteRegistrationMutation.isPending}
           variant="destructive"
         />
       </div>

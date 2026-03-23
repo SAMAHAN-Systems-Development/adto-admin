@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/lib/hooks/use-toast";
-import { updateRegistration } from "../services/registrationService";
+import { updateRegistration, deleteRegistration } from "../services/registrationService";
 import { UpdateRegistrationRequest } from "@/lib/types/requests/RegistrationRequest";
 import { Registration } from "@/lib/types/entities";
 
@@ -87,6 +87,31 @@ export const useUpdateRegistration = () => {
       queryClient.invalidateQueries({
         queryKey: ["registration", variables.id],
       });
+    },
+  });
+};
+
+export const useDeleteRegistration = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteRegistration(id),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Registration deleted successfully!",
+        variant: "success",
+      });
+      queryClient.invalidateQueries({ queryKey: ["registrations"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete registration. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Failed to delete registration:", error);
     },
   });
 };
