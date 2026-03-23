@@ -12,24 +12,33 @@ export const useCreateEventTicketMutation = () => {
   return useMutation({
     mutationFn: (data: CreateEventTicketRequest) => createEventTicket(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["eventTickets"] })
-    }
-  })
-}
+      queryClient.invalidateQueries({ queryKey: ["eventTickets"] });
+      queryClient.invalidateQueries({ queryKey: ["event-stats"] });
+    },
+  });
+};
 
 // UPDATE
 export const useUpdateEventTicketMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CreateEventTicketRequest> }) => {
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<CreateEventTicketRequest>;
+    }) => {
       console.log("🚀 Update mutation called - ID:", id, "Data:", data);
       return updateEventTicket(id, data);
     },
     onSuccess: (updatedTicket, variables) => {
       console.log("✅ Update success:", updatedTicket);
       queryClient.invalidateQueries({ queryKey: ["eventTickets"] });
-      queryClient.invalidateQueries({ queryKey: ["eventTicket", variables.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["eventTicket", variables.id],
+      });
     },
     onError: (error) => {
       console.error("❌ Update error:", error);
@@ -50,6 +59,7 @@ export const useDeleteEventTicketMutation = () => {
       console.log("✅ Delete success for ID:", id);
       queryClient.invalidateQueries({ queryKey: ["eventTickets"] });
       queryClient.invalidateQueries({ queryKey: ["eventTicket", id] });
+      queryClient.invalidateQueries({ queryKey: ["event-stats"] });
     },
     onError: (error) => {
       console.error("❌ Delete error:", error);

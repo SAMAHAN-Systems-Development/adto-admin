@@ -27,6 +27,7 @@ export const useCreateAnnouncementMutation = (eventId: string) => {
       queryClient.invalidateQueries({
         queryKey: ["announcements", "event", eventId],
       });
+      queryClient.invalidateQueries({ queryKey: ["event-stats"] });
     },
     onError: (error) => {
       toast({
@@ -66,6 +67,7 @@ export const useUpdateAnnouncementMutation = (eventId: string) => {
       queryClient.invalidateQueries({
         queryKey: ["announcement", variables.id],
       });
+      queryClient.invalidateQueries({ queryKey: ["event-stats"] });
     },
     onError: (error) => {
       toast({
@@ -94,6 +96,7 @@ export const useDeleteAnnouncementMutation = (eventId: string) => {
       queryClient.invalidateQueries({
         queryKey: ["announcements", "event", eventId],
       });
+      queryClient.invalidateQueries({ queryKey: ["event-stats"] });
     },
     onError: (error) => {
       toast({

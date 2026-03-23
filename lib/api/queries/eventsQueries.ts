@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   findAllPublishedEvents,
   findOneEvent,
+  getEventStats,
 } from "../services/eventServices";
 
 export const useEventsQuery = (params?: {
@@ -31,5 +32,14 @@ export const useEventQuery = (eventId: string) => {
     queryFn: () => findOneEvent(eventId),
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useEventStatsQuery = (eventId: string) => {
+  return useQuery({
+    queryKey: ["event-stats", eventId],
+    queryFn: () => getEventStats(eventId),
+    enabled: !!eventId,
+    staleTime: 2 * 60 * 1000,
   });
 };
