@@ -73,3 +73,16 @@ export const updateRegistration = async (
   const data = await response.json();
   return data;
 };
+
+export const deleteRegistration = async (id: string) => {
+  const response = await fetch(`${BASE_URL}/registrations/delete/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete registration");
+  }
+
+  return await response.json();
+};
