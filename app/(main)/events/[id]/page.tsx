@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Calendar, MapPin, Archive, ArrowLeft, CirclePlus } from "lucide-react";
+import { Calendar, MapPin, Archive, ArrowLeft, CirclePlus, SquareArrowOutUpRight  } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
@@ -1073,7 +1073,21 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
         {activeTab === "tickets" && (
           <div className="space-y-8">
-            <div className="flex justify-end">
+            <div className="flex justify-between">
+              <a
+                href="https://docs.google.com/spreadsheets/d/1-FMyQXnLIAu9qEbGXxwvVPazpecvwJOYcK2uORHBNSw/edit?usp=sharing"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 border-blue-600 text-blue-600 hover:text-blue-600 hover:bg-gray-50 bg-transparent rounded-sm font-semibold shadow-sm"
+                >
+                <SquareArrowOutUpRight className="h-5 w-5 text-blue-600" />
+                  Price Breakdown
+                </Button>
+              </a>
+
               <Button
                 variant="outline"
                 className="flex items-center gap-2 border-blue-600 text-blue-600 hover:text-blue-600 hover:bg-gray-50 bg-transparent rounded-sm font-semibold shadow-sm"
