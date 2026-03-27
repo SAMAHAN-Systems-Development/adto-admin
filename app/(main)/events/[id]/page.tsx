@@ -1046,16 +1046,6 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               Concept Paper
             </button>
             <button
-              onClick={() => setActiveTab("concept-paper")}
-              className={`pb-4 px-1 text-base font-medium transition-colors ${
-                activeTab === "concept-paper"
-                  ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Concept Paper
-            </button>
-            <button
               onClick={() => setActiveTab("additional-details")}
               className={`pb-4 px-1 text-base font-medium transition-colors ${
                 activeTab === "additional-details"
