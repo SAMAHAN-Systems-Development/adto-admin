@@ -11,6 +11,8 @@ import {
 } from "@/lib/types/requests/TicketRequestRequests";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { Toaster } from "react-hot-toast";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { UserType } from "@/lib/types/user-type";
 
 export default function RequestsPage() {
   const [page, setPage] = useState(1);
@@ -40,6 +42,7 @@ export default function RequestsPage() {
   };
 
   return (
+    <ProtectedRoute requiredRole={UserType.ADMIN}>
     <div className="min-h-screen">
       <div className="container mx-auto py-10 px-6">
         <Toaster position="bottom-right" />
@@ -105,5 +108,6 @@ export default function RequestsPage() {
         )}
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

@@ -25,7 +25,7 @@ export const findAllPublishedEvents = async (params?: {
   if (params?.eventStatus) {
     queryParams.append("eventStatus", params.eventStatus);
   }
-  
+
   const response = await fetch(`${BASE_URL}/events/published?${queryParams}`, {
     method: "GET",
     headers: {
@@ -75,7 +75,7 @@ export const publishEvent = async (id: string) => {
 
 export const updateEvent = async (
   id: string,
-  eventData: UpdateEventRequest
+  eventData: UpdateEventRequest,
 ) => {
   const response = await fetch(`${BASE_URL}/events/${id}`, {
     method: "PATCH",
@@ -148,6 +148,52 @@ export const createEvent = async (eventData: CreateEventRequest) => {
 
   if (!response.ok) {
     throw new Error("Event create failed");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const uploadConceptPaper = async (id: string, file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${BASE_URL}/events/${id}/concept-paper`, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to upload concept paper");
+  }
+
+  return response.json();
+};
+
+export const deleteConceptPaper = async (id: string) => {
+  const response = await fetch(`${BASE_URL}/events/${id}/concept-paper`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to delete concept paper");
+  }
+
+  return response.json();
+};
+
+export const getEventStats = async (eventId: string) => {
+  const response = await fetch(`${BASE_URL}/events/${eventId}/stats`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch event stats");
   }
 
   const data = await response.json();
