@@ -16,6 +16,9 @@ import type { Event } from "@/lib/types/entities";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/lib/hooks/use-toast";
+import { findAllRegistrationsByEventForExport } from "@/lib/api/services/registrationService";
+import { exportRegistrantsToPdf } from "@/lib/utils/export-registrations-pdf";
 
 const EVENT_TABS: { label: string; value: EventTab }[] = [
   { label: "Upcoming", value: "UPCOMING" },
@@ -27,6 +30,7 @@ const EVENT_TABS: { label: string; value: EventTab }[] = [
 export default function EventsPage() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const { toast: showToast } = useToast();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
 
@@ -41,6 +45,8 @@ export default function EventsPage() {
   const [orderBy, setOrderBy] = useState<"asc" | "desc">("asc");
   const [eventStatusFilter, setEventStatusFilter] =
     useState<EventTab>("UPCOMING");
+  const [isExportingRegistrantsPdf, setIsExportingRegistrantsPdf] =
+    useState(false);
 
   // Track if this is the initial load
   const isInitialLoad = useRef(true);
@@ -101,6 +107,50 @@ export default function EventsPage() {
     setShowArchiveDialog(true);
   }, []);
 
+  const handleExportRegistrantsPdf = React.useCallback(
+    async (event: Event) => {
+      if (isExportingRegistrantsPdf) {
+        return;
+      }
+
+      setIsExportingRegistrantsPdf(true);
+
+      try {
+        const registrations = await findAllRegistrationsByEventForExport(event.id);
+
+        if (registrations.length === 0) {
+          showToast({
+            title: "No registrations to export",
+            description: `${event.name} has no registrants yet.`,
+          });
+          return;
+        }
+
+        exportRegistrantsToPdf({
+          eventId: event.id,
+          eventName: event.name,
+          registrations,
+        });
+
+        showToast({
+          variant: "success",
+          title: "PDF exported",
+          description: `${registrations.length} registrants exported for ${event.name}.`,
+        });
+      } catch (error) {
+        console.error("Failed to export registrants PDF:", error);
+        showToast({
+          variant: "destructive",
+          title: "Export failed",
+          description: "Could not export registrants PDF. Please try again.",
+        });
+      } finally {
+        setIsExportingRegistrantsPdf(false);
+      }
+    },
+    [isExportingRegistrantsPdf, showToast],
+  );
+
   const handleArchiveConfirm = async () => {
     if (eventToArchive) {
       try {
@@ -123,6 +173,8 @@ export default function EventsPage() {
     const allColumns = createEventsColumns({
       onArchiveEvent: handleArchiveEvent,
       onViewEvent: handleViewEvent,
+      onExportRegistrantsPdf: handleExportRegistrantsPdf,
+      isExportingRegistrantsPdf,
       tab: eventStatusFilter,
     });
 
@@ -136,7 +188,14 @@ export default function EventsPage() {
     }
 
     return allColumns;
-  }, [user?.role, handleArchiveEvent, handleViewEvent, eventStatusFilter]);
+  }, [
+    user?.role,
+    handleArchiveEvent,
+    handleViewEvent,
+    handleExportRegistrantsPdf,
+    isExportingRegistrantsPdf,
+    eventStatusFilter,
+  ]);
 
   // Only show full page loading skeleton on initial load
   if (isLoading && isInitialLoad.current) {

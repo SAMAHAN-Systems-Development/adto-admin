@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Eye, Edit, Archive, Check, X } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, Archive, Check, X, Download } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,8 @@ export type EventTab = "DRAFT" | "UPCOMING" | "FINISHED" | "ARCHIVED";
 interface EventsColumnsProps {
   onArchiveEvent?: (eventId: string) => void;
   onViewEvent?: (event: Event) => void;
+  onExportRegistrantsPdf?: (event: Event) => void;
+  isExportingRegistrantsPdf?: boolean;
   tab?: EventTab;
 }
 
@@ -190,6 +192,8 @@ const createdAtColumn: ColumnDef<Event> = {
 const createActionsColumn = ({
   onArchiveEvent,
   onViewEvent,
+  onExportRegistrantsPdf,
+  isExportingRegistrantsPdf,
 }: EventsColumnsProps): ColumnDef<Event> => ({
   id: "actions",
   enableHiding: false,
@@ -216,6 +220,15 @@ const createActionsColumn = ({
             <Eye className="mr-2 h-4 w-4" />
             View details
           </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={isExportingRegistrantsPdf}
+            onClick={() => onExportRegistrantsPdf?.(event)}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            {isExportingRegistrantsPdf
+              ? "Exporting PDF..."
+              : "Export Registrants"}
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href={`/events/${event.id}`}>
               <Edit className="mr-2 h-4 w-4" />
@@ -241,9 +254,16 @@ const createActionsColumn = ({
 export const createEventsColumns = ({
   onArchiveEvent,
   onViewEvent,
+  onExportRegistrantsPdf,
+  isExportingRegistrantsPdf,
   tab = "UPCOMING",
 }: EventsColumnsProps = {}): ColumnDef<Event>[] => {
-  const actionsCol = createActionsColumn({ onArchiveEvent, onViewEvent });
+  const actionsCol = createActionsColumn({
+    onArchiveEvent,
+    onViewEvent,
+    onExportRegistrantsPdf,
+    isExportingRegistrantsPdf,
+  });
 
   switch (tab) {
     case "DRAFT":

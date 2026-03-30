@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   CirclePlus,
   RefreshCw,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -58,6 +59,8 @@ import { UploadData } from "@/components/shared/upload-image";
 import { deleteAsset } from "@/lib/api/services/assetService";
 import { ConceptPaperUploadTab } from "@/components/features/events/concept-paper-upload-tab";
 import { useEventRequestsQuery } from "@/lib/api/queries/eventRequestQueries";
+import { findAllRegistrationsByEventForExport } from "@/lib/api/services/registrationService";
+import { exportRegistrantsToPdf } from "@/lib/utils/export-registrations-pdf";
 
 interface EventDetailsPageProps {
   params: {
@@ -107,6 +110,8 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [searchFilter, setSearchFilter] = useState("");
+  const [isExportingRegistrantsPdf, setIsExportingRegistrantsPdf] =
+    useState(false);
 
   // Debounce search to avoid too many API calls
   const debouncedSearch = useDebounce(searchFilter, 500);
@@ -652,6 +657,47 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     });
   };
 
+  const handleExportRegistrantsPdf = async () => {
+    if (isExportingRegistrantsPdf) {
+      return;
+    }
+
+    setIsExportingRegistrantsPdf(true);
+
+    try {
+      const registrations = await findAllRegistrationsByEventForExport(eventId);
+
+      if (registrations.length === 0) {
+        showToast({
+          title: "No registrations to export",
+          description: "This event has no registrants yet.",
+        });
+        return;
+      }
+
+      exportRegistrantsToPdf({
+        eventId,
+        eventName: event.name,
+        registrations,
+      });
+
+      showToast({
+        variant: "success",
+        title: "PDF exported",
+        description: `${registrations.length} registrants exported successfully.`,
+      });
+    } catch (error) {
+      console.error("Failed to export registrants PDF:", error);
+      showToast({
+        variant: "destructive",
+        title: "Export failed",
+        description: "Could not export registrants PDF. Please try again.",
+      });
+    } finally {
+      setIsExportingRegistrantsPdf(false);
+    }
+  };
+
   const columns = createRegistrationsColumns({
     onIsAttendedChange: handleIsAttendedChange,
     onEdit: handleEditRegistration,
@@ -1176,22 +1222,40 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               ]}
               isTableLoading={isRegistrationsFetching}
               headerActions={
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => refetchRegistrations()}
-                  disabled={isRegistrationsFetching}
-                  className="w-full sm:w-auto"
-                  aria-label="Refresh registrations"
-                >
-                  <RefreshCw
-                    className={`mr-2 h-4 w-4 ${
-                      isRegistrationsFetching ? "animate-spin" : ""
-                    }`}
-                  />
-                  Refresh
-                </Button>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => refetchRegistrations()}
+                    disabled={isRegistrationsFetching}
+                    className="w-full sm:w-auto"
+                    aria-label="Refresh registrations"
+                  >
+                    <RefreshCw
+                      className={`mr-2 h-4 w-4 ${
+                        isRegistrationsFetching ? "animate-spin" : ""
+                      }`}
+                    />
+                    Refresh
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportRegistrantsPdf}
+                    disabled={
+                      isRegistrationsFetching ||
+                      isExportingRegistrantsPdf ||
+                      (registrationsData?.meta?.totalCount ?? 0) === 0
+                    }
+                    className="w-full sm:w-auto"
+                    aria-label="Export registrations as PDF"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    {isExportingRegistrantsPdf ? "Exporting..." : "Export PDF"}
+                  </Button>
+                </div>
               }
             />
           </div>
