@@ -1,15 +1,28 @@
 import { BASE_URL } from "../../config/api";
 import type { UpdateRegistrationRequest } from "../../types/requests/RegistrationRequest";
+import type { Registration } from "../../types/entities";
+
+interface RegistrationsQueryParams {
+  page?: number;
+  limit?: number;
+  searchFilter?: string;
+  orderBy?: "asc" | "desc";
+}
+
+interface RegistrationsResponse {
+  data: Registration[];
+  meta?: {
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+  };
+}
 
 export const findAllRegistrationsByEvent = async (
   eventId: string,
-  params?: {
-    page?: number;
-    limit?: number;
-    searchFilter?: string;
-    orderBy?: "asc" | "desc";
-  }
-) => {
+  params?: RegistrationsQueryParams
+): Promise<RegistrationsResponse> => {
   const queryParams = new URLSearchParams({
     page: (params?.page || 1).toString(),
     limit: (params?.limit || 20).toString(),
@@ -35,8 +48,34 @@ export const findAllRegistrationsByEvent = async (
     throw new Error("Failed to fetch registrations");
   }
 
-  const data = await response.json();
+  const data: RegistrationsResponse = await response.json();
   return data; // Returns { data: [...], meta: { totalCount, totalPages, currentPage, limit } }
+};
+
+export const findAllRegistrationsByEventForExport = async (
+  eventId: string,
+): Promise<Registration[]> => {
+  const allRegistrations: Registration[] = [];
+  const exportLimit = 200;
+  let currentPage = 1;
+  let totalPages = 1;
+
+  do {
+    const response = await findAllRegistrationsByEvent(eventId, {
+      page: currentPage,
+      limit: exportLimit,
+    });
+
+    if (!Array.isArray(response.data)) {
+      break;
+    }
+
+    allRegistrations.push(...response.data);
+    totalPages = response.meta?.totalPages ?? 1;
+    currentPage += 1;
+  } while (currentPage <= totalPages);
+
+  return allRegistrations;
 };
 
 export const findOneRegistration = async (id: string) => {
