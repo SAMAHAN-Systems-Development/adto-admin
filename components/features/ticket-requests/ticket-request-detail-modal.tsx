@@ -27,7 +27,6 @@ export function TicketRequestDetailModal({
   onClose,
 }: TicketRequestDetailModalProps) {
   const [ticketLink, setTicketLink] = useState("");
-  const [messengerLink, setMessengerLink] = useState("");
   const [declineReason, setDeclineReason] = useState("");
   const [activeAction, setActiveAction] = useState<"approve" | "decline" | "revert" | null>(null);
 
@@ -46,7 +45,6 @@ export function TicketRequestDetailModal({
       await approveMutation.mutateAsync({
         id: request.id,
         ticketLink: ticketLink.trim(),
-        messengerLink: messengerLink.trim() || undefined,
       });
       toast.success("Ticket request approved!", {
         duration: 3000,
@@ -249,38 +247,21 @@ export function TicketRequestDetailModal({
           </div>
         </div>
 
-        {/* Approved: Show link and credentials */}
+        {/* Approved: Show link */}
         {request.status === "APPROVED" && request.ticketLink && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg space-y-3">
-            <h3 className="text-sm font-semibold text-green-700">
-              Approval Details
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h3 className="text-sm font-semibold text-green-700 mb-2">
+              Approved Ticket Link
             </h3>
-            <div>
-              <span className="text-xs text-green-600 font-medium block mb-1">Ticket Link</span>
-              <a
-                href={request.ticketLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline flex items-center gap-1 text-sm"
-              >
-                {request.ticketLink}
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-            {request.messengerLink && (
-              <div>
-                <span className="text-xs text-green-600 font-medium block mb-1">Messenger Link</span>
-                <a
-                  href={request.messengerLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline flex items-center gap-1 text-sm"
-                >
-                  {request.messengerLink}
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-            )}
+            <a
+              href={request.ticketLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline flex items-center gap-1 text-sm"
+            >
+              {request.ticketLink}
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         )}
 
@@ -313,24 +294,12 @@ export function TicketRequestDetailModal({
                         className="w-full mt-1"
                       />
                     </div>
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700">
-                        Messenger Link
-                      </label>
-                      <Input
-                        value={messengerLink}
-                        onChange={(e) => setMessengerLink(e.target.value)}
-                        placeholder="https://m.me/... (optional)"
-                        className="w-full mt-1"
-                      />
-                    </div>
                     <div className="flex gap-2 justify-end">
                       <Button
                         variant="outline"
                         onClick={() => {
                           setActiveAction(null);
                           setTicketLink("");
-                          setMessengerLink("");
                         }}
                       >
                         Cancel

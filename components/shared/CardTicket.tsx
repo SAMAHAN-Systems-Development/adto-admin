@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { XIcon, Archive, SquarePen, Download, Copy, Check, Clock, CheckCircle2, XCircle, Send, ExternalLink } from "lucide-react";
+import { XIcon, Archive, SquarePen, Download, Copy, Check, Clock, CheckCircle2, XCircle, Send } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import CreateTicket from "@/components/shared/CreateTicket";
@@ -147,32 +147,6 @@ function TicketRequestStatus({ ticket }: { ticket: Tickets }) {
             </div>
           </div>
 
-          {/* Messenger Link */}
-          {latestRequest.messengerLink && (
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">Messenger Link</p>
-              <div className="flex items-center gap-2">
-                <a
-                  href={latestRequest.messengerLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline flex items-center gap-1 text-sm flex-1 truncate"
-                >
-                  {latestRequest.messengerLink}
-                  <ExternalLink className="w-3 h-3 shrink-0" />
-                </a>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCopy(latestRequest.messengerLink!, "messengerLink")}
-                  className="flex items-center gap-1 shrink-0"
-                >
-                  {copiedField === "messengerLink" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                  {copiedField === "messengerLink" ? "Copied" : "Copy"}
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       );
     }

@@ -23,15 +23,8 @@ export const useApproveTicketRequestMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      ticketLink,
-      messengerLink,
-    }: {
-      id: string;
-      ticketLink: string;
-      messengerLink?: string;
-    }) => approveTicketRequest(id, ticketLink, messengerLink),
+    mutationFn: ({ id, ticketLink }: { id: string; ticketLink: string }) =>
+      approveTicketRequest(id, ticketLink),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ticketRequests"] });
       queryClient.invalidateQueries({ queryKey: ["eventTickets"] });
