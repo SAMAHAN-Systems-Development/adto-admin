@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "@next/swc-darwin-arm64": "^16.2.2",
     "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-aspect-ratio": "^1.1.0",
