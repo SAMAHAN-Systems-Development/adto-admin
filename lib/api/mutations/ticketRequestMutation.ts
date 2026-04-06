@@ -23,19 +23,8 @@ export const useApproveTicketRequestMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      ticketLink,
-      helixpayUsername,
-      helixpayPassword,
-      messengerLink,
-    }: {
-      id: string;
-      ticketLink: string;
-      helixpayUsername?: string;
-      helixpayPassword?: string;
-      messengerLink?: string;
-    }) => approveTicketRequest(id, ticketLink, helixpayUsername, helixpayPassword, messengerLink),
+    mutationFn: ({ id, ticketLink }: { id: string; ticketLink: string }) =>
+      approveTicketRequest(id, ticketLink),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ticketRequests"] });
       queryClient.invalidateQueries({ queryKey: ["eventTickets"] });
