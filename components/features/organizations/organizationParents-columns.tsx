@@ -1,12 +1,13 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -15,10 +16,13 @@ import { OrganizationParent } from "@/lib/types/entities";
 interface OrganizationParentColumnsProps {
   onRemoveOrganizationParent: (id: string) => void;
   onViewOrganizationParent?: (organizationParent: OrganizationParent) => void;
+  onEditOrganizationParent?: (organizationParent: OrganizationParent) => void;
 }
 
 export const createOrganizationParentsColumns = ({
   onRemoveOrganizationParent,
+  onViewOrganizationParent,
+  onEditOrganizationParent,
 }: OrganizationParentColumnsProps): ColumnDef<OrganizationParent>[] => [
   {
     accessorKey: "name",
@@ -91,6 +95,31 @@ export const createOrganizationParentsColumns = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            {onViewOrganizationParent && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewOrganizationParent(organizationParent);
+                }}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
+            )}
+            {onEditOrganizationParent && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditOrganizationParent(organizationParent);
+                }}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+            )}
+            {(onViewOrganizationParent || onEditOrganizationParent) && (
+              <DropdownMenuSeparator />
+            )}
             <DropdownMenuItem
               onClick={(e) => {
                 e.stopPropagation();

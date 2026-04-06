@@ -179,6 +179,10 @@ export default function OrganizationsPage() {
   };
 
   const handleViewParentOrganization = (parentOrg: OrganizationParent) => {
+    router.push(`/organizations/parents/${parentOrg.id}`);
+  };
+
+  const handleEditParentOrganization = (parentOrg: OrganizationParent) => {
     setSelectedParentOrganization(parentOrg);
     setIsAddParentModalOpen(true);
   };
@@ -238,6 +242,7 @@ export default function OrganizationsPage() {
   const parentColumns = createOrganizationParentsColumns({
     onRemoveOrganizationParent: handleRemoveParentOrganization,
     onViewOrganizationParent: handleViewParentOrganization,
+    onEditOrganizationParent: handleEditParentOrganization,
   });
 
   // Only show full page loading skeleton on initial load
