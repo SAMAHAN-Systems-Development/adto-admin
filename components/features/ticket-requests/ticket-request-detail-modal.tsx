@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { XIcon, CheckCircle2, XCircle, Clock, ExternalLink, Eye, EyeOff } from "lucide-react";
+import { XIcon, CheckCircle2, XCircle, Clock, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,12 +27,9 @@ export function TicketRequestDetailModal({
   onClose,
 }: TicketRequestDetailModalProps) {
   const [ticketLink, setTicketLink] = useState("");
-  const [helixpayUsername, setHelixpayUsername] = useState("");
-  const [helixpayPassword, setHelixpayPassword] = useState("");
   const [messengerLink, setMessengerLink] = useState("");
   const [declineReason, setDeclineReason] = useState("");
   const [activeAction, setActiveAction] = useState<"approve" | "decline" | "revert" | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
 
   const approveMutation = useApproveTicketRequestMutation();
   const declineMutation = useDeclineTicketRequestMutation();
@@ -45,21 +42,10 @@ export function TicketRequestDetailModal({
       toast.error("Please provide a ticket URL");
       return;
     }
-    if (!helixpayUsername.trim()) {
-      toast.error("Please provide a HelixPay username");
-      return;
-    }
-    if (!helixpayPassword.trim()) {
-      toast.error("Please provide a HelixPay password");
-      return;
-    }
-
     try {
       await approveMutation.mutateAsync({
         id: request.id,
         ticketLink: ticketLink.trim(),
-        helixpayUsername: helixpayUsername.trim(),
-        helixpayPassword: helixpayPassword.trim(),
         messengerLink: messengerLink.trim() || undefined,
       });
       toast.success("Ticket request approved!", {
@@ -281,18 +267,6 @@ export function TicketRequestDetailModal({
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
-            {request.helixpayUsername && (
-              <div>
-                <span className="text-xs text-green-600 font-medium block mb-1">HelixPay Username</span>
-                <span className="text-sm text-gray-800">{request.helixpayUsername}</span>
-              </div>
-            )}
-            {request.helixpayPassword && (
-              <div>
-                <span className="text-xs text-green-600 font-medium block mb-1">HelixPay Password</span>
-                <span className="text-sm text-gray-800">{request.helixpayPassword}</span>
-              </div>
-            )}
             {request.messengerLink && (
               <div>
                 <span className="text-xs text-green-600 font-medium block mb-1">Messenger Link</span>
@@ -341,38 +315,6 @@ export function TicketRequestDetailModal({
                     </div>
                     <div>
                       <label className="text-sm font-semibold text-gray-700">
-                        HelixPay Username <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        value={helixpayUsername}
-                        onChange={(e) => setHelixpayUsername(e.target.value)}
-                        placeholder="HelixPay username"
-                        className="w-full mt-1"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700">
-                        HelixPay Password <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative mt-1">
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          value={helixpayPassword}
-                          onChange={(e) => setHelixpayPassword(e.target.value)}
-                          placeholder="HelixPay password"
-                          className="w-full pr-10"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword((prev) => !prev)}
-                          className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700">
                         Messenger Link
                       </label>
                       <Input
@@ -388,17 +330,14 @@ export function TicketRequestDetailModal({
                         onClick={() => {
                           setActiveAction(null);
                           setTicketLink("");
-                          setHelixpayUsername("");
-                          setHelixpayPassword("");
                           setMessengerLink("");
-                          setShowPassword(false);
                         }}
                       >
                         Cancel
                       </Button>
                       <Button
                         onClick={handleApprove}
-                        disabled={approveMutation.isPending || !ticketLink.trim() || !helixpayUsername.trim() || !helixpayPassword.trim()}
+                        disabled={approveMutation.isPending || !ticketLink.trim()}
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
                         {approveMutation.isPending ? "Approving..." : "Approve Request"}
