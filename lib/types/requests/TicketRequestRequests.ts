@@ -4,8 +4,6 @@ export interface TicketLatestRequest {
   id: string;
   status: TicketRequestStatus;
   ticketLink?: string;
-  helixpayUsername?: string;
-  helixpayPassword?: string;
   messengerLink?: string;
   declineReason?: string;
   createdAt: string;
@@ -17,8 +15,6 @@ export interface TicketRequestItem {
   orgId: string;
   status: TicketRequestStatus;
   ticketLink?: string;
-  helixpayUsername?: string;
-  helixpayPassword?: string;
   messengerLink?: string;
   declineReason?: string;
   createdAt: string;
