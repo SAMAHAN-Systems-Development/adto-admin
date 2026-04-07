@@ -54,11 +54,11 @@ export interface Registration {
   cluster: string;
   confirmedAt?: Date;
   isAttended: boolean;
-  hasRsvpd?: boolean;
   organizationParentId?: string;
   organizationParent?: OrganizationParent;
   organizationChildId?: string;
   organizationChild?: OrganizationChild;
+  hasRsvpd: boolean;
   ticketCategoryId: string;
   ticketCategory: TicketCategory;
 }
@@ -88,6 +88,7 @@ export interface Event {
   isOpenToOutsiders: boolean;
   isPublished: boolean;
   isArchived: boolean;
+  isRsvpEnabled: boolean;
   orgId: string;
   org: OrganizationChild;
   registrations: Registration[];

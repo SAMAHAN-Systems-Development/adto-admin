@@ -97,6 +97,9 @@ export function ConceptPaperUploadTab({ event }: ConceptPaperUploadTabProps) {
           <p className="text-sm text-gray-600">
             Upload the concept paper (PDF, max 15MB) for this event.
           </p>
+          <p className="mt-2 text-sm font-semibold text-red-600">
+            Please upload a Concept Paper that has been officially approved by the School OSA. Submissions without OSA approval will be declined.
+          </p>
         </div>
       </div>
 
