@@ -18,12 +18,14 @@ interface RegistrationsColumnsProps {
   onIsAttendedChange?: (registrationId: string, isAttended: boolean) => void;
   onEdit?: (registration: Registration) => void;
   onDelete?: (registration: Registration) => void;
+  isRsvpEnabled?: boolean;
 }
 
 export const createRegistrationsColumns = ({
   onIsAttendedChange,
   onEdit,
   onDelete,
+  isRsvpEnabled,
 }: RegistrationsColumnsProps): ColumnDef<Registration>[] => [
   {
     id: "select",
@@ -111,6 +113,30 @@ export const createRegistrationsColumns = ({
       );
     },
   },
+  ...(isRsvpEnabled
+    ? [
+        {
+          id: "hasRsvpd",
+          header: () => <span className="text-secondary-100">RSVP</span>,
+          cell: ({ row }: { row: { original: Registration } }) => {
+            const registration = row.original;
+            return (
+              <div className="font-medium">
+                {registration.hasRsvpd ? (
+                  <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                    Yes
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                    No
+                  </span>
+                )}
+              </div>
+            );
+          },
+        } as ColumnDef<Registration>,
+      ]
+    : []),
   {
     id: "isAttended",
     header: () => <span className="text-secondary-100">Attended</span>,

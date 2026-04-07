@@ -213,6 +213,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [registrationRequired, setRegistrationRequired] = useState(
     event?.isRegistrationRequired ?? true,
   );
+  const [rsvpEnabled, setRsvpEnabled] = useState(
+    event?.isRsvpEnabled ?? false,
+  );
 
   // Helper function to extract S3 key from Supabase URL
   const extractKeyFromUrl = (url: string): string => {
@@ -237,6 +240,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
       setRegistrationOpen(event.isRegistrationOpen);
       setEventVisibility(event.isPublished);
       setRegistrationRequired(event.isRegistrationRequired);
+      setRsvpEnabled(event.isRsvpEnabled);
       initializeEditFields(event);
 
       // Load existing banner and thumbnail from event data
@@ -286,6 +290,14 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     await updateEventMutation.mutateAsync({
       id: params.id,
       data: { isRegistrationRequired: checked },
+    });
+  };
+
+  const handleRsvpEnabledChange = async (checked: boolean) => {
+    setRsvpEnabled(checked);
+    await updateEventMutation.mutateAsync({
+      id: params.id,
+      data: { isRsvpEnabled: checked },
     });
   };
 
@@ -703,6 +715,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     onIsAttendedChange: handleIsAttendedChange,
     onEdit: handleEditRegistration,
     onDelete: handleDeleteRegistration,
+    isRsvpEnabled: event?.isRsvpEnabled ?? false,
   });
 
   return (
@@ -1164,6 +1177,24 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               <Switch
                 checked={registrationRequired}
                 onCheckedChange={handleRegistrationRequiredChange}
+                className="data-[state=checked]:bg-blue-600"
+              />
+            </div>
+
+            <div className="flex items-start justify-between py-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 mb-1">
+                  RSVP Confirmation
+                </h3>
+                <p className="text-sm text-gray-600">
+                  When enabled, registrants will see an additional checkbox to
+                  confirm their intent to attend. Their response will appear as
+                  a column in the registrations table.
+                </p>
+              </div>
+              <Switch
+                checked={rsvpEnabled}
+                onCheckedChange={handleRsvpEnabledChange}
                 className="data-[state=checked]:bg-blue-600"
               />
             </div>
