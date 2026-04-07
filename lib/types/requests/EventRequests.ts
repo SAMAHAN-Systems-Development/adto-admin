@@ -20,4 +20,5 @@ export interface UpdateEventRequest {
   isRegistrationRequired?: boolean;
   isOpenToOutsiders?: boolean;
   isPublished?: boolean;
+  isRsvpEnabled?: boolean;
 }
