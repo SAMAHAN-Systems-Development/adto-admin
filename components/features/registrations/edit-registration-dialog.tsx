@@ -41,6 +41,11 @@ interface OrganizationGroupRow {
   organizationChild?: OrganizationOption;
 }
 
+interface OrganizationGroupOption {
+  id: string;
+  name: string;
+}
+
 export function EditRegistrationDialog({
   registration,
   isOpen,
@@ -65,11 +70,22 @@ export function EditRegistrationDialog({
       limit: 200,
     });
 
-  const organizationGroups = Array.isArray(organizationParentsResponse)
+  const organizationGroupsRaw: unknown[] = Array.isArray(organizationParentsResponse)
     ? organizationParentsResponse
     : Array.isArray(organizationParentsResponse?.data)
       ? organizationParentsResponse.data
       : [];
+
+  const organizationGroups: OrganizationGroupOption[] = organizationGroupsRaw.filter(
+    (parent): parent is OrganizationGroupOption => {
+      if (!parent || typeof parent !== "object") {
+        return false;
+      }
+
+      const candidate = parent as { id?: unknown; name?: unknown };
+      return typeof candidate.id === "string" && typeof candidate.name === "string";
+    },
+  );
 
   const organizationsByParentRaw: OrganizationGroupRow[] =
     Array.isArray(organizationsResponse?.data)
