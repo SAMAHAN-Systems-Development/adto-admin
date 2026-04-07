@@ -66,6 +66,28 @@ export const createRegistrationsColumns = ({
     enableHiding: false,
   },
   {
+    id: "organizationGroup",
+    accessorKey: "organizationParent.name",
+    header: () => <span className="text-secondary-100">Organization Group</span>,
+    cell: ({ row }) => {
+      const registration = row.original;
+      return (
+        <div className="font-medium">{registration.organizationParent?.name || "-"}</div>
+      );
+    },
+  },
+  {
+    id: "organization",
+    accessorKey: "organizationChild.name",
+    header: () => <span className="text-secondary-100">Organization</span>,
+    cell: ({ row }) => {
+      const registration = row.original;
+      return (
+        <div className="font-medium">{registration.organizationChild?.name || "-"}</div>
+      );
+    },
+  },
+  {
     accessorKey: "cluster",
     header: () => <span className="text-secondary-100">Cluster</span>,
     cell: ({ row }) => {

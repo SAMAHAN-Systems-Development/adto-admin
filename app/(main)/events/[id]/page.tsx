@@ -89,6 +89,8 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [modal, setModal] = useState(false);
   const [clusterFilter, setClusterFilter] = useState("all");
   const [courseFilter, setCourseFilter] = useState("all");
+  const [organizationGroupFilter, setOrganizationGroupFilter] = useState("all");
+  const [organizationFilter, setOrganizationFilter] = useState("all");
   const [ticketCategoryFilter, setTicketCategoryFilter] = useState("all");
   const [editingRegistration, setEditingRegistration] = useState<Registration | null>(null);
   const [deletingRegistration, setDeletingRegistration] = useState<Registration | null>(null);
@@ -1192,6 +1194,18 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 onSearchChange: setSearchFilter,
               }}
               filters={[
+                {
+                  field: "organizationParent.name",
+                  placeholder: "Select Organization Group",
+                  value: organizationGroupFilter,
+                  onChange: setOrganizationGroupFilter,
+                },
+                {
+                  field: "organizationChild.name",
+                  placeholder: "Select Organization",
+                  value: organizationFilter,
+                  onChange: setOrganizationFilter,
+                },
                 {
                   field: "cluster",
                   placeholder: "Select Cluster",
