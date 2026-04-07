@@ -92,7 +92,7 @@ function AdminLoginContent() {
             <div className="w-12 h-12 md:w-16 md:h-16 mb-3 md:mb-4">
               <div className="w-full h-full bg-primary rounded-full flex items-center justify-center">
                 <Image
-                  src="/images/ADTO2_Blue.svg"
+                  src="https://samahan.addu.edu.ph/adto/images/ADTO2_Blue.svg"
                   alt="ADTO Logo"
                   width={32}
                   height={32}
