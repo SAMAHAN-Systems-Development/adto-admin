@@ -12,6 +12,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useOrganizationParentsQuery } from "@/lib/api/queries/organizationParentQueries";
+import { useOrganizationParentChildrenQuery } from "@/lib/api/queries/organizationsQueries";
 import type { Registration } from "@/lib/types/entities";
 import type { UpdateRegistrationRequest } from "@/lib/types/requests/RegistrationRequest";
 
@@ -21,6 +30,20 @@ interface EditRegistrationDialogProps {
   onClose: () => void;
   onSave: (id: string, data: UpdateRegistrationRequest) => void;
   isLoading?: boolean;
+}
+
+interface OrganizationOption {
+  id: string;
+  name: string;
+}
+
+interface OrganizationGroupRow {
+  organizationChild?: OrganizationOption;
+}
+
+interface OrganizationGroupOption {
+  id: string;
+  name: string;
 }
 
 export function EditRegistrationDialog({
@@ -35,7 +58,61 @@ export function EditRegistrationDialog({
   const [yearLevel, setYearLevel] = useState("");
   const [course, setCourse] = useState("");
   const [cluster, setCluster] = useState("");
+  const [organizationGroupId, setOrganizationGroupId] = useState("");
+  const [organizationId, setOrganizationId] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { data: organizationParentsResponse, isLoading: isOrganizationParentsLoading } =
+    useOrganizationParentsQuery();
+  const { data: organizationsResponse, isLoading: isOrganizationsLoading } =
+    useOrganizationParentChildrenQuery(organizationGroupId, {
+      page: 1,
+      limit: 200,
+    });
+
+  const organizationGroupsRaw: unknown[] = Array.isArray(organizationParentsResponse)
+    ? organizationParentsResponse
+    : Array.isArray(organizationParentsResponse?.data)
+      ? organizationParentsResponse.data
+      : [];
+
+  const organizationGroups: OrganizationGroupOption[] = organizationGroupsRaw.filter(
+    (parent): parent is OrganizationGroupOption => {
+      if (!parent || typeof parent !== "object") {
+        return false;
+      }
+
+      const candidate = parent as { id?: unknown; name?: unknown };
+      return typeof candidate.id === "string" && typeof candidate.name === "string";
+    },
+  );
+
+  const organizationsByParentRaw: OrganizationGroupRow[] =
+    Array.isArray(organizationsResponse?.data)
+      ? organizationsResponse.data
+      : Array.isArray(organizationsResponse)
+        ? organizationsResponse
+        : [];
+
+  const organizationsByParent: OrganizationOption[] = organizationsByParentRaw
+    .map((group) => group.organizationChild)
+    .filter((organization): organization is OrganizationOption => Boolean(organization));
+
+  const currentRegistrationOrganization: OrganizationOption | undefined =
+    registration?.organizationChild
+      ? {
+          id: registration.organizationChild.id,
+          name: registration.organizationChild.name,
+        }
+      : undefined;
+
+  const organizationOptions =
+    currentRegistrationOrganization &&
+    !organizationsByParent.some(
+      (organization) => organization.id === currentRegistrationOrganization.id,
+    )
+      ? [currentRegistrationOrganization, ...organizationsByParent]
+      : organizationsByParent;
 
   useEffect(() => {
     if (registration) {
@@ -44,6 +121,12 @@ export function EditRegistrationDialog({
       setYearLevel(registration.yearLevel);
       setCourse(registration.course);
       setCluster(registration.cluster);
+      setOrganizationGroupId(
+        registration.organizationParentId ?? registration.organizationParent?.id ?? "",
+      );
+      setOrganizationId(
+        registration.organizationChildId ?? registration.organizationChild?.id ?? "",
+      );
       setErrors({});
     }
   }, [registration]);
@@ -74,6 +157,22 @@ export function EditRegistrationDialog({
     if (yearLevel.trim() !== registration.yearLevel) changed.yearLevel = yearLevel.trim();
     if (course.trim() !== registration.course) changed.course = course.trim();
     if (cluster.trim() !== registration.cluster) changed.cluster = cluster.trim();
+
+    const currentOrganizationParentId =
+      registration.organizationParentId ?? registration.organizationParent?.id ?? "";
+    const currentOrganizationChildId =
+      registration.organizationChildId ?? registration.organizationChild?.id ?? "";
+
+    if (
+      organizationGroupId &&
+      organizationGroupId !== currentOrganizationParentId
+    ) {
+      changed.organizationParentId = organizationGroupId;
+    }
+
+    if (organizationId && organizationId !== currentOrganizationChildId) {
+      changed.organizationChildId = organizationId;
+    }
 
     if (Object.keys(changed).length === 0) {
       onClose();
@@ -187,6 +286,63 @@ export function EditRegistrationDialog({
             {errors.course && (
               <p className="text-sm text-red-600">{errors.course}</p>
             )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-900">
+                Organization Group
+              </Label>
+              <Select
+                value={organizationGroupId}
+                onValueChange={(value) => {
+                  setOrganizationGroupId(value);
+                  setOrganizationId("");
+                }}
+                disabled={isLoading || isOrganizationParentsLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select organization group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizationGroups.map((parent) => (
+                    <SelectItem key={parent.id} value={parent.id}>
+                      {parent.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-900">Organization</Label>
+              <Select
+                value={organizationId}
+                onValueChange={(value) => setOrganizationId(value)}
+                disabled={
+                  isLoading ||
+                  !organizationGroupId ||
+                  isOrganizationsLoading
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      organizationGroupId
+                        ? "Select organization"
+                        : "Select organization group first"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizationOptions.map((organization) => (
+                    <SelectItem key={organization.id} value={organization.id}>
+                      {organization.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">

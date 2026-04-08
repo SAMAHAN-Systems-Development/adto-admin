@@ -5,4 +5,6 @@ export interface UpdateRegistrationRequest {
   course?: string;
   cluster?: string;
   isAttended?: boolean;
+  organizationParentId?: string;
+  organizationChildId?: string;
 }

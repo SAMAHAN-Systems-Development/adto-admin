@@ -54,6 +54,10 @@ export interface Registration {
   cluster: string;
   confirmedAt?: Date;
   isAttended: boolean;
+  organizationParentId?: string;
+  organizationParent?: OrganizationParent;
+  organizationChildId?: string;
+  organizationChild?: OrganizationChild;
   hasRsvpd: boolean;
   ticketCategoryId: string;
   ticketCategory: TicketCategory;
