@@ -19,6 +19,30 @@ interface RegistrationsResponse {
   };
 }
 
+const getErrorMessage = async (response: Response, fallbackMessage: string) => {
+  try {
+    const rawBody = await response.text();
+
+    if (!rawBody) {
+      return fallbackMessage;
+    }
+
+    const parsed = JSON.parse(rawBody) as { message?: string | string[] };
+
+    if (Array.isArray(parsed.message) && parsed.message.length > 0) {
+      return parsed.message.join(", ");
+    }
+
+    if (typeof parsed.message === "string" && parsed.message.trim()) {
+      return parsed.message;
+    }
+
+    return fallbackMessage;
+  } catch {
+    return fallbackMessage;
+  }
+};
+
 export const findAllRegistrationsByEvent = async (
   eventId: string,
   params?: RegistrationsQueryParams
@@ -106,7 +130,9 @@ export const updateRegistration = async (
   });
 
   if (!response.ok) {
-    throw new Error("Failed to update registration");
+    throw new Error(
+      await getErrorMessage(response, "Failed to update registration")
+    );
   }
 
   const data = await response.json();

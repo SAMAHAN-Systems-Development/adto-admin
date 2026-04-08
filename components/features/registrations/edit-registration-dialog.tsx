@@ -46,6 +46,11 @@ interface OrganizationGroupOption {
   name: string;
 }
 
+const hasOrganizationInCurrentGroup = (
+  organizations: OrganizationOption[],
+  organizationId: string,
+) => organizations.some((organization) => organization.id === organizationId);
+
 export function EditRegistrationDialog({
   registration,
   isOpen,
@@ -98,21 +103,7 @@ export function EditRegistrationDialog({
     .map((group) => group.organizationChild)
     .filter((organization): organization is OrganizationOption => Boolean(organization));
 
-  const currentRegistrationOrganization: OrganizationOption | undefined =
-    registration?.organizationChild
-      ? {
-          id: registration.organizationChild.id,
-          name: registration.organizationChild.name,
-        }
-      : undefined;
-
-  const organizationOptions =
-    currentRegistrationOrganization &&
-    !organizationsByParent.some(
-      (organization) => organization.id === currentRegistrationOrganization.id,
-    )
-      ? [currentRegistrationOrganization, ...organizationsByParent]
-      : organizationsByParent;
+  const organizationOptions = organizationsByParent;
 
   useEffect(() => {
     if (registration) {
@@ -131,6 +122,21 @@ export function EditRegistrationDialog({
     }
   }, [registration]);
 
+  useEffect(() => {
+    if (!organizationGroupId || !organizationId || isOrganizationsLoading) {
+      return;
+    }
+
+    if (!hasOrganizationInCurrentGroup(organizationsByParent, organizationId)) {
+      setOrganizationId("");
+    }
+  }, [
+    organizationGroupId,
+    organizationId,
+    organizationsByParent,
+    isOrganizationsLoading,
+  ]);
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -143,6 +149,14 @@ export function EditRegistrationDialog({
     if (!yearLevel.trim()) newErrors.yearLevel = "Year level is required.";
     if (!course.trim()) newErrors.course = "Course is required.";
     if (!cluster.trim()) newErrors.cluster = "Cluster is required.";
+    if (
+      organizationGroupId &&
+      organizationId &&
+      !hasOrganizationInCurrentGroup(organizationsByParent, organizationId)
+    ) {
+      newErrors.organizationId =
+        "Selected organization does not belong to the chosen group.";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -159,19 +173,19 @@ export function EditRegistrationDialog({
     if (cluster.trim() !== registration.cluster) changed.cluster = cluster.trim();
 
     const currentOrganizationParentId =
-      registration.organizationParentId ?? registration.organizationParent?.id ?? "";
+      registration.organizationParentId ?? registration.organizationParent?.id ?? null;
     const currentOrganizationChildId =
-      registration.organizationChildId ?? registration.organizationChild?.id ?? "";
+      registration.organizationChildId ?? registration.organizationChild?.id ?? null;
 
-    if (
-      organizationGroupId &&
-      organizationGroupId !== currentOrganizationParentId
-    ) {
-      changed.organizationParentId = organizationGroupId;
+    const nextOrganizationParentId = organizationGroupId.trim() || null;
+    const nextOrganizationChildId = organizationId.trim() || null;
+
+    if (nextOrganizationParentId !== currentOrganizationParentId) {
+      changed.organizationParentId = nextOrganizationParentId;
     }
 
-    if (organizationId && organizationId !== currentOrganizationChildId) {
-      changed.organizationChildId = organizationId;
+    if (nextOrganizationChildId !== currentOrganizationChildId) {
+      changed.organizationChildId = nextOrganizationChildId;
     }
 
     if (Object.keys(changed).length === 0) {
@@ -298,6 +312,10 @@ export function EditRegistrationDialog({
                 onValueChange={(value) => {
                   setOrganizationGroupId(value);
                   setOrganizationId("");
+                  setErrors((prev) => ({
+                    ...prev,
+                    organizationId: "",
+                  }));
                 }}
                 disabled={isLoading || isOrganizationParentsLoading}
               >
@@ -318,7 +336,13 @@ export function EditRegistrationDialog({
               <Label className="text-sm font-medium text-gray-900">Organization</Label>
               <Select
                 value={organizationId}
-                onValueChange={(value) => setOrganizationId(value)}
+                onValueChange={(value) => {
+                  setOrganizationId(value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    organizationId: "",
+                  }));
+                }}
                 disabled={
                   isLoading ||
                   !organizationGroupId ||
@@ -342,6 +366,9 @@ export function EditRegistrationDialog({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.organizationId && (
+                <p className="text-sm text-red-600">{errors.organizationId}</p>
+              )}
             </div>
           </div>
 

@@ -78,7 +78,10 @@ export const useUpdateRegistration = () => {
       }
       toast({
         title: "Error",
-        description: "Failed to update registration. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update registration. Please try again.",
         variant: "destructive",
       });
       console.error("Failed to update registration:", error);

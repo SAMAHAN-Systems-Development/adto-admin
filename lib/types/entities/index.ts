@@ -54,9 +54,9 @@ export interface Registration {
   cluster: string;
   confirmedAt?: Date;
   isAttended: boolean;
-  organizationParentId?: string;
+  organizationParentId?: string | null;
   organizationParent?: OrganizationParent;
-  organizationChildId?: string;
+  organizationChildId?: string | null;
   organizationChild?: OrganizationChild;
   hasRsvpd: boolean;
   ticketCategoryId: string;
