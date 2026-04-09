@@ -33,6 +33,7 @@ export function EventForm({
     defaultValues: {
       name: "",
       description: "",
+      venue: "",
       dateStart: "",
       dateEnd: "",
     },
@@ -116,6 +117,27 @@ export function EventForm({
                     {...field}
                     placeholder="Enter event description"
                     className="min-h-[120px]"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleFieldChange();
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="venue"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Event Venue</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Enter event location (Optional)"
                     onChange={(e) => {
                       field.onChange(e);
                       handleFieldChange();
