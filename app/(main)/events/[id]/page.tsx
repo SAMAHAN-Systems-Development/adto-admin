@@ -158,7 +158,12 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   }, [event, user, isLoading, router]);
 
   // ADD THESE: Fetch tickets and mutations
-  const { data: ticketsData, isLoading: ticketsLoading } = useEventTicketsQuery(
+  const {
+    data: ticketsData,
+    isLoading: ticketsLoading,
+    isError: isTicketsError,
+    error: ticketsError,
+  } = useEventTicketsQuery(
     { eventId: params.id },
   );
   const createTicketMutation = useCreateEventTicketMutation();
@@ -1376,6 +1381,15 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             {ticketsLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : isTicketsError ? (
+              <div className="text-center py-12">
+                <p className="text-red-600 font-medium">Failed to load tickets.</p>
+                <p className="text-gray-500 mt-1 text-sm">
+                  {ticketsError instanceof Error
+                    ? ticketsError.message
+                    : "Please refresh and try again."}
+                </p>
               </div>
             ) : tickets.length === 0 ? (
               <div className="text-center py-12">
