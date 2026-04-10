@@ -1,5 +1,21 @@
 import { BASE_URL } from "../../config/api";
 import { CreateEventTicketRequest } from "@/lib/types/requests/ticketsRequests";
+import { getStoredToken } from "./authService";
+
+const createAuthHeaders = (
+  additionalHeaders: Record<string, string> = {},
+): Record<string, string> => {
+  const headers: Record<string, string> = {
+    ...additionalHeaders,
+  };
+
+  const token = getStoredToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+};
 
 export const findAllTicketEvents = async (eventId?: string) => {
   const url = new URL(`${BASE_URL}/tickets`);
@@ -9,9 +25,9 @@ export const findAllTicketEvents = async (eventId?: string) => {
 
   const response = await fetch(url.toString(), {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: createAuthHeaders({
+      "Content-Type": "application/json",
+    }),
     credentials: "include"
   });
 
@@ -23,9 +39,9 @@ export const findAllTicketEvents = async (eventId?: string) => {
 export const findOneEventTicket = async (id: string) => {
   const response = await fetch(`${BASE_URL}/tickets/${id}`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: createAuthHeaders({
+      "Content-Type": "application/json",
+    }),
     credentials: "include"
   });
 
@@ -42,9 +58,9 @@ export const createEventTicket = async (ticketData: CreateEventTicketRequest) =>
 
   const response = await fetch(`${BASE_URL}/tickets/create`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: createAuthHeaders({
+      "Content-Type": "application/json",
+    }),
     credentials: "include",
     body: JSON.stringify(formattedData)
   });
@@ -60,9 +76,9 @@ export const updateEventTicket = async (
 ) => {
   const response = await fetch(`${BASE_URL}/tickets/update/${id}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: createAuthHeaders({
+      "Content-Type": "application/json",
+    }),
     credentials: "include",
     body: JSON.stringify(ticketData)
   });
@@ -76,6 +92,7 @@ export const updateEventTicket = async (
 export const deleteEventTicket = async (id: string) => {
   const response = await fetch(`${BASE_URL}/tickets/delete/${id}`, {
     method: "DELETE",
+    headers: createAuthHeaders(),
     credentials: "include"
   });
 
