@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, ShieldCheck } from "lucide-react";
 import type { Event } from "@/lib/types/entities";
 
 interface ViewEventModalProps {
@@ -59,9 +59,15 @@ export function ViewEventModal({ isOpen, onClose, event, onEdit }: ViewEventModa
                 {formatDate(event.dateStart)} | {formatTime(event.dateStart)}
               </span>
             </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-blue-600" />
+              <span className="text-sm">
+                {event.venue || "TBA"}
+              </span>
+            </div>
             {event.org && (
               <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-blue-600" />
+                <ShieldCheck className="h-5 w-5 text-blue-600" />
                 <span className="text-sm">{event.org.name}</span>
               </div>
             )}

@@ -1,6 +1,7 @@
 export interface CreateEventRequest {
   name: string;
   description: string;
+  venue?: string;
   dateStart: string;
   dateEnd: string;
   isRegistrationOpen?: boolean;
@@ -12,6 +13,7 @@ export interface CreateEventRequest {
 export interface UpdateEventRequest {
   name?: string;
   description?: string;
+  venue?: string;
   banner?: string;
   thumbnail?: string;
   dateStart?: string;

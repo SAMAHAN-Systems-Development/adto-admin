@@ -11,6 +11,7 @@ export const createEventSchema: z.ZodSchema<CreateEventRequest> = z
       .string()
       .min(10, "Description must be at least 10 characters.")
       .max(5000, "Description cannot exceed 5000 characters."),
+    venue: z.string().optional(),
     dateStart: z.string().datetime("Provide a start date."),
     dateEnd: z.string().datetime("Provide an end date."),
     isRegistrationOpen: z.boolean().optional(),
@@ -46,6 +47,7 @@ export const updateEventSchema: z.ZodSchema<UpdateEventRequest> = z
       .min(10, "Description must be at least 10 characters.")
       .max(5000, "Description cannot exceed 5000 characters.")
       .optional(),
+    venue: z.string().optional(),
     dateStart: z.string().datetime("Provide a start date.").optional(),
     dateEnd: z.string().datetime("Provide an end date.").optional(),
     isRegistrationOpen: z.boolean().optional(),

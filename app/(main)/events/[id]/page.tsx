@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Calendar,
   MapPin,
+  ShieldCheck,
   Archive,
   ArrowLeft,
   CirclePlus,
@@ -79,8 +80,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   const [editedDateStart, setEditedDateStart] = useState("");
   const [editedDateEnd, setEditedDateEnd] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
+  const [editedVenue, setEditedVenue] = useState("");
   const [eventDetailsErrors, setEventDetailsErrors] = useState<
-    Partial<Record<"name" | "description" | "dateStart" | "dateEnd", string>>
+    Partial<Record<"name" | "description" | "venue" | "dateStart" | "dateEnd", string>>
   >({});
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [showUnarchiveModal, setShowUnarchiveModal] = useState(false);
@@ -190,6 +192,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
         | {
             name: string;
             description: string;
+            venue?: string | null;
             dateStart: string | Date;
             dateEnd: string | Date;
           }
@@ -199,6 +202,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
       setEditedName(eventData.name || "");
       setEditedDescription(eventData.description || "");
+      setEditedVenue(eventData.venue || "");
       setEditedDateStart(formatDateToIso(eventData.dateStart));
       setEditedDateEnd(formatDateToIso(eventData.dateEnd));
     },
@@ -333,7 +337,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   };
 
   const clearFieldError = (
-    field: "name" | "description" | "dateStart" | "dateEnd",
+    field: "name" | "description" | "venue" | "dateStart" | "dateEnd",
   ) => {
     setEventDetailsErrors((prev) => ({ ...prev, [field]: undefined }));
   };
@@ -370,6 +374,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     const payloadToValidate = {
       name: editedName.trim(),
       description: editedDescription.trim(),
+      venue: editedVenue.trim(),
       dateStart: editedDateStart,
       dateEnd: editedDateEnd,
     };
@@ -378,18 +383,18 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
     if (!validationResult.success) {
       const nextErrors: Partial<
-        Record<"name" | "description" | "dateStart" | "dateEnd", string>
+        Record<"name" | "description" | "venue" | "dateStart" | "dateEnd", string>
       > = {};
 
       validationResult.error.issues.forEach((issue) => {
         const field = issue.path[0];
         if (
           typeof field === "string" &&
-          ["name", "description", "dateStart", "dateEnd"].includes(field) &&
-          !nextErrors[field as "name" | "description" | "dateStart" | "dateEnd"]
+          ["name", "description", "venue", "dateStart", "dateEnd"].includes(field) &&
+          !nextErrors[field as "name" | "description" | "venue" | "dateStart" | "dateEnd"]
         ) {
           nextErrors[
-            field as "name" | "description" | "dateStart" | "dateEnd"
+            field as "name" | "description" | "venue" | "dateStart" | "dateEnd"
           ] = issue.message;
         }
       });
@@ -409,6 +414,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     const changedPayload: {
       name?: string;
       description?: string;
+      venue?: string;
       dateStart?: string;
       dateEnd?: string;
     } = {};
@@ -419,6 +425,10 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
     if (payloadToValidate.description !== event.description) {
       changedPayload.description = payloadToValidate.description;
+    }
+
+    if (payloadToValidate.venue !== (event.venue || "")) {
+      changedPayload.venue = payloadToValidate.venue;
     }
 
     if (payloadToValidate.dateStart !== currentStartDate) {
@@ -781,6 +791,31 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 )}
               </div>
 
+              <div className="space-y-2 max-w-3xl">
+                <label className="text-sm font-medium text-gray-900">
+                  Event Venue
+                </label>
+                <Input
+                  value={editedVenue}
+                  onChange={(e) => {
+                    setEditedVenue(e.target.value);
+                    clearFieldError("venue");
+                  }}
+                  placeholder="Enter event location (Optional)"
+                  className={
+                    eventDetailsErrors.venue
+                      ? "border-red-500 focus-visible:ring-red-500"
+                      : ""
+                  }
+                  aria-invalid={!!eventDetailsErrors.venue}
+                />
+                {eventDetailsErrors.venue && (
+                  <p className="text-sm text-red-600">
+                    {eventDetailsErrors.venue}
+                  </p>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-900">
@@ -827,7 +862,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               <div className="flex items-center gap-6 text-blue-600">
                 {event.org && (
                   <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
+                    <ShieldCheck className="h-5 w-5" />
                     <span className="text-base">{event.org.name}</span>
                   </div>
                 )}
@@ -866,9 +901,13 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                       {formatTime(event.dateStart.toString())}
                     </span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    <span className="text-base">{event.venue || "TBA"}</span>
+                  </div>
                   {event.org && (
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
+                      <ShieldCheck className="h-5 w-5" />
                       <span className="text-base">{event.org.name}</span>
                     </div>
                   )}

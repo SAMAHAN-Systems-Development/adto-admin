@@ -79,6 +79,7 @@ export interface Event {
   id: string;
   name: string;
   description: string;
+  venue?: string;
   banner?: string;
   thumbnail?: string;
   dateStart: Date;
